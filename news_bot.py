@@ -266,7 +266,7 @@ def build_website_html(articles):
     </div>
 
     <header>
-        <div class="logo" onclick="showHome()">भारत<span>समाचार</span>.in</div>
+        <div class="logo" onclick="showHome()">अब<span>तक24</span>.in</div>
         <div class="nav-pills">
             <span onclick="showHome()">मुख्य खबरें</span>
             <span onclick="showHome()">देश-विदेश</span>

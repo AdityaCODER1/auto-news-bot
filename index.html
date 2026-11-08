@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>अबतक24.in (Aabtak24.in) | ताज़ा हिंदी समाचार और देश-दुनिया की खबरें</title>
-    <meta name="description" content="अबतक24.in (Aabtak24.in) पर पढ़ें देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था और राजनीति की ताज़ा हिंदी खबरें।">
+    <meta name="description" content="अबतक24.in (Aabtak24.in) पर पढ़ें देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था, राजनीति और मनोरंजन की ताज़ा हिंदी खबरें।">
     <link rel="canonical" href="https://aabtak24.in/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="अबतक24.in | हिंदी न्यूज़ पोर्टल">
@@ -61,6 +61,8 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
     }
     .logo {
         font-family: 'Mukta', sans-serif;
@@ -79,7 +81,7 @@
         font-weight: 700;
         margin-left: 2px;
     }
-    .nav-pills { display: flex; gap: 24px; }
+    .nav-pills { display: flex; gap: 22px; flex-wrap: wrap; }
     .nav-pills a {
         font-weight: 700;
         font-size: 15px;
@@ -88,7 +90,18 @@
         position: relative;
         transition: color 0.2s ease;
     }
-    .nav-pills a:hover { color: var(--accent); }
+    .nav-pills a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0%;
+        height: 3px;
+        background: var(--accent);
+        transition: width 0.25s ease;
+    }
+    .nav-pills a:hover, .nav-pills a.active { color: var(--accent); }
+    .nav-pills a:hover::after, .nav-pills a.active::after { width: 100%; }
     .container { max-width: 1240px; margin: 36px auto 60px; padding: 0 20px; }
     .section-rule {
         border-top: 4px solid var(--border-heavy);
@@ -222,8 +235,8 @@
         transition: color 0.2s ease;
     }
     .side-card:hover .side-title { color: var(--accent); }
-    
-    /* Archive Grid below Hero */
+
+    /* Archive & Category Grid */
     .archive-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -236,6 +249,8 @@
         border-radius: 4px;
         overflow: hidden;
         transition: transform 0.2s ease;
+        display: flex;
+        flex-direction: column;
     }
     .archive-card:hover {
         transform: translateY(-3px);
@@ -245,10 +260,11 @@
         width: 100%;
         height: 200px;
         object-fit: cover;
+        background: #201D1A;
     }
     .archive-card-body { padding: 18px; }
 
-    /* Single Article Page Layout */
+    /* Single Article & Static Page Layout */
     .article-box {
         max-width: 780px;
         margin: 0 auto;
@@ -332,9 +348,13 @@
     <header>
         <a href="index.html" class="logo">अब<span>तक24</span><span class="dot-in">.in</span></a>
         <nav class="nav-pills">
-            <a href="index.html">मुख्य खबरें</a>
-            <a href="index.html">देश-विदेश</a>
-            <a href="index.html">टेक्नोलॉजी</a>
+            <a href="index.html" class="active">मुख्य खबरें</a>
+            <a href="desh-videsh.html">देश-विदेश</a>
+            <a href="technology.html">टेक्नोलॉजी</a>
+            <a href="economy.html">अर्थव्यवस्था</a>
+            <a href="politics.html">राजनीति</a>
+            <a href="entertainment.html">मनोरंजन</a>
+            <a href="about.html">हमारे बारे में</a>
         </nav>
     </header>
 
@@ -344,17 +364,25 @@
             <span>ताज़ा अपडेट्स</span>
         </div>
         <div class="bento-grid">
-            <a href="news/india-eldercare-startups-demand-growth.html" class="hero-card">
-                <div class="img-wrap"><img src="https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/83eb/live/3d4d12b0-d37d-11f1-bf63-739fb2907d03.jpg" alt="बुजुर्ग माता-पिता की देखभाल के लिए स्टार्ट-अप्स का सहारा: भारत में तेजी से बढ़ रहा एल्डरकेयर का बाजार"></div>
+            <a href="news/ranji-smile-first-indian-chef-america.html" class="hero-card">
+                <div class="img-wrap"><img src="https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/6aed/live/8bcbfe20-acc6-11f1-997d-cbb0a29e3293.png" alt="अमेरिका में पहली बार भारतीय करी की महक फैलाने वाला शेफ, जो 'नकली राजकुमार' बनकर हो गया ओझल"></div>
                 <div class="card-body">
                     <div>
-                        <span class="badge">बिजनेस एवं ट्रेंड्स</span>
-                        <h1 class="hero-title">बुजुर्ग माता-पिता की देखभाल के लिए स्टार्ट-अप्स का सहारा: भारत में तेजी से बढ़ रहा एल्डरकेयर का बाजार</h1>
+                        <span class="badge">देश-विदेश</span>
+                        <h1 class="hero-title">अमेरिका में पहली बार भारतीय करी की महक फैलाने वाला शेफ, जो 'नकली राजकुमार' बनकर हो गया ओझल</h1>
                     </div>
-                    <div class="meta">प्रकाशित: 08 Nov 2026, 03:10 PM <span class="meta-dot"></span> 2 मिनट पठन</div>
+                    <div class="meta">प्रकाशित: 08 Nov 2026, 03:25 PM <span class="meta-dot"></span> 2 मिनट पठन</div>
                 </div>
             </a>
             <div class="side-stack">
+        <a href="news/india-eldercare-startups-demand-growth.html" class="side-card">
+            <img src="https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/83eb/live/3d4d12b0-d37d-11f1-bf63-739fb2907d03.jpg" alt="बुजुर्ग माता-पिता की देखभाल के लिए स्टार्ट-अप्स का सहारा: भारत में तेजी से बढ़ रहा एल्डरकेयर का बाजार">
+            <div>
+                <span class="badge">बिजनेस एवं ट्रेंड्स</span>
+                <h3 class="side-title">बुजुर्ग माता-पिता की देखभाल के लिए स्टार्ट-अप्स का सहारा: भारत में तेजी से बढ़ रहा एल्डरकेयर का बाजार</h3>
+                <div class="meta">08 Nov 2026, 03:10 PM</div>
+            </div>
+        </a>
         <a href="news/india-school-violence-eight-year-old-assaults-six-year-old-in-classroom.html" class="side-card">
             <img src="https://live.staticflickr.com/7031/6416193813_687e6a9966_b.jpg" alt="कक्षा में 8 साल की बच्ची ने 6 साल की मासूम को बेरहमी से पीटा, घटना से देश भर में फैला आक्रोश">
             <div>
@@ -378,14 +406,6 @@
                 <h3 class="side-title">मध्य दिल्ली में कार्रवाई: ऐतिहासिक मस्जिद के पास सैकड़ों घरों पर चला प्रशासन का बुलडोजर, बेघर हुए परिवारों का छलका दर्द</h3>
                 <div class="meta">08 Nov 2026, 01:21 PM</div>
             </div>
-        </a>
-        <a href="news/delhi-air-quality-worsens-diwali-aqi-very-poor.html" class="side-card">
-            <img src="https://live.staticflickr.com/4909/45424627185_59792f2bc8_b.jpg" alt="दिवाली से पहले दिल्ली की हवा हुई जहरीली, AQI 377 पहुंचा; आतिशबाजी पर पाबंदी लागू">
-            <div>
-                <span class="badge">पर्यावरण</span>
-                <h3 class="side-title">दिवाली से पहले दिल्ली की हवा हुई जहरीली, AQI 377 पहुंचा; आतिशबाजी पर पाबंदी लागू</h3>
-                <div class="meta">08 Nov 2026, 01:16 PM</div>
-            </div>
         </a></div>
         </div>
         
@@ -394,6 +414,14 @@
             <span>सभी समाचार</span>
         </div>
         <div class="archive-grid">
+            <a href="news/delhi-air-quality-worsens-diwali-aqi-very-poor.html" class="archive-card">
+                <img src="https://live.staticflickr.com/4909/45424627185_59792f2bc8_b.jpg" alt="दिवाली से पहले दिल्ली की हवा हुई जहरीली, AQI 377 पहुंचा; आतिशबाजी पर पाबंदी लागू">
+                <div class="archive-card-body">
+                    <span class="badge">पर्यावरण</span>
+                    <h3 class="side-title">दिवाली से पहले दिल्ली की हवा हुई जहरीली, AQI 377 पहुंचा; आतिशबाजी पर पाबंदी लागू</h3>
+                    <div class="meta">08 Nov 2026, 01:16 PM</div>
+                </div>
+            </a>
             <a href="news/ramayana-rise-of-a-legend-indias-costliest-film-divides-critics.html" class="archive-card">
                 <img src="https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/891f/live/5dbe2290-d932-11f1-93e1-3b657b665bcf.jpg" alt="भारत की सबसे महंगी फिल्म 'रामायण: राइज़ ऑफ ए लेजेंड' पर आलोचकों की बंटी राय, क्या रच पाएगी इतिहास?">
                 <div class="archive-card-body">

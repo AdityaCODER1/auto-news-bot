@@ -71,6 +71,8 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
     }
     .logo {
         font-family: 'Mukta', sans-serif;
@@ -89,7 +91,7 @@
         font-weight: 700;
         margin-left: 2px;
     }
-    .nav-pills { display: flex; gap: 24px; }
+    .nav-pills { display: flex; gap: 22px; flex-wrap: wrap; }
     .nav-pills a {
         font-weight: 700;
         font-size: 15px;
@@ -98,7 +100,18 @@
         position: relative;
         transition: color 0.2s ease;
     }
-    .nav-pills a:hover { color: var(--accent); }
+    .nav-pills a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0%;
+        height: 3px;
+        background: var(--accent);
+        transition: width 0.25s ease;
+    }
+    .nav-pills a:hover, .nav-pills a.active { color: var(--accent); }
+    .nav-pills a:hover::after, .nav-pills a.active::after { width: 100%; }
     .container { max-width: 1240px; margin: 36px auto 60px; padding: 0 20px; }
     .section-rule {
         border-top: 4px solid var(--border-heavy);
@@ -232,8 +245,8 @@
         transition: color 0.2s ease;
     }
     .side-card:hover .side-title { color: var(--accent); }
-    
-    /* Archive Grid below Hero */
+
+    /* Archive & Category Grid */
     .archive-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -246,6 +259,8 @@
         border-radius: 4px;
         overflow: hidden;
         transition: transform 0.2s ease;
+        display: flex;
+        flex-direction: column;
     }
     .archive-card:hover {
         transform: translateY(-3px);
@@ -255,10 +270,11 @@
         width: 100%;
         height: 200px;
         object-fit: cover;
+        background: #201D1A;
     }
     .archive-card-body { padding: 18px; }
 
-    /* Single Article Page Layout */
+    /* Single Article & Static Page Layout */
     .article-box {
         max-width: 780px;
         margin: 0 auto;
@@ -343,8 +359,12 @@
         <a href="../index.html" class="logo">अब<span>तक24</span><span class="dot-in">.in</span></a>
         <nav class="nav-pills">
             <a href="../index.html">मुख्य खबरें</a>
-            <a href="../index.html">देश-विदेश</a>
-            <a href="../index.html">टेक्नोलॉजी</a>
+            <a href="../desh-videsh.html">देश-विदेश</a>
+            <a href="../technology.html">टेक्नोलॉजी</a>
+            <a href="../economy.html">अर्थव्यवस्था</a>
+            <a href="../politics.html">राजनीति</a>
+            <a href="../entertainment.html">मनोरंजन</a>
+            <a href="../about.html">हमारे बारे में</a>
         </nav>
     </header>
 

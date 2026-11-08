@@ -539,4 +539,97 @@ def build_website_html(articles):
 
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_template)
-    print("✅ Live website generated in index.
+    print("✅ Live website generated in index.html!")
+
+def fetch_and_rewrite():
+    # Load existing articles so your site builds an archive over time
+    articles = []
+    if os.path.exists(ARCHIVE_FILE):
+        try:
+            with open(ARCHIVE_FILE, "r", encoding="utf-8") as f:
+                articles = json.load(f)
+        except Exception:
+            articles = []
+
+    existing_links = {a.get("original_link") for a in articles}
+
+    print(f"Fetching latest English news from {SOURCE_NAME}...")
+    feed = feedparser.parse(RSS_URL)
+    if not feed.entries:
+        print("No news entries found!")
+        return
+
+    # On first run, generate 3 stories to populate the Bento Grid; afterwards 1 per run
+    target_count = 3 if len(articles) == 0 else 1
+    added = 0
+
+    for entry in feed.entries:
+        if entry.link in existing_links:
+            continue
+        if added >= target_count:
+            break
+
+        original_title = entry.title
+        original_summary = BeautifulSoup(entry.summary, "html.parser").get_text()
+        rss_image_url = get_rss_image(entry)
+
+        prompt = f"""
+        आप एक वरिष्ठ हिंदी समाचार संपादक (Senior Hindi News Editor) हैं।
+        नीचे दिए गए अंग्रेजी समाचार को पढ़कर एक मौलिक, आकर्षक और प्रभावशाली हिंदी समाचार लेख (लगभग 300-350 शब्द) लिखें।
+
+        दिशानिर्देश:
+        1. मशीनी अनुवाद न करें। खबर को सहज हिंदी पत्रकारिता की भाषा में दोबारा लिखें।
+        2. सभी तथ्य 100% सटीक रखें।
+        3. फोटो का निर्णय: यदि खबर किसी राजनेता, व्यक्ति या विशेष घटना पर है, तो "image_strategy" को "original" रखें। यदि सामान्य टेक, AI, अर्थव्यवस्था, स्वास्थ्य आदि पर है, तो "stock" रखें।
+        4. केवल वैध JSON में उत्तर दें जिसमें ये 6 keys हों:
+           - "title": हिंदी शीर्षक
+           - "category": हिंदी श्रेणी (जैसे: "देश-विदेश", "टेक्नोलॉजी", "अर्थव्यवस्था", "राजनीति")
+           - "slug": अंग्रेजी SEO URL slug
+           - "content_html": हिंदी लेख का HTML कोड (<p>, <h3> टैग्स के साथ)
+           - "image_strategy": "original" या "stock"
+           - "stock_search_query": 2 शब्दों का अंग्रेजी सर्च कीवर्ड
+
+        Original English Title: {original_title}
+        Original English Details: {original_summary}
+        """
+
+        article_data = generate_with_fallback(prompt)
+        strategy = article_data.get("image_strategy", "original")
+        search_query = article_data.get("stock_search_query", "technology")
+
+        final_image_url, image_courtesy = (None, "")
+        if strategy == "stock":
+            final_image_url, image_courtesy = fetch_free_stock_image(search_query)
+        if not final_image_url and rss_image_url:
+            final_image_url = rss_image_url
+            image_courtesy = f"फोटो साभार: {SOURCE_NAME} (RSS फ़ीड के माध्यम से)"
+        if not final_image_url:
+            final_image_url = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80"
+            image_courtesy = "फोटो साभार: Unsplash (प्रतीकात्मक तस्वीर)"
+
+        new_article = {
+            "title": article_data["title"],
+            "category": article_data.get("category", "प्रमुख समाचार"),
+            "slug": article_data["slug"],
+            "content_html": article_data["content_html"],
+            "image_url": final_image_url,
+            "image_courtesy": image_courtesy,
+            "original_link": entry.link,
+            "source_name": SOURCE_NAME,
+            "date": datetime.now().strftime("%d %b %Y, %I:%M %p")
+        }
+
+        articles.insert(0, new_article)
+        added += 1
+        time.sleep(2)
+
+    # Keep latest 20 articles & save
+    articles = articles[:20]
+    with open(ARCHIVE_FILE, "w", encoding="utf-8") as f:
+        json.dump(articles, f, ensure_ascii=False, indent=2)
+
+    # Build the live HTML portal
+    build_website_html(articles)
+
+if __name__ == "__main__":
+    fetch_and_rewrite()

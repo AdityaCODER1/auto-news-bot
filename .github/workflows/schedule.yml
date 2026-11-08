@@ -1,0 +1,26 @@
+name: Automated News Bot
+
+on:
+  schedule:
+    - cron: '0 */3 * * *' # Runs automatically every 3 hours
+  workflow_dispatch:      # Adds a manual "Run Now" button for testing!
+
+jobs:
+  run-news-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install required libraries
+        run: pip install -r requirements.txt
+
+      - name: Run News Paraphraser Script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: python news_bot.py

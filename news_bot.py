@@ -262,7 +262,7 @@ def build_website_html(articles):
 
     <div class="top-bar">
         <span>📅 {today_str} | Live GitHub Actions Preview</span>
-        <span>Powered by Gemini AI + Astra UI Blueprint</span>
+        <span></span>
     </div>
 
     <header>

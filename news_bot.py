@@ -42,6 +42,7 @@ def fetch_and_rewrite():
     - Write a fresh, catchy headline.
     - Format the body using clean HTML paragraphs (<p>, <h3>).
     - Return ONLY valid JSON with two keys: "title" and "content_html".
+    - Write the content in Hindi.
 
     Original Title: {original_title}
     Original Details: {original_summary}

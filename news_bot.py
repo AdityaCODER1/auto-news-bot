@@ -261,7 +261,7 @@ def build_website_html(articles):
 <body>
 
     <div class="top-bar">
-        <span>📅 {today_str} | Live GitHub Actions Preview</span>
+        <span>📅 {today_str}</span>
         <span></span>
     </div>
 

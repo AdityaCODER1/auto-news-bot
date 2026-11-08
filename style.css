@@ -35,7 +35,8 @@
    OPTIONAL READY-MADE THEMES (Uncomment ONE block below to switch themes!)
    ========================================================================== */
 
-/* --- THEME B: Midnight Cyber Dark Mode ---
+/* --- THEME B: Midnight Cyber Dark Mode --- */
+
 :root {
     --bg: #0D1117;
     --card: #161B22;
@@ -53,7 +54,7 @@
     --header-bg: rgba(13, 17, 23, 0.92);
     --card-radius: 10px;
 }
-*/
+
 
 /* --- THEME C: BBC / Lallantop Royal Crimson ---
 :root {

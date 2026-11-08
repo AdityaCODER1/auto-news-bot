@@ -3,17 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>भअबतक24.in (Aabtak24.in) | हिंदी न्यूज़ पोर्टल</title>
+    <title>अबतक24.in (Aabtak24.in) | हिंदी न्यूज़ पोर्टल</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #F8FAFC;
-            --card: #FFFFFF;
-            --text-main: #0F172A;
-            --text-muted: #64748B;
-            --accent: #E11D48;
-            --border: #E2E8F0;
+            --bg: #FAF6F0;            /* Warm editorial paper background */
+            --card: #FFFFFF;          /* Crisp white surface */
+            --card-subtle: #F3EDE2;   /* Warm secondary surface */
+            --text-main: #141210;     /* Deep warm charcoal/black */
+            --text-muted: #6E655F;    /* Warm slate muted text */
+            --accent: #FF4C00;        /* The Verge vibrant electric orange */
+            --accent-dark: #C83700;   /* Guardian-style deep rust orange */
+            --accent-tint: #FFE8DC;   /* Soft warm orange tint */
+            --border: #E2D9CC;        /* Editorial hairline divider */
+            --border-heavy: #141210;  /* Guardian-style heavy top rule */
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -21,169 +25,343 @@
             color: var(--text-main);
             font-family: 'Noto Sans Devanagari', sans-serif;
             line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
         }
-        /* Astra-Style Top Utility & Sticky Header */
+
+        /* Top Utility Bar - Deep Warm Espresso with Orange Highlight */
         .top-bar {
-            background: #0F172A;
-            color: #CBD5E1;
-            font-size: 13px;
-            padding: 6px 5%;
+            background: #141210;
+            color: #EAE3DC;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            padding: 8px 5%;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--accent);
         }
+        .top-bar .edition-tag {
+            color: var(--accent);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        /* Sleek Editorial Masthead */
         header {
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border);
+            background: rgba(250, 246, 240, 0.94);
+            backdrop-filter: blur(12px);
+            border-bottom: 2px solid var(--border-heavy);
             position: sticky;
             top: 0;
             z-index: 100;
-            padding: 16px 5%;
+            padding: 18px 5%;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .logo {
             font-family: 'Mukta', sans-serif;
-            font-size: 30px;
+            font-size: 36px;
             font-weight: 800;
             color: var(--text-main);
             text-decoration: none;
             cursor: pointer;
+            letter-spacing: -0.5px;
+            line-height: 1;
+            display: flex;
+            align-items: baseline;
         }
-        .logo span { color: var(--accent); }
-        .nav-pills span {
-            margin-left: 18px;
-            font-weight: 600;
-            font-size: 15px;
+        .logo span {
+            color: var(--accent);
+        }
+        .logo .dot-in {
+            font-size: 20px;
             color: var(--text-muted);
-            cursor: pointer;
+            font-weight: 700;
+            margin-left: 2px;
         }
-        .nav-pills span:hover { color: var(--accent); }
-        .container { max-width: 1200px; margin: 32px auto; padding: 0 20px; }
+        .nav-pills {
+            display: flex;
+            gap: 24px;
+        }
+        .nav-pills span {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-main);
+            cursor: pointer;
+            padding: 4px 0;
+            position: relative;
+            transition: color 0.2s ease;
+        }
+        .nav-pills span::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0%;
+            height: 3px;
+            background: var(--accent);
+            transition: width 0.25s ease;
+        }
+        .nav-pills span:hover {
+            color: var(--accent);
+        }
+        .nav-pills span:hover::after {
+            width: 100%;
+        }
 
-        /* Astra + Spectra Hero Bento Grid */
+        .container {
+            max-width: 1240px;
+            margin: 36px auto 60px;
+            padding: 0 20px;
+        }
+
+        /* Section Header Rule (Guardian Style) */
+        .section-rule {
+            border-top: 4px solid var(--border-heavy);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 0;
+            margin-bottom: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-rule h2 {
+            font-family: 'Mukta', sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: var(--accent);
+            letter-spacing: 0.8px;
+        }
+        .section-rule span {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* Verge + Guardian Hero Bento Grid */
         .bento-grid {
             display: grid;
-            grid-template-columns: 1.8fr 1fr;
-            gap: 28px;
-            margin-bottom: 40px;
+            grid-template-columns: 1.75fr 1fr;
+            gap: 32px;
+            margin-bottom: 48px;
         }
-        @media (max-width: 860px) { .bento-grid { grid-template-columns: 1fr; } }
-        .card {
+        @media (max-width: 900px) {
+            .bento-grid { grid-template-columns: 1fr; }
+            .nav-pills { gap: 14px; }
+            .logo { font-size: 30px; }
+        }
+
+        /* Lead Hero Card */
+        .hero-card {
             background: var(--card);
-            border-radius: 12px;
             border: 1px solid var(--border);
+            border-top: 4px solid var(--accent);
+            border-radius: 4px;
             overflow: hidden;
             cursor: pointer;
-            transition: box-shadow 0.25s ease, transform 0.25s ease;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            display: flex;
+            flex-direction: column;
         }
-        .card:hover { box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08); }
-        .img-wrap { overflow: hidden; position: relative; background: #e2e8f0; }
+        .hero-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 32px -8px rgba(20, 18, 16, 0.12);
+        }
+        .img-wrap {
+            overflow: hidden;
+            position: relative;
+            background: #201D1A;
+        }
         .img-wrap img {
             width: 100%;
-            height: 380px;
+            height: 410px;
             object-fit: cover;
             display: block;
-            transition: transform 0.35s ease;
+            transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .card:hover .img-wrap img { transform: scale(1.04); }
-        .card-body { padding: 24px; }
+        .hero-card:hover .img-wrap img {
+            transform: scale(1.03);
+        }
+        .card-body {
+            padding: 28px 30px 32px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Guardian Kicker / Verge Badge */
         .badge {
             display: inline-block;
-            background: #FFE4E6;
-            color: var(--accent);
+            background: var(--accent-tint);
+            color: var(--accent-dark);
             font-size: 12px;
-            font-weight: 700;
+            font-weight: 800;
             text-transform: uppercase;
             padding: 3px 10px;
-            border-radius: 4px;
-            margin-bottom: 10px;
+            border-left: 3px solid var(--accent);
+            margin-bottom: 12px;
+            letter-spacing: 0.4px;
+            width: fit-content;
         }
         .hero-title {
             font-family: 'Mukta', sans-serif;
-            font-size: 28px;
-            line-height: 1.3;
-            margin-bottom: 12px;
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1.25;
+            margin-bottom: 16px;
+            color: var(--text-main);
+            transition: color 0.2s ease;
         }
-        .meta { font-size: 13px; color: var(--text-muted); }
-
-        /* Right Sidebar Stack */
-        .side-stack { display: flex; flex-direction: column; gap: 16px; }
-        .side-card {
-            display: grid;
-            grid-template-columns: 120px 1fr;
-            gap: 14px;
-            padding: 14px;
+        .hero-card:hover .hero-title {
+            color: var(--accent-dark);
+        }
+        .meta {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
+            display: flex;
             align-items: center;
+            gap: 8px;
+        }
+        .meta-dot {
+            width: 4px;
+            height: 4px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Right Sidebar Editorial Stack */
+        .side-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .side-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-top: 3px solid var(--border-heavy);
+            border-radius: 4px;
+            display: grid;
+            grid-template-columns: 128px 1fr;
+            gap: 16px;
+            padding: 16px;
+            align-items: center;
+            cursor: pointer;
+            transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+        }
+        .side-card:hover {
+            border-top-color: var(--accent);
+            background: #FFFDFB;
+            transform: translateX(3px);
         }
         .side-card img {
-            width: 120px;
-            height: 90px;
+            width: 128px;
+            height: 94px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 2px;
+            background: #201D1A;
         }
         .side-title {
             font-family: 'Mukta', sans-serif;
-            font-size: 17px;
-            line-height: 1.35;
+            font-size: 18px;
+            line-height: 1.3;
             font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            transition: color 0.2s ease;
+        }
+        .side-card:hover .side-title {
+            color: var(--accent);
         }
 
-        /* Single Post Focused Reading View (740px Astra Layout) */
+        /* Single Post Focused Reading View (Guardian Editorial Column) */
         #article-view {
             display: none;
-            max-width: 740px;
+            max-width: 780px;
             margin: 0 auto;
             background: var(--card);
-            padding: 40px;
-            border-radius: 12px;
+            padding: 48px 52px;
+            border-radius: 4px;
             border: 1px solid var(--border);
+            border-top: 5px solid var(--accent);
+            box-shadow: 0 10px 30px -10px rgba(20, 18, 16, 0.07);
+        }
+        @media (max-width: 640px) {
+            #article-view { padding: 28px 20px; }
         }
         .back-btn {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: var(--accent);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 24px;
+            color: var(--text-main);
+            background: var(--card-subtle);
+            padding: 7px 14px;
+            border-radius: 3px;
+            font-size: 14px;
             font-weight: 700;
             cursor: pointer;
+            border-left: 3px solid var(--accent);
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+        .back-btn:hover {
+            background: var(--accent);
+            color: #FFFFFF;
         }
         .single-title {
             font-family: 'Mukta', sans-serif;
-            font-size: 34px;
-            line-height: 1.25;
-            margin: 10px 0 16px;
+            font-size: 38px;
+            font-weight: 800;
+            line-height: 1.22;
+            margin: 8px 0 18px;
+            color: var(--text-main);
+        }
+        #art-meta {
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .single-figure {
+            margin: 24px 0 28px;
         }
         .single-figure img {
             width: 100%;
-            max-height: 440px;
+            max-height: 460px;
             object-fit: cover;
-            border-radius: 10px;
-            margin-top: 16px;
+            border-radius: 3px;
+            display: block;
         }
         .image-credit {
             font-size: 12px;
             color: var(--text-muted);
             text-align: right;
-            margin-top: 6px;
+            margin-top: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
             font-style: italic;
         }
         .article-content {
             margin-top: 24px;
-            font-size: 18px;
-            line-height: 1.85;
+            font-size: 19px;
+            line-height: 1.9;
+            color: #1F1B18;
         }
-        .article-content p { margin-bottom: 18px; }
+        .article-content p {
+            margin-bottom: 20px;
+        }
         .article-content h3 {
             font-family: 'Mukta', sans-serif;
-            font-size: 23px;
-            margin: 28px 0 10px;
-        }
-        .source-box {
-            margin-top: 30px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-            font-size: 14px;
-            color: var(--text-muted);
+            font-size: 25px;
+            font-weight: 800;
+            margin: 34px 0 12px;
+            padding-left: 12px;
+            border-left: 4px solid var(--accent);
+            color: var(--text-main);
+            line-height: 1.3;
         }
     </style>
 </head>
@@ -191,11 +369,11 @@
 
     <div class="top-bar">
         <span>📅 08 November 2026</span>
-        <span></span>
+        <span class="edition-tag">डिजिटल संस्करण • INDIA</span>
     </div>
 
     <header>
-        <div class="logo" onclick="showHome()">अब<span>तक24</span>.in</div>
+        <div class="logo" onclick="showHome()">अब<span>तक24</span><span class="dot-in">.in</span></div>
         <div class="nav-pills">
             <span onclick="showHome()">मुख्य खबरें</span>
             <span onclick="showHome()">देश-विदेश</span>
@@ -206,13 +384,17 @@
     <div class="container">
         <!-- HOME BENTO GRID -->
         <div id="home-view">
+            <div class="section-rule">
+                <h2>प्रमुख सुर्खियां / Top Stories</h2>
+                <span>ताज़ा अपडेट्स</span>
+            </div>
             <div class="bento-grid" id="bento-container"></div>
         </div>
 
         <!-- SINGLE ARTICLE VIEW -->
         <div id="article-view">
-            <div class="back-btn" onclick="showHome()">← मुख्य पृष्ठ पर वापस जाएं (Back to Home)</div>
-            <div class="badge" id="art-badge">ताज़ा खबर</div>
+            <div class="back-btn" onclick="showHome()">← मुख्य पृष्ठ पर वापस जाएं</div>
+            <div><span class="badge" id="art-badge">ताज़ा खबर</span></div>
             <h1 class="single-title" id="art-title"></h1>
             <div class="meta" id="art-meta"></div>
             <figure class="single-figure">
@@ -220,12 +402,11 @@
                 <figcaption class="image-credit" id="art-credit"></figcaption>
             </figure>
             <div class="article-content" id="art-body"></div>
-            <div class="source-box" id="art-source"></div>
         </div>
     </div>
 
     <script>
-        const articles = [{"title": "'रामायण' में मुख्य भूमिका, AI का दौर और पिता बनने का अहसास: रणबीर कपूर ने साझा किए अपने विचार", "category": "मनोरंजन", "slug": "ranbir-kapoor-on-ramayana-ai-movies-and-fatherhood", "content_html": "<p>बॉलीवुड के प्रमुख अभिनेताओं में शुमार रणबीर कपूर इन दिनों अपनी आगामी भव्य फिल्म 'रामायण' को लेकर जबरदस्त चर्चा में हैं। भारतीय महाकाव्य रामायण पर आधारित इस नए और बड़े पैमाने के सिनेमाई रूपांतरण में रणबीर कपूर मुख्य भूमिका निभाते हुए नजर आएंगे। हाल ही में अभिनेता ने सिनेमा के भविष्य, आर्टिफिशियल इंटेलिजेंस (AI) के प्रभाव और पिता बनने के बाद अपने जीवन में आए बदलावों पर विस्तार से बात की।</p><h3>'रामायण' जैसे महाकाव्य से जुड़ना एक बड़ा दायित्व</h3><p>भारतीय सांस्कृतिक इतिहास में रामायण का अत्यंत उच्च स्थान है। इस पौराणिक कथा पर आधारित नई फिल्म की तैयारी पर बात करते हुए रणबीर कपूर ने कहा कि ऐसे ऐतिहासिक और पावन किरदार को बड़े पर्दे पर जीवंत करना किसी भी कलाकार के लिए बेहद सम्मानजनक और जिम्मेदारी भरा काम है। फिल्म से जुड़े सूत्र और दर्शक इस प्रोजेक्ट को लेकर बेहद उत्साहित हैं, जिसे भारतीय सिनेमा के अब तक के सबसे बड़े रूपांतरणों में से एक माना जा रहा है।</p><h3>सिनेमा में AI और मानवीय संवेदनाओं का संतुलन</h3><p>फिल्म उद्योग में तेजी से कदम रख रही आर्टिफिशियल इंटेलिजेंस (AI) तकनीक पर अपने विचार रखते हुए रणबीर ने माना कि तकनीक फिल्मों के निर्माण और विजुअल इफेक्ट्स को नया रूप दे रही है। हालांकि, उनका मानना है कि तकनीक कितनी भी उन्नत हो जाए, लेकिन पर्दे पर मानवीय संवेदनाएं, अभिनय की गहराई और वास्तविक भावनाएं ही दर्शकों के दिल को छूती हैं, जिन्हें कोई तकनीक रिप्लेस नहीं कर सकती।</p><h3>पिता बनने के बाद बदला जिंदगी का नजरिया</h3><p>अपनी निजी जिंदगी पर रोशनी डालते हुए रणबीर कपूर ने पिता बनने के अनुभव को बेहद खास बताया। उन्होंने कहा कि पितृत्व ने उनके जीवन की प्राथमिकताओं और सोच को पूरी तरह से बदल दिया है। इस नए अध्याय ने उन्हें अधिक धैर्यवान, जिम्मेदार और एक बेहतर इंसान बनने में मदद की है, जिसका सकारात्मक असर उनके अभिनय और काम करने की शैली पर भी पड़ रहा है।</p>", "image_url": "https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/34a0/live/de5f6350-d743-11f1-93df-c3d1391a27f8.jpg", "image_courtesy": "फोटो साभार: BBC News (RSS फ़ीड के माध्यम से)", "original_link": "https://www.bbc.co.uk/news/videos/cmvg9w5w2p1no?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 01:45 PM"}, {"title": "मध्य दिल्ली में कार्रवाई: ऐतिहासिक मस्जिद के पास सैकड़ों घरों पर चला प्रशासन का बुलडोजर, बेघर हुए परिवारों का छलका दर्द", "category": "देश-विदेश", "slug": "delhi-historic-mosque-demolition-drive-displaces-residents", "content_html": "<p><strong>नई दिल्ली:</strong> मध्य दिल्ली के एक ऐतिहासिक इलाके में वर्षों से रह रहे सैकड़ों परिवारों पर अचानक दुखों का पहाड़ टूट पड़ा है। प्रशासनिक अधिकारियों ने सरकारी जमीन पर अवैध निर्माण और अतिक्रमण का हवाला देते हुए एक विशाल तोड़फोड़ अभियान चलाया, जिसमें सैकड़ों मकानों को जमींदोज कर दिया गया। ऐतिहासिक मस्जिद के आसपास बसे इस इलाके में हुई इस कड़ी कार्रवाई के बाद सैकड़ों लोग बेघर हो गए हैं और खुले आसमान के नीचे रहने को मजबूर हैं।</p><h3>पीढ़ियों से रह रहे लोगों का छलका दर्द</h3><p>बेघर हुए स्थानीय निवासियों का कहना है कि वे कई पीढ़ियों से इस ऐतिहासिक मस्जिद के आसपास पलते-बढ़ते आए हैं। उनके पूर्वजों ने यहां अपना जीवन बिताया और उनकी बचपन की यादें इस मिट्टी से जुड़ी हुई हैं। एकाएक हुई इस प्रशासनिक कार्रवाई ने न केवल उनके सिर से छत छीन ली है, बल्कि उनकी सालों पुरानी सामाजिक पहचान को भी छिन्न-भिन्न कर दिया है। प्रभावित लोगों का आरोप है कि उन्हें अपना सामान समेटने और संभलने का पर्याप्त समय भी नहीं दिया गया।</p><h3>सरकारी जमीन पर अवैध कब्जे का दावा</h3><p>दूसरी ओर, संबंधित प्रशासनिक प्राधिकरणों का कहना है कि यह कार्रवाई पूरी तरह से नियमानुसार और कानून के दायरे में रहकर की गई है। अधिकारियों के मुताबिक, जिस जमीन पर मकान बने थे, वह सरकारी संपत्ति थी और उस पर लंबे समय से अवैध निर्माण बढ़ता जा रहा था। कई बार नोटिस जारी करने के बावजूद जब कब्जा नहीं हटाया गया, तो अंततः भारी पुलिस बल की मौजूदगी में बुलडोजर कार्रवाई करनी पड़ी। प्रशासन का तर्क है कि सरकारी जमीनों को अतिक्रमण मुक्त कराना बेहद जरूरी है।</p><h3>पुनर्वास और भविष्य पर मंडराया संकट</h3><p>इस बड़ी कार्रवाई के बाद प्रभावित परिवारों के सामने रोजी-रोटी, बच्चों की शिक्षा और छत का गंभीर संकट खड़ा हो गया है। सामाजिक कार्यकर्ताओं और नागरिक समूहों ने बेघर हुए लोगों के लिए तत्काल पुनर्वास नीति लागू करने की मांग की है। प्रभावित निवासियों का कहना है कि जब वे दशकों से यहां रह रहे थे और तमाम सरकारी दस्तावेजों के साथ बुनियादी सुविधाओं का इस्तेमाल कर रहे थे, तब प्रशासन क्यों खामोश रहा? फिलहाल, बेघर हुए परिवार विस्थापन के इस दर्द के बीच राहत और नए आशियाने की गुहार लगा रहे हैं।</p>", "image_url": "https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/70ed/live/39e7bed0-d676-11f1-a806-e976ee8757a1.jpg", "image_courtesy": "फोटो साभार: BBC News (RSS फ़ीड के माध्यम से)", "original_link": "https://www.bbc.co.uk/news/articles/cwp9gljmp3kdo?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 01:21 PM"}, {"title": "दिवाली से पहले दिल्ली की हवा हुई जहरीली, AQI 377 पहुंचा; आतिशबाजी पर पाबंदी लागू", "category": "पर्यावरण", "slug": "delhi-air-quality-worsens-diwali-aqi-very-poor", "content_html": "<p>त्यौहारों के सीजन के बीच देश की राजधानी दिल्ली की हवा लगातार जहरीली होती जा रही है। दिवाली से ठीक पहले दिल्ली और आसपास के इलाकों (NCR) में वायु प्रदूषण का स्तर बेहद चिंताजनक मोड़ पर पहुंच गया है। बुधवार सुबह दिल्ली का औसत वायु गुणवत्ता सूचकांक (AQI) 377 दर्ज किया गया, जो 'बहुत खराब' (Very Poor) श्रेणी में आता है। शहर के कई इलाकों में AQI 400 के करीब दर्ज किया गया, जो 'गंभीर' श्रेणी की दहलीज पर है।</p><h3>पटाखों पर सख्त पाबंदी लागू</h3><p>प्रदूषण के लगातार बिगड़ते हालात को देखते हुए प्रशासन ने दिल्ली में पटाखों के निर्माण, भंडारण, बिक्री और इस्तेमाल पर पूर्ण प्रतिबंध लागू कर दिया है। पर्यावरण विभाग और स्थानीय पुलिस की विशेष टीमें शहर भर में गश्त कर रही हैं ताकि नियमों का कड़ाई से पालन कराया जा सके। हालांकि, पड़ोसी राज्यों में जलाई जा रही पराली, वाहनों से निकलने वाले धुएं और हवा की धीमी गति के कारण स्थिति में सुधार होता नजर नहीं आ रहा है।</p><h3>स्वास्थ्य विशेषज्ञों ने जारी की एडवायजरी</h3><p>हवा में घुले जहरीले कणों (PM 2.5 और PM 10) के कारण दिल्लीवासियों को सांस लेने में भारी तकलीफ का सामना करना पड़ रहा है। स्वास्थ्य विशेषज्ञों ने बुजुर्गों, बच्चों और अस्थमा या दिल के मरीजों को फिलहाल सुबह के वक्त बाहर न निकलने की सलाह दी है। डॉक्टरों का कहना है कि बाहर निकलते समय N95 मास्क का इस्तेमाल बेहद जरूरी है, क्योंकि यह जहरीली हवा फेफड़ों को गंभीर नुकसान पहुंचा सकती है।</p><p>यदि आने वाले दिनों में हवा की रफ्तार नहीं बढ़ी, तो दिवाली के दौरान और उसके बाद दिल्ली-एनसीआर में स्मॉग की स्थिति और भी विकराल हो सकती है। प्रशासन ने ग्रेडेड रिस्पांस एक्शन प्लान (GRAP) के तहत निर्माण कार्यों पर रोक और पानी के छिड़काव जैसे कड़े कदम उठाने शुरू कर दिए हैं।</p>", "image_url": "https://live.staticflickr.com/4909/45424627185_59792f2bc8_b.jpg", "image_courtesy": "फोटो साभार: oatsy40 / Flickr (प्रतीकात्मक तस्वीर)", "original_link": "https://www.bbc.co.uk/news/articles/c699z8792n7ro?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 01:16 PM"}, {"title": "भारत की सबसे महंगी फिल्म 'रामायण: राइज़ ऑफ ए लेजेंड' पर आलोचकों की बंटी राय, क्या रच पाएगी इतिहास?", "category": "मनोरंजन", "slug": "ramayana-rise-of-a-legend-indias-costliest-film-divides-critics", "content_html": "<p>भारतीय सिनेमा के इतिहास की सबसे महंगी और महत्वाकांक्षी फिल्म 'रामायण: राइज़ ऑफ ए लेजेंड' आखिरकार सिनेमाघरों में दस्तक दे चुकी है। दो भागों में बनने वाली इस भव्य सिनेमैटिक फ्रेंचाइजी का पहला हिस्सा रिलीज़ होते ही देश-विदेश में चर्चा का केंद्र बन गया है। जहां एक तरफ इस फिल्म को लेकर आम दर्शकों में जबरदस्त क्रेज देखा जा रहा है, वहीं दूसरी तरफ फिल्म समीक्षकों के बीच इसे लेकर बंटी हुई राय देखने को मिल रही है।</p><h3>अभूतपूर्व बजट और भव्य विजुअल इफेक्ट्स</h3><p>पौराणिक महाकाव्य रामायण पर आधारित इस फिल्म को अभूतपूर्व पैमाने पर तैयार किया गया है। बेहतरीन विजुअल इफेक्ट्स (VFX), भव्य सेट्स और अंतरराष्ट्रीय स्तर के एक्शन सीक्वेंस के जरिए प्राचीन भारत के उस गौरवशाली काल को बड़े पर्दे पर जीवंत करने की कोशिश की गई है। निर्माताओं ने इस प्रोजेक्ट में पानी की तरह पैसा बहाया है, जिससे यह भारत की अब तक की सबसे खर्चीली फिल्म बन गई है।</p><h3>आलोचकों में बंटी राय: तकनीक बनाम भावनाएं</h3><p>फिल्म रिलीज़ के साथ ही सिनेमा जगत के जानकारों और आलोचकों की प्रतिक्रियाएं सामने आने लगी हैं। समीक्षकों का एक वर्ग फिल्म के भव्य कैनवास, सिनेमैटोग्राफी और मुख्य कलाकारों के अभिनय की जमकर तारीफ कर रहा है। उनका मानना है कि यह भारतीय सिनेमा को वैश्विक स्तर पर ले जाने वाला प्रयास है।</p><p>वहीं, आलोचकों का दूसरा वर्ग फिल्म की पटकथा और गति से थोड़ा निराश नजर आ रहा है। कुछ समीक्षकों का कहना है कि अत्यधिक स्पेशल इफेक्ट्स और CGI के इस्तेमाल के कारण कथा की आत्मा और भावनात्मक गहराई कहीं पीछे छूट गई है। इसके अलावा, परंपरावादी दर्शकों को पौराणिक संदर्भों के साथ किए गए कुछ आधुनिक प्रयोग भी खास पसंद नहीं आ रहे हैं।</p><h3>बॉक्स ऑफिस पर बंपर कमाई की उम्मीद</h3><p>समीक्षकों की मिली-जुली प्रतिक्रियाओं के बावजूद, सिनेमाघरों में दर्शकों की भारी भीड़ उमड़ रही है। एडवांस बुकिंग के आंकड़े साफ बताते हैं कि दर्शक इस ऐतिहासिक अनुभव को बड़े पर्दे पर देखने के लिए बेहद उत्सुक हैं। दो भागों की इस कहानी का पहला हिस्सा दर्शकों को एक बड़े सस्पेंस मोड़ पर छोड़ता है। अब यह देखना दिलचस्प होगा कि आलोचकों की राय को दरकिनार करते हुए यह फिल्म बॉक्स ऑफिस पर सफलता के कौन से नए आयाम गढ़ती है।</p>", "image_url": "https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/891f/live/5dbe2290-d932-11f1-93e1-3b657b665bcf.jpg", "image_courtesy": "फोटो साभार: BBC News (RSS फ़ीड के माध्यम से)", "original_link": "https://www.bbc.co.uk/news/articles/cm93zv62v1n7o?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 01:11 PM"}, {"title": "दिल्ली में फिर लौटने लगा 'ज़हरीला' धुआं: विंटर एक्शन प्लान तैयार, लेकिन क्या प्रदूषण से मिल पाएगी राहत?", "category": "पर्यावरण", "slug": "delhi-winter-toxic-air-pollution-action-plan-experts-warning", "content_html": "<h3>सर्दियों की दस्तक के साथ गहराने लगा प्रदूषण का संकट</h3><p>देश की राजधानी दिल्ली में एक बार फिर गुलाबी ठंड के आगमन के साथ ही 'ज़हरीली हवा' का दमघोंटू साया मंडराने लगा है। दिल्ली सरकार ने प्रदूषण से निपटने के लिए अपनी तैयारियों का दावा करते हुए चार महीने के विंटर एक्शन प्लान की घोषणा की है। इसमें धूल नियंत्रण, हॉटस्पॉट की निगरानी, पराली के धुएं पर रोक और वाहनों से होने वाले उत्सर्जन को कम करने जैसे कई उपाय शामिल किए गए हैं। हालांकि, पर्यावरण विशेषज्ञों और नीतिगत विश्लेषकों का स्पष्ट मानना है कि सिर्फ चार महीने की यह मौसमी योजना दिल्ली-एनसीआर के निवासियों को स्वच्छ हवा देने के लिए पर्याप्त साबित नहीं होगी।</p><h3>स्थायी समाधान के बजाय आपातकालीन उपायों पर निर्भरता</h3><p>पर्यावरणविदों के अनुसार, दिल्ली की जहरीली हवा केवल सर्दियों का संकट नहीं है, बल्कि यह पूरे वर्ष बने रहने वाले ढांचागत प्रदूषण का परिणाम है जो सर्दियों में प्रतिकूल मौसम के कारण विकराल रूप ले लेता है। विशेषज्ञों का कहना है कि जब तक पड़ोसी राज्यों के साथ तालमेल बिठाकर पूरे इंडो-गांगेय मैदानी क्षेत्र (Indo-Gangetic Plain) के लिए एक एकीकृत रणनीति नहीं बनाई जाती, तब तक समस्या का समाधान असंभव है। केवल निर्माण कार्यों पर रोक लगाने या कुछ दिनों के लिए ऑड-इवन लागू करने जैसे तात्कालिक कदम सिर्फ 'बैंड-एड' उपचार की तरह हैं।</p><h3>स्वास्थ्य पर गंभीर प्रभाव और नागरिकों की चिंताएं</h3><p>हर साल विंटर सीजन के दौरान दिल्ली-एनसीआर की वायु गुणवत्ता सूचकांक (AQI) 'गंभीर' और 'अति गंभीर' श्रेणी में पहुंच जाता है। इसके कारण बच्चों, बुजुर्गों और अस्थमा तथा हृदय रोग से पीड़ित मरीजों के लिए जीवन कठिन हो जाता है। अस्पतालों में सांस के मरीजों की संख्या में भारी उछाल दर्ज किया जाता है। स्थानीय नागरिक और स्वास्थ्य विशेषज्ञ लगातार मांग कर रहे हैं कि सरकारें राजनीति से ऊपर उठकर सार्वजनिक परिवहन के सुदृढ़ीकरण, ठोस कचरा प्रबंधन और औद्योगिक उत्सर्जन पर कड़े नियम लागू करने जैसे दीर्घकालिक और ठोस कदम उठाएं।</p>", "image_url": "https://live.staticflickr.com/4909/45424627185_59792f2bc8_b.jpg", "image_courtesy": "फोटो साभार: oatsy40 / Flickr (प्रतीकात्मक तस्वीर)", "original_link": "https://www.bbc.co.uk/news/articles/cm78p0n09q3xo?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 11:44 AM"}, {"title": "दीपों के पर्व दिवाली की देशभर में धूम, रोशनी से जगमगाए घर और मंदिर", "category": "देश", "slug": "diwali-celebrations-begin-across-india-lights-sweets", "content_html": "<h3>रोशनी और खुशियों का महापर्व</h3><p>देशभर में रोशनी का सबसे बड़ा त्योहार, 'दीपावली' बड़े ही धूमधाम और पारंपरिक उत्साह के साथ मनाया जा रहा है। कार्तिक मास की अमावस्या पर मनाया जाने वाला यह पर्व बुराई पर अच्छाई और अंधेरे पर उजाले की विजय का प्रतीक है। देश के कोने-कोने में स्थित ऐतिहासिक मंदिरों से लेकर आम लोगों के घरों तक, हर तरफ मिट्टी के दीयों और रंग-बिरंगी आधुनिक रोशनी की अद्भुत जगमगाहट देखने को मिल रही है।</p><h3>बाजारों में रौनक, दीयों से सजे घर</h3><p>त्योहार को लेकर पिछले कई दिनों से चल रही तैयारियां अब अपने चरम पर पहुंच गई हैं। देश के छोटे-बड़े बाजारों में लोगों की भारी भीड़ उमड़ रही है। नए वस्त्रों, सजावटी सामान, रंगोली के रंगों और पारंपरिक मिठाइयों की दुकानों पर ग्राहकों का तांता लगा हुआ है। लोग अपने रिश्तेदारों और मित्रों को मिठाइयां व उपहार भेंट कर दिवाली की शुभकामनाएं दे रहे हैं। शाम ढलते ही लाखों दीये जलाकर धन-धान्य की देवी मां लक्ष्मी और विघ्नहर्ता भगवान गणेश का स्वागत किया जा रहा है।</p><h3>धार्मिक स्थलों पर भव्य सजावट</h3><p>अयोध्या, वाराणसी, मथुरा और अमृतसर के स्वर्ण मंदिर सहित देश के सभी प्रमुख धार्मिक स्थलों पर दिवाली की भव्यता देखते ही बन रही है। मंदिरों को ताजे फूलों और जगमगाती लड़ियों से दुल्हन की तरह सजाया गया है। श्रद्धालु तड़के से ही पवित्र नदियों में स्नान कर मंदिरों में दर्शन-पूजन के लिए पहुंच रहे हैं। कई ऐतिहासिक शहरों में भव्य महाआरती और 'दीपोत्सव' का आयोजन किया गया है, जहां लाखों दीये एक साथ प्रज्वलित कर नया रिकॉर्ड बनाया जा रहा है।</p><h3>परंपरा और उत्सव का संगम</h3><p>इस साल दीपावली पर पारंपरिक उत्साह के साथ-साथ आतिशबाजी का भी आनंद लिया जा रहा है। परिवारों में एक साथ मिलकर मिठाइयां बांटने, घरों के आंगन में आकर्षक रंगोली बनाने और बच्चों द्वारा पटाखे छुड़ाने का दौर जारी है। रोशनी के इस पावन पर्व ने पूरे देश को एकता, सद्भाव और उल्लास के अनूठे रंग में रंग दिया है।</p>", "image_url": "https://live.staticflickr.com/6103/6322666160_96de687c57_b.jpg", "image_courtesy": "फोटो साभार: MDGovpics / Flickr (प्रतीकात्मक तस्वीर)", "original_link": "https://www.bbc.co.uk/news/articles/cm70pdwz122ro?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 11:44 AM"}, {"title": "18 अवॉर्ड्स जीतने के बाद रिलीज हुई यह भारतीय फिल्म, सिनेमाघरों से रोते हुए बाहर निकल रहे दर्शक", "category": "मनोरंजन", "slug": "indian-film-hits-theatres-after-18-awards-emotional-audience-response", "content_html": "<p>भारतीय सिनेमा के इतिहास में अक्सर देखा गया है कि लीक से हटकर बनी फिल्मों को सिनेमाघरों तक पहुंचाने के लिए निर्माताओं को कड़ा संघर्ष करना पड़ता है। ऐसा ही कुछ एक भारतीय फिल्म के साथ हुआ, जिसे शुरुआत में कोई भी डिस्ट्रीब्यूटर रिलीज करने को तैयार नहीं था। हालांकि, दमदार कहानी के दम पर इस फिल्म ने न केवल अंतरराष्ट्रीय स्तर पर सफलता के झंडे गाड़े, बल्कि 18 प्रतिष्ठित पुरस्कार जीतने के बाद जब यह बड़े पर्दे पर आई, तो इसने दर्शकों का दिल पूरी तरह से जीत लिया।</p><h3>थिएटर्स से रोते हुए बाहर निकल रहे लोग</h3><p>सोशल मीडिया पर इन दिनों सिनेमाघरों के बाहर के ऐसे कई भावुक दृश्य वायरल हो रहे हैं, जिन्हें देखकर हर कोई हैरान है। फिल्म देखकर बाहर निकल रहे दर्शक अपनी भावनाओं पर काबू नहीं रख पा रहे हैं और कई लोगों की आंखों में आंसू साफ देखे जा सकते हैं। दर्शकों का कहना है कि फिल्म का कथानक और पात्रों की संवेदनाएं इतनी गहरी हैं कि यह सीधे दिल को छूती हैं। सोशल मीडिया पर लोग इसे इस दशक की सबसे प्रभावशाली फिल्मों में से एक बता रहे हैं।</p><h3>18 अंतरराष्ट्रीय पुरस्कारों के बाद मिला खरीदार</h3><p>इस फिल्म का निर्माण सफर काफी कठिनाइयों भरा रहा। शुरुआत में जब निर्माताओं ने इसे बड़े डिस्ट्रीब्यूटर्स और थिएटर्स मालिकों के सामने पेश किया, तो सभी ने इसे कमर्शियल न मानते हुए रिलीज करने से इनकार कर दिया था। इसके बाद निर्माताओं ने इसे वैश्विक फिल्म समारोहों में भेजने का फैसला किया। दुनिया भर के फेस्टिवल्स में फिल्म की जमकर तारीफ हुई और इसने एक-एक करके 18 अंतरराष्ट्रीय पुरस्कार अपने नाम किए। इन अवॉर्ड्स की बदौलत फिल्म को पहचान मिली और आखिरकार इसे सिनेमाघरों में भव्य रिलीज नसीब हुई।</p><h3>कंटेंट और स्वतंत्र सिनेमा की बड़ी जीत</h3><p>फिल्म को मिल रहा यह अप्रत्याशित प्यार भारतीय इंडिपेंडेंट (स्वतंत्र) सिनेमा के लिए एक नया सवेरा माना जा रहा है। फिल्म समीक्षकों का मानना है कि इस घटना ने साबित कर दिया है कि अगर फिल्म की कहानी सच्ची और कंटेंट मजबूत हो, तो उसे दर्शकों के दिलों तक पहुंचने से कोई नहीं रोक सकता। यह सफलता उन तमाम युवा फिल्म निर्माताओं के लिए प्रेरणा है जो बिना किसी बड़े स्टारकास्ट के बेहतरीन कहानियां कहने का माद्दा रखते हैं।</p>", "image_url": "https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/1489/live/c9303e00-d9eb-11f1-bbe5-797ee05bee69.jpg", "image_courtesy": "फोटो साभार: BBC News (RSS फ़ीड के माध्यम से)", "original_link": "https://www.bbc.co.uk/news/articles/c6ly334rem5do?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 11:44 AM"}];
+        const articles = [{"title": "कक्षा में 8 साल की बच्ची ने 6 साल की मासूम को बेरहमी से पीटा, घटना से देश भर में फैला आक्रोश", "category": "देश-विदेश", "slug": "india-school-violence-eight-year-old-assaults-six-year-old-in-classroom", "content_html": "<p>भारत के एक स्कूल के क्लासरूम के भीतर घटी एक दिल दहला देने वाली घटना ने पूरे देश को सन्न कर दिया है। कक्षा के अंदर ही महज आठ साल की एक बच्ची ने छह साल की मासूम छात्रा पर हमला कर उसे बुरी तरह घायल कर दिया। इस घटना की खबर सामने आते ही आम लोगों, अभिभावकों और बाल अधिकार कार्यकर्ताओं में भारी गुस्सा और आक्रोश देखा जा रहा है। बच्चों के बीच हिंसा की इस अभूतपूर्व घटना ने देश की शिक्षा व्यवस्था और बच्चों के मानसिक स्वास्थ्य पर गंभीर सवाल खड़े कर दिए हैं।</p><p>हमले का शिकार हुई मासूम बच्ची के परिजनों ने बताया कि इस खौफनाक हमले में उनकी बेटी गंभीर रूप से घायल हो गई थी। गनीमत यह रही कि समय पर इलाज मिलने से अब उसकी जान खतरे से बाहर है। हालांकि, शारीरिक चोटों से उबरने के बावजूद बच्ची इस खौफनाक वारदात के बाद से गहरे मानसिक सदमे (ट्रॉमा) में है। परिजनों का कहना है कि मासूम बच्ची इस कदर डरी हुई है कि वह किसी से बात करने में भी घबरा रही है और बार-बार सहम जाती है।</p><h3>क्लासरूम में सुरक्षा और निगरानी पर उठे गंभीर सवाल</h3><p>यह मामला सामने आने के बाद सोशल मीडिया से लेकर देश भर में स्कूल प्रशासन के खिलाफ भारी विरोध देखने को मिल रहा है। हर कोई यह सवाल उठा रहा है कि जब क्लासरूम के भीतर इतनी छोटी बच्ची के साथ मारपीट हो रही थी, तब स्कूल के शिक्षक और कर्मचारी कहां थे? इतनी कम उम्र के बच्चों की आपस में इस तरह की हिंसक भिड़ंत स्कूल की सुरक्षा व्यवस्था और निगरानी पर बड़ा धब्बा है।</p><h3>बच्चों में बढ़ती आक्रामकता को लेकर विशेषज्ञ चिंतित</h3><p>इस दुखद घटना ने बाल मनोवैज्ञानिकों को भी सोचने पर मजबूर कर दिया है। विशेषज्ञों का मानना है कि आठ साल जैसी मासूम उम्र में इतना आक्रामक व्यवहार चिंताजनक है। इसके पीछे हिंसक डिजिटल कंटेंट, पारिवारिक माहौल या व्यवहारिक विकार जिम्मेदार हो सकते हैं। फिलहाल स्थानीय प्रशासन मामले की जांच में जुटा है, लेकिन इस घटना ने स्कूलों में बच्चों के लिए काउंसिलिंग और सुरक्षित माहौल तैयार करने की सख्त जरूरत को रेखांकित किया है।</p>", "image_url": "https://live.staticflickr.com/7031/6416193813_687e6a9966_b.jpg", "image_courtesy": "फोटो साभार: ToGa Wanderings / Flickr (प्रतीकात्मक तस्वीर)", "original_link": "https://www.bbc.co.uk/news/articles/crje5gqnl89no?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 02:27 PM"}, {"title": "'रामायण' में मुख्य भूमिका, AI का दौर और पिता बनने का अहसास: रणबीर कपूर ने साझा किए अपने विचार", "category": "मनोरंजन", "slug": "ranbir-kapoor-on-ramayana-ai-movies-and-fatherhood", "content_html": "<p>बॉलीवुड के प्रमुख अभिनेताओं में शुमार रणबीर कपूर इन दिनों अपनी आगामी भव्य फिल्म 'रामायण' को लेकर जबरदस्त चर्चा में हैं। भारतीय महाकाव्य रामायण पर आधारित इस नए और बड़े पैमाने के सिनेमाई रूपांतरण में रणबीर कपूर मुख्य भूमिका निभाते हुए नजर आएंगे। हाल ही में अभिनेता ने सिनेमा के भविष्य, आर्टिफिशियल इंटेलिजेंस (AI) के प्रभाव और पिता बनने के बाद अपने जीवन में आए बदलावों पर विस्तार से बात की।</p><h3>'रामायण' जैसे महाकाव्य से जुड़ना एक बड़ा दायित्व</h3><p>भारतीय सांस्कृतिक इतिहास में रामायण का अत्यंत उच्च स्थान है। इस पौराणिक कथा पर आधारित नई फिल्म की तैयारी पर बात करते हुए रणबीर कपूर ने कहा कि ऐसे ऐतिहासिक और पावन किरदार को बड़े पर्दे पर जीवंत करना किसी भी कलाकार के लिए बेहद सम्मानजनक और जिम्मेदारी भरा काम है। फिल्म से जुड़े सूत्र और दर्शक इस प्रोजेक्ट को लेकर बेहद उत्साहित हैं, जिसे भारतीय सिनेमा के अब तक के सबसे बड़े रूपांतरणों में से एक माना जा रहा है।</p><h3>सिनेमा में AI और मानवीय संवेदनाओं का संतुलन</h3><p>फिल्म उद्योग में तेजी से कदम रख रही आर्टिफिशियल इंटेलिजेंस (AI) तकनीक पर अपने विचार रखते हुए रणबीर ने माना कि तकनीक फिल्मों के निर्माण और विजुअल इफेक्ट्स को नया रूप दे रही है। हालांकि, उनका मानना है कि तकनीक कितनी भी उन्नत हो जाए, लेकिन पर्दे पर मानवीय संवेदनाएं, अभिनय की गहराई और वास्तविक भावनाएं ही दर्शकों के दिल को छूती हैं, जिन्हें कोई तकनीक रिप्लेस नहीं कर सकती।</p><h3>पिता बनने के बाद बदला जिंदगी का नजरिया</h3><p>अपनी निजी जिंदगी पर रोशनी डालते हुए रणबीर कपूर ने पिता बनने के अनुभव को बेहद खास बताया। उन्होंने कहा कि पितृत्व ने उनके जीवन की प्राथमिकताओं और सोच को पूरी तरह से बदल दिया है। इस नए अध्याय ने उन्हें अधिक धैर्यवान, जिम्मेदार और एक बेहतर इंसान बनने में मदद की है, जिसका सकारात्मक असर उनके अभिनय और काम करने की शैली पर भी पड़ रहा है।</p>", "image_url": "https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/34a0/live/de5f6350-d743-11f1-93df-c3d1391a27f8.jpg", "image_courtesy": "फोटो साभार: BBC News (RSS फ़ीड के माध्यम से)", "original_link": "https://www.bbc.co.uk/news/videos/cmvg9w5w2p1no?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 01:45 PM"}, {"title": "मध्य दिल्ली में कार्रवाई: ऐतिहासिक मस्जिद के पास सैकड़ों घरों पर चला प्रशासन का बुलडोजर, बेघर हुए परिवारों का छलका दर्द", "category": "देश-विदेश", "slug": "delhi-historic-mosque-demolition-drive-displaces-residents", "content_html": "<p><strong>नई दिल्ली:</strong> मध्य दिल्ली के एक ऐतिहासिक इलाके में वर्षों से रह रहे सैकड़ों परिवारों पर अचानक दुखों का पहाड़ टूट पड़ा है। प्रशासनिक अधिकारियों ने सरकारी जमीन पर अवैध निर्माण और अतिक्रमण का हवाला देते हुए एक विशाल तोड़फोड़ अभियान चलाया, जिसमें सैकड़ों मकानों को जमींदोज कर दिया गया। ऐतिहासिक मस्जिद के आसपास बसे इस इलाके में हुई इस कड़ी कार्रवाई के बाद सैकड़ों लोग बेघर हो गए हैं और खुले आसमान के नीचे रहने को मजबूर हैं।</p><h3>पीढ़ियों से रह रहे लोगों का छलका दर्द</h3><p>बेघर हुए स्थानीय निवासियों का कहना है कि वे कई पीढ़ियों से इस ऐतिहासिक मस्जिद के आसपास पलते-बढ़ते आए हैं। उनके पूर्वजों ने यहां अपना जीवन बिताया और उनकी बचपन की यादें इस मिट्टी से जुड़ी हुई हैं। एकाएक हुई इस प्रशासनिक कार्रवाई ने न केवल उनके सिर से छत छीन ली है, बल्कि उनकी सालों पुरानी सामाजिक पहचान को भी छिन्न-भिन्न कर दिया है। प्रभावित लोगों का आरोप है कि उन्हें अपना सामान समेटने और संभलने का पर्याप्त समय भी नहीं दिया गया।</p><h3>सरकारी जमीन पर अवैध कब्जे का दावा</h3><p>दूसरी ओर, संबंधित प्रशासनिक प्राधिकरणों का कहना है कि यह कार्रवाई पूरी तरह से नियमानुसार और कानून के दायरे में रहकर की गई है। अधिकारियों के मुताबिक, जिस जमीन पर मकान बने थे, वह सरकारी संपत्ति थी और उस पर लंबे समय से अवैध निर्माण बढ़ता जा रहा था। कई बार नोटिस जारी करने के बावजूद जब कब्जा नहीं हटाया गया, तो अंततः भारी पुलिस बल की मौजूदगी में बुलडोजर कार्रवाई करनी पड़ी। प्रशासन का तर्क है कि सरकारी जमीनों को अतिक्रमण मुक्त कराना बेहद जरूरी है।</p><h3>पुनर्वास और भविष्य पर मंडराया संकट</h3><p>इस बड़ी कार्रवाई के बाद प्रभावित परिवारों के सामने रोजी-रोटी, बच्चों की शिक्षा और छत का गंभीर संकट खड़ा हो गया है। सामाजिक कार्यकर्ताओं और नागरिक समूहों ने बेघर हुए लोगों के लिए तत्काल पुनर्वास नीति लागू करने की मांग की है। प्रभावित निवासियों का कहना है कि जब वे दशकों से यहां रह रहे थे और तमाम सरकारी दस्तावेजों के साथ बुनियादी सुविधाओं का इस्तेमाल कर रहे थे, तब प्रशासन क्यों खामोश रहा? फिलहाल, बेघर हुए परिवार विस्थापन के इस दर्द के बीच राहत और नए आशियाने की गुहार लगा रहे हैं।</p>", "image_url": "https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/70ed/live/39e7bed0-d676-11f1-a806-e976ee8757a1.jpg", "image_courtesy": "फोटो साभार: BBC News (RSS फ़ीड के माध्यम से)", "original_link": "https://www.bbc.co.uk/news/articles/cwp9gljmp3kdo?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 01:21 PM"}, {"title": "दिवाली से पहले दिल्ली की हवा हुई जहरीली, AQI 377 पहुंचा; आतिशबाजी पर पाबंदी लागू", "category": "पर्यावरण", "slug": "delhi-air-quality-worsens-diwali-aqi-very-poor", "content_html": "<p>त्यौहारों के सीजन के बीच देश की राजधानी दिल्ली की हवा लगातार जहरीली होती जा रही है। दिवाली से ठीक पहले दिल्ली और आसपास के इलाकों (NCR) में वायु प्रदूषण का स्तर बेहद चिंताजनक मोड़ पर पहुंच गया है। बुधवार सुबह दिल्ली का औसत वायु गुणवत्ता सूचकांक (AQI) 377 दर्ज किया गया, जो 'बहुत खराब' (Very Poor) श्रेणी में आता है। शहर के कई इलाकों में AQI 400 के करीब दर्ज किया गया, जो 'गंभीर' श्रेणी की दहलीज पर है।</p><h3>पटाखों पर सख्त पाबंदी लागू</h3><p>प्रदूषण के लगातार बिगड़ते हालात को देखते हुए प्रशासन ने दिल्ली में पटाखों के निर्माण, भंडारण, बिक्री और इस्तेमाल पर पूर्ण प्रतिबंध लागू कर दिया है। पर्यावरण विभाग और स्थानीय पुलिस की विशेष टीमें शहर भर में गश्त कर रही हैं ताकि नियमों का कड़ाई से पालन कराया जा सके। हालांकि, पड़ोसी राज्यों में जलाई जा रही पराली, वाहनों से निकलने वाले धुएं और हवा की धीमी गति के कारण स्थिति में सुधार होता नजर नहीं आ रहा है।</p><h3>स्वास्थ्य विशेषज्ञों ने जारी की एडवायजरी</h3><p>हवा में घुले जहरीले कणों (PM 2.5 और PM 10) के कारण दिल्लीवासियों को सांस लेने में भारी तकलीफ का सामना करना पड़ रहा है। स्वास्थ्य विशेषज्ञों ने बुजुर्गों, बच्चों और अस्थमा या दिल के मरीजों को फिलहाल सुबह के वक्त बाहर न निकलने की सलाह दी है। डॉक्टरों का कहना है कि बाहर निकलते समय N95 मास्क का इस्तेमाल बेहद जरूरी है, क्योंकि यह जहरीली हवा फेफड़ों को गंभीर नुकसान पहुंचा सकती है।</p><p>यदि आने वाले दिनों में हवा की रफ्तार नहीं बढ़ी, तो दिवाली के दौरान और उसके बाद दिल्ली-एनसीआर में स्मॉग की स्थिति और भी विकराल हो सकती है। प्रशासन ने ग्रेडेड रिस्पांस एक्शन प्लान (GRAP) के तहत निर्माण कार्यों पर रोक और पानी के छिड़काव जैसे कड़े कदम उठाने शुरू कर दिए हैं।</p>", "image_url": "https://live.staticflickr.com/4909/45424627185_59792f2bc8_b.jpg", "image_courtesy": "फोटो साभार: oatsy40 / Flickr (प्रतीकात्मक तस्वीर)", "original_link": "https://www.bbc.co.uk/news/articles/c699z8792n7ro?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 01:16 PM"}, {"title": "भारत की सबसे महंगी फिल्म 'रामायण: राइज़ ऑफ ए लेजेंड' पर आलोचकों की बंटी राय, क्या रच पाएगी इतिहास?", "category": "मनोरंजन", "slug": "ramayana-rise-of-a-legend-indias-costliest-film-divides-critics", "content_html": "<p>भारतीय सिनेमा के इतिहास की सबसे महंगी और महत्वाकांक्षी फिल्म 'रामायण: राइज़ ऑफ ए लेजेंड' आखिरकार सिनेमाघरों में दस्तक दे चुकी है। दो भागों में बनने वाली इस भव्य सिनेमैटिक फ्रेंचाइजी का पहला हिस्सा रिलीज़ होते ही देश-विदेश में चर्चा का केंद्र बन गया है। जहां एक तरफ इस फिल्म को लेकर आम दर्शकों में जबरदस्त क्रेज देखा जा रहा है, वहीं दूसरी तरफ फिल्म समीक्षकों के बीच इसे लेकर बंटी हुई राय देखने को मिल रही है।</p><h3>अभूतपूर्व बजट और भव्य विजुअल इफेक्ट्स</h3><p>पौराणिक महाकाव्य रामायण पर आधारित इस फिल्म को अभूतपूर्व पैमाने पर तैयार किया गया है। बेहतरीन विजुअल इफेक्ट्स (VFX), भव्य सेट्स और अंतरराष्ट्रीय स्तर के एक्शन सीक्वेंस के जरिए प्राचीन भारत के उस गौरवशाली काल को बड़े पर्दे पर जीवंत करने की कोशिश की गई है। निर्माताओं ने इस प्रोजेक्ट में पानी की तरह पैसा बहाया है, जिससे यह भारत की अब तक की सबसे खर्चीली फिल्म बन गई है।</p><h3>आलोचकों में बंटी राय: तकनीक बनाम भावनाएं</h3><p>फिल्म रिलीज़ के साथ ही सिनेमा जगत के जानकारों और आलोचकों की प्रतिक्रियाएं सामने आने लगी हैं। समीक्षकों का एक वर्ग फिल्म के भव्य कैनवास, सिनेमैटोग्राफी और मुख्य कलाकारों के अभिनय की जमकर तारीफ कर रहा है। उनका मानना है कि यह भारतीय सिनेमा को वैश्विक स्तर पर ले जाने वाला प्रयास है।</p><p>वहीं, आलोचकों का दूसरा वर्ग फिल्म की पटकथा और गति से थोड़ा निराश नजर आ रहा है। कुछ समीक्षकों का कहना है कि अत्यधिक स्पेशल इफेक्ट्स और CGI के इस्तेमाल के कारण कथा की आत्मा और भावनात्मक गहराई कहीं पीछे छूट गई है। इसके अलावा, परंपरावादी दर्शकों को पौराणिक संदर्भों के साथ किए गए कुछ आधुनिक प्रयोग भी खास पसंद नहीं आ रहे हैं।</p><h3>बॉक्स ऑफिस पर बंपर कमाई की उम्मीद</h3><p>समीक्षकों की मिली-जुली प्रतिक्रियाओं के बावजूद, सिनेमाघरों में दर्शकों की भारी भीड़ उमड़ रही है। एडवांस बुकिंग के आंकड़े साफ बताते हैं कि दर्शक इस ऐतिहासिक अनुभव को बड़े पर्दे पर देखने के लिए बेहद उत्सुक हैं। दो भागों की इस कहानी का पहला हिस्सा दर्शकों को एक बड़े सस्पेंस मोड़ पर छोड़ता है। अब यह देखना दिलचस्प होगा कि आलोचकों की राय को दरकिनार करते हुए यह फिल्म बॉक्स ऑफिस पर सफलता के कौन से नए आयाम गढ़ती है।</p>", "image_url": "https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/891f/live/5dbe2290-d932-11f1-93e1-3b657b665bcf.jpg", "image_courtesy": "फोटो साभार: BBC News (RSS फ़ीड के माध्यम से)", "original_link": "https://www.bbc.co.uk/news/articles/cm93zv62v1n7o?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 01:11 PM"}, {"title": "दिल्ली में फिर लौटने लगा 'ज़हरीला' धुआं: विंटर एक्शन प्लान तैयार, लेकिन क्या प्रदूषण से मिल पाएगी राहत?", "category": "पर्यावरण", "slug": "delhi-winter-toxic-air-pollution-action-plan-experts-warning", "content_html": "<h3>सर्दियों की दस्तक के साथ गहराने लगा प्रदूषण का संकट</h3><p>देश की राजधानी दिल्ली में एक बार फिर गुलाबी ठंड के आगमन के साथ ही 'ज़हरीली हवा' का दमघोंटू साया मंडराने लगा है। दिल्ली सरकार ने प्रदूषण से निपटने के लिए अपनी तैयारियों का दावा करते हुए चार महीने के विंटर एक्शन प्लान की घोषणा की है। इसमें धूल नियंत्रण, हॉटस्पॉट की निगरानी, पराली के धुएं पर रोक और वाहनों से होने वाले उत्सर्जन को कम करने जैसे कई उपाय शामिल किए गए हैं। हालांकि, पर्यावरण विशेषज्ञों और नीतिगत विश्लेषकों का स्पष्ट मानना है कि सिर्फ चार महीने की यह मौसमी योजना दिल्ली-एनसीआर के निवासियों को स्वच्छ हवा देने के लिए पर्याप्त साबित नहीं होगी।</p><h3>स्थायी समाधान के बजाय आपातकालीन उपायों पर निर्भरता</h3><p>पर्यावरणविदों के अनुसार, दिल्ली की जहरीली हवा केवल सर्दियों का संकट नहीं है, बल्कि यह पूरे वर्ष बने रहने वाले ढांचागत प्रदूषण का परिणाम है जो सर्दियों में प्रतिकूल मौसम के कारण विकराल रूप ले लेता है। विशेषज्ञों का कहना है कि जब तक पड़ोसी राज्यों के साथ तालमेल बिठाकर पूरे इंडो-गांगेय मैदानी क्षेत्र (Indo-Gangetic Plain) के लिए एक एकीकृत रणनीति नहीं बनाई जाती, तब तक समस्या का समाधान असंभव है। केवल निर्माण कार्यों पर रोक लगाने या कुछ दिनों के लिए ऑड-इवन लागू करने जैसे तात्कालिक कदम सिर्फ 'बैंड-एड' उपचार की तरह हैं।</p><h3>स्वास्थ्य पर गंभीर प्रभाव और नागरिकों की चिंताएं</h3><p>हर साल विंटर सीजन के दौरान दिल्ली-एनसीआर की वायु गुणवत्ता सूचकांक (AQI) 'गंभीर' और 'अति गंभीर' श्रेणी में पहुंच जाता है। इसके कारण बच्चों, बुजुर्गों और अस्थमा तथा हृदय रोग से पीड़ित मरीजों के लिए जीवन कठिन हो जाता है। अस्पतालों में सांस के मरीजों की संख्या में भारी उछाल दर्ज किया जाता है। स्थानीय नागरिक और स्वास्थ्य विशेषज्ञ लगातार मांग कर रहे हैं कि सरकारें राजनीति से ऊपर उठकर सार्वजनिक परिवहन के सुदृढ़ीकरण, ठोस कचरा प्रबंधन और औद्योगिक उत्सर्जन पर कड़े नियम लागू करने जैसे दीर्घकालिक और ठोस कदम उठाएं।</p>", "image_url": "https://live.staticflickr.com/4909/45424627185_59792f2bc8_b.jpg", "image_courtesy": "फोटो साभार: oatsy40 / Flickr (प्रतीकात्मक तस्वीर)", "original_link": "https://www.bbc.co.uk/news/articles/cm78p0n09q3xo?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 11:44 AM"}, {"title": "दीपों के पर्व दिवाली की देशभर में धूम, रोशनी से जगमगाए घर और मंदिर", "category": "देश", "slug": "diwali-celebrations-begin-across-india-lights-sweets", "content_html": "<h3>रोशनी और खुशियों का महापर्व</h3><p>देशभर में रोशनी का सबसे बड़ा त्योहार, 'दीपावली' बड़े ही धूमधाम और पारंपरिक उत्साह के साथ मनाया जा रहा है। कार्तिक मास की अमावस्या पर मनाया जाने वाला यह पर्व बुराई पर अच्छाई और अंधेरे पर उजाले की विजय का प्रतीक है। देश के कोने-कोने में स्थित ऐतिहासिक मंदिरों से लेकर आम लोगों के घरों तक, हर तरफ मिट्टी के दीयों और रंग-बिरंगी आधुनिक रोशनी की अद्भुत जगमगाहट देखने को मिल रही है।</p><h3>बाजारों में रौनक, दीयों से सजे घर</h3><p>त्योहार को लेकर पिछले कई दिनों से चल रही तैयारियां अब अपने चरम पर पहुंच गई हैं। देश के छोटे-बड़े बाजारों में लोगों की भारी भीड़ उमड़ रही है। नए वस्त्रों, सजावटी सामान, रंगोली के रंगों और पारंपरिक मिठाइयों की दुकानों पर ग्राहकों का तांता लगा हुआ है। लोग अपने रिश्तेदारों और मित्रों को मिठाइयां व उपहार भेंट कर दिवाली की शुभकामनाएं दे रहे हैं। शाम ढलते ही लाखों दीये जलाकर धन-धान्य की देवी मां लक्ष्मी और विघ्नहर्ता भगवान गणेश का स्वागत किया जा रहा है।</p><h3>धार्मिक स्थलों पर भव्य सजावट</h3><p>अयोध्या, वाराणसी, मथुरा और अमृतसर के स्वर्ण मंदिर सहित देश के सभी प्रमुख धार्मिक स्थलों पर दिवाली की भव्यता देखते ही बन रही है। मंदिरों को ताजे फूलों और जगमगाती लड़ियों से दुल्हन की तरह सजाया गया है। श्रद्धालु तड़के से ही पवित्र नदियों में स्नान कर मंदिरों में दर्शन-पूजन के लिए पहुंच रहे हैं। कई ऐतिहासिक शहरों में भव्य महाआरती और 'दीपोत्सव' का आयोजन किया गया है, जहां लाखों दीये एक साथ प्रज्वलित कर नया रिकॉर्ड बनाया जा रहा है।</p><h3>परंपरा और उत्सव का संगम</h3><p>इस साल दीपावली पर पारंपरिक उत्साह के साथ-साथ आतिशबाजी का भी आनंद लिया जा रहा है। परिवारों में एक साथ मिलकर मिठाइयां बांटने, घरों के आंगन में आकर्षक रंगोली बनाने और बच्चों द्वारा पटाखे छुड़ाने का दौर जारी है। रोशनी के इस पावन पर्व ने पूरे देश को एकता, सद्भाव और उल्लास के अनूठे रंग में रंग दिया है।</p>", "image_url": "https://live.staticflickr.com/6103/6322666160_96de687c57_b.jpg", "image_courtesy": "फोटो साभार: MDGovpics / Flickr (प्रतीकात्मक तस्वीर)", "original_link": "https://www.bbc.co.uk/news/articles/cm70pdwz122ro?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 11:44 AM"}, {"title": "18 अवॉर्ड्स जीतने के बाद रिलीज हुई यह भारतीय फिल्म, सिनेमाघरों से रोते हुए बाहर निकल रहे दर्शक", "category": "मनोरंजन", "slug": "indian-film-hits-theatres-after-18-awards-emotional-audience-response", "content_html": "<p>भारतीय सिनेमा के इतिहास में अक्सर देखा गया है कि लीक से हटकर बनी फिल्मों को सिनेमाघरों तक पहुंचाने के लिए निर्माताओं को कड़ा संघर्ष करना पड़ता है। ऐसा ही कुछ एक भारतीय फिल्म के साथ हुआ, जिसे शुरुआत में कोई भी डिस्ट्रीब्यूटर रिलीज करने को तैयार नहीं था। हालांकि, दमदार कहानी के दम पर इस फिल्म ने न केवल अंतरराष्ट्रीय स्तर पर सफलता के झंडे गाड़े, बल्कि 18 प्रतिष्ठित पुरस्कार जीतने के बाद जब यह बड़े पर्दे पर आई, तो इसने दर्शकों का दिल पूरी तरह से जीत लिया।</p><h3>थिएटर्स से रोते हुए बाहर निकल रहे लोग</h3><p>सोशल मीडिया पर इन दिनों सिनेमाघरों के बाहर के ऐसे कई भावुक दृश्य वायरल हो रहे हैं, जिन्हें देखकर हर कोई हैरान है। फिल्म देखकर बाहर निकल रहे दर्शक अपनी भावनाओं पर काबू नहीं रख पा रहे हैं और कई लोगों की आंखों में आंसू साफ देखे जा सकते हैं। दर्शकों का कहना है कि फिल्म का कथानक और पात्रों की संवेदनाएं इतनी गहरी हैं कि यह सीधे दिल को छूती हैं। सोशल मीडिया पर लोग इसे इस दशक की सबसे प्रभावशाली फिल्मों में से एक बता रहे हैं।</p><h3>18 अंतरराष्ट्रीय पुरस्कारों के बाद मिला खरीदार</h3><p>इस फिल्म का निर्माण सफर काफी कठिनाइयों भरा रहा। शुरुआत में जब निर्माताओं ने इसे बड़े डिस्ट्रीब्यूटर्स और थिएटर्स मालिकों के सामने पेश किया, तो सभी ने इसे कमर्शियल न मानते हुए रिलीज करने से इनकार कर दिया था। इसके बाद निर्माताओं ने इसे वैश्विक फिल्म समारोहों में भेजने का फैसला किया। दुनिया भर के फेस्टिवल्स में फिल्म की जमकर तारीफ हुई और इसने एक-एक करके 18 अंतरराष्ट्रीय पुरस्कार अपने नाम किए। इन अवॉर्ड्स की बदौलत फिल्म को पहचान मिली और आखिरकार इसे सिनेमाघरों में भव्य रिलीज नसीब हुई।</p><h3>कंटेंट और स्वतंत्र सिनेमा की बड़ी जीत</h3><p>फिल्म को मिल रहा यह अप्रत्याशित प्यार भारतीय इंडिपेंडेंट (स्वतंत्र) सिनेमा के लिए एक नया सवेरा माना जा रहा है। फिल्म समीक्षकों का मानना है कि इस घटना ने साबित कर दिया है कि अगर फिल्म की कहानी सच्ची और कंटेंट मजबूत हो, तो उसे दर्शकों के दिलों तक पहुंचने से कोई नहीं रोक सकता। यह सफलता उन तमाम युवा फिल्म निर्माताओं के लिए प्रेरणा है जो बिना किसी बड़े स्टारकास्ट के बेहतरीन कहानियां कहने का माद्दा रखते हैं।</p>", "image_url": "https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/1489/live/c9303e00-d9eb-11f1-bbe5-797ee05bee69.jpg", "image_courtesy": "फोटो साभार: BBC News (RSS फ़ीड के माध्यम से)", "original_link": "https://www.bbc.co.uk/news/articles/c6ly334rem5do?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 11:44 AM"}];
 
         function renderHome() {
             const container = document.getElementById('bento-container');
@@ -235,7 +416,7 @@
             let sideHtml = '';
             articles.slice(1, 5).forEach((art, idx) => {
                 sideHtml += `
-                <div class="card side-card" onclick="openArticle(${idx + 1})">
+                <div class="side-card" onclick="openArticle(${idx + 1})">
                     <img src="${art.image_url}" alt="">
                     <div>
                         <span class="badge">${art.category || 'प्रमुख समाचार'}</span>
@@ -246,12 +427,14 @@
             });
 
             container.innerHTML = `
-                <div class="card" onclick="openArticle(0)">
+                <div class="hero-card" onclick="openArticle(0)">
                     <div class="img-wrap"><img src="${hero.image_url}" alt=""></div>
                     <div class="card-body">
-                        <span class="badge">${hero.category || 'बड़ी खबर'}</span>
-                        <h2 class="hero-title">${hero.title}</h2>
-                        <div class="meta">प्रकाशित: ${hero.date} • 2 मिनट पठन</div>
+                        <div>
+                            <span class="badge">${hero.category || 'बड़ी खबर'}</span>
+                            <h2 class="hero-title">${hero.title}</h2>
+                        </div>
+                        <div class="meta">प्रकाशित: ${hero.date} <span class="meta-dot"></span> 2 मिनट पठन</div>
                     </div>
                 </div>
                 <div class="side-stack">${sideHtml}</div>
@@ -262,11 +445,10 @@
             const art = articles[index];
             document.getElementById('art-badge').innerText = art.category || 'ताज़ा खबर';
             document.getElementById('art-title').innerText = art.title;
-            document.getElementById('art-meta').innerText = `प्रकाशित: ${art.date} | SEO Slug: /${art.slug}`;
+            document.getElementById('art-meta').innerText = `प्रकाशित: ${art.date}`;
             document.getElementById('art-img').src = art.image_url;
             document.getElementById('art-credit').innerText = art.image_courtesy;
             document.getElementById('art-body').innerHTML = art.content_html;
-            document.getElementById('art-source').innerHTML = `<em>स्रोत और साभार: यह रिपोर्ट <a href="${art.original_link}" target="_blank" rel="nofollow">${art.source_name}</a> की मूल खबर के तथ्यों पर आधारित है।</em>`;
 
             document.getElementById('home-view').style.display = 'none';
             document.getElementById('article-view').style.display = 'block';

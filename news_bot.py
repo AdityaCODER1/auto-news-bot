@@ -20,7 +20,16 @@ SOURCE_NAME = "BBC News"
 ARCHIVE_FILE = "articles_db.json"
 NEWS_DIR = "news"
 
-# 3. Model Fallback List
+# 3. Navigation Categories & Aliases (Matches both new & existing articles)
+CATEGORIES = [
+    {"name": "देश-विदेश", "file": "desh-videsh.html", "aliases": ["देश-विदेश", "देश", "विदेश", "प्रमुख समाचार", "बड़ी खबर"]},
+    {"name": "टेक्नोलॉजी", "file": "technology.html", "aliases": ["टेक्नोलॉजी", "विज्ञान", "AI"]},
+    {"name": "अर्थव्यवस्था", "file": "economy.html", "aliases": ["अर्थव्यवस्था", "बिजनेस एवं ट्रेंड्स", "बिजनेस", "व्यापार"]},
+    {"name": "राजनीति", "file": "politics.html", "aliases": ["राजनीति", "चुनाव"]},
+    {"name": "मनोरंजन", "file": "entertainment.html", "aliases": ["मनोरंजन", "बॉलीवुड", "सिनेमा", "खेल"]},
+]
+
+# 4. Model Fallback List
 MODELS_TO_TRY = [
     "gemini-3.6-flash",
     "gemini-3.8-flash",
@@ -125,6 +134,8 @@ SHARED_CSS = """
         display: flex;
         justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
     }
     .logo {
         font-family: 'Mukta', sans-serif;
@@ -143,7 +154,7 @@ SHARED_CSS = """
         font-weight: 700;
         margin-left: 2px;
     }
-    .nav-pills { display: flex; gap: 24px; }
+    .nav-pills { display: flex; gap: 22px; flex-wrap: wrap; }
     .nav-pills a {
         font-weight: 700;
         font-size: 15px;
@@ -152,7 +163,18 @@ SHARED_CSS = """
         position: relative;
         transition: color 0.2s ease;
     }
-    .nav-pills a:hover { color: var(--accent); }
+    .nav-pills a::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0%;
+        height: 3px;
+        background: var(--accent);
+        transition: width 0.25s ease;
+    }
+    .nav-pills a:hover, .nav-pills a.active { color: var(--accent); }
+    .nav-pills a:hover::after, .nav-pills a.active::after { width: 100%; }
     .container { max-width: 1240px; margin: 36px auto 60px; padding: 0 20px; }
     .section-rule {
         border-top: 4px solid var(--border-heavy);
@@ -286,8 +308,8 @@ SHARED_CSS = """
         transition: color 0.2s ease;
     }
     .side-card:hover .side-title { color: var(--accent); }
-    
-    /* Archive Grid below Hero */
+
+    /* Archive & Category Grid */
     .archive-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -300,6 +322,8 @@ SHARED_CSS = """
         border-radius: 4px;
         overflow: hidden;
         transition: transform 0.2s ease;
+        display: flex;
+        flex-direction: column;
     }
     .archive-card:hover {
         transform: translateY(-3px);
@@ -309,10 +333,11 @@ SHARED_CSS = """
         width: 100%;
         height: 200px;
         object-fit: cover;
+        background: #201D1A;
     }
     .archive-card-body { padding: 18px; }
 
-    /* Single Article Page Layout */
+    /* Single Article & Static Page Layout */
     .article-box {
         max-width: 780px;
         margin: 0 auto;
@@ -387,17 +412,34 @@ SHARED_CSS = """
     }
 """
 
+def get_header_html(prefix="", active_file=""):
+    """Generates the header with working links from both root ('') and /news/ ('../')."""
+    home_cls = ' class="active"' if active_file == "index.html" else ""
+    nav_links = f'<a href="{prefix}index.html"{home_cls}>मुख्य खबरें</a>\n'
+    
+    for cat in CATEGORIES:
+        cls = ' class="active"' if active_file == cat["file"] else ""
+        nav_links += f'            <a href="{prefix}{cat["file"]}"{cls}>{cat["name"]}</a>\n'
+        
+    about_cls = ' class="active"' if active_file == "about.html" else ""
+    nav_links += f'            <a href="{prefix}about.html"{about_cls}>हमारे बारे में</a>'
+
+    return f"""    <header>
+        <a href="{prefix}index.html" class="logo">अब<span>तक24</span><span class="dot-in">.in</span></a>
+        <nav class="nav-pills">
+            {nav_links}
+        </nav>
+    </header>"""
+
 def build_individual_article_page(art, today_str):
     """Creates a dedicated SEO-optimized HTML page for a single article inside /news/."""
     os.makedirs(NEWS_DIR, exist_ok=True)
     slug = art["slug"]
     canonical_url = f"{SITE_URL}/news/{slug}.html"
     
-    # Extract plain text summary for Google Meta Description (first 155 chars)
     plain_text = BeautifulSoup(art["content_html"], "html.parser").get_text().strip()
     meta_desc = plain_text[:155].replace('"', "'") + "..."
 
-    # Google NewsArticle Structured Data (JSON-LD)
     schema_ld = {
         "@context": "https://schema.org",
         "@type": "NewsArticle",
@@ -454,14 +496,7 @@ def build_individual_article_page(art, today_str):
         <span class="edition-tag">डिजिटल संस्करण • INDIA</span>
     </div>
 
-    <header>
-        <a href="../index.html" class="logo">अब<span>तक24</span><span class="dot-in">.in</span></a>
-        <nav class="nav-pills">
-            <a href="../index.html">मुख्य खबरें</a>
-            <a href="../index.html">देश-विदेश</a>
-            <a href="../index.html">टेक्नोलॉजी</a>
-        </nav>
-    </header>
+{get_header_html(prefix="../")}
 
     <main class="container">
         <article class="article-box">
@@ -485,6 +520,114 @@ def build_individual_article_page(art, today_str):
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(article_html)
 
+def build_category_pages(articles, today_str):
+    """Creates a dedicated HTML page for each category in the header."""
+    for cat in CATEGORIES:
+        cat_name = cat["name"]
+        cat_file = cat["file"]
+        aliases = cat["aliases"]
+        
+        filtered = [
+            a for a in articles
+            if a.get("category", "").strip() in aliases
+            or any(alias in a.get("category", "") for alias in aliases)
+        ]
+        
+        cards_html = ""
+        if filtered:
+            for art in filtered:
+                art_link = f"news/{art['slug']}.html"
+                cards_html += f"""
+                <a href="{art_link}" class="archive-card">
+                    <img src="{art['image_url']}" alt="{art['title']}">
+                    <div class="archive-card-body">
+                        <span class="badge">{art.get('category', cat_name)}</span>
+                        <h3 class="side-title">{art['title']}</h3>
+                        <div class="meta">{art['date']}</div>
+                    </div>
+                </a>"""
+        else:
+            cards_html = f'<p style="color: var(--text-muted); font-size: 18px; padding: 20px 0;">अभी <strong>{cat_name}</strong> श्रेणी में कोई समाचार उपलब्ध नहीं है। अगली अपडेट में खबरें जोड़ी जाएंगी!</p>'
+
+        page_html = f"""<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{cat_name} समाचार | अबतक24.in (Aabtak24.in)</title>
+    <meta name="description" content="अबतक24.in पर पढ़ें {cat_name} से जुड़ी ताज़ा और प्रमुख हिंदी खबरें।">
+    <link rel="canonical" href="{SITE_URL}/{cat_file}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>{SHARED_CSS}</style>
+</head>
+<body>
+    <div class="top-bar">
+        <span>📅 {today_str}</span>
+        <span class="edition-tag">डिजिटल संस्करण • INDIA</span>
+    </div>
+
+{get_header_html(prefix="", active_file=cat_file)}
+
+    <main class="container">
+        <div class="section-rule">
+            <h2>{cat_name} / Category News</h2>
+            <span>कुल {len(filtered)} समाचार</span>
+        </div>
+        <div class="archive-grid">{cards_html}</div>
+    </main>
+</body>
+</html>"""
+
+        with open(cat_file, "w", encoding="utf-8") as f:
+            f.write(page_html)
+    print("✅ Generated all category HTML pages!")
+
+def build_static_pages(today_str):
+    """Creates static pages like About Us / Contact Us (about.html)."""
+    about_html = f"""<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>हमारे बारे में (About Us) | अबतक24.in</title>
+    <meta name="description" content="अबतक24.in (Aabtak24.in) — भारत का आधुनिक डिजिटल हिंदी समाचार पोर्टल। जानें हमारे संपादकीय मानक और संपर्क सूत्र।">
+    <link rel="canonical" href="{SITE_URL}/about.html">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>{SHARED_CSS}</style>
+</head>
+<body>
+    <div class="top-bar">
+        <span>📅 {today_str}</span>
+        <span class="edition-tag">डिजिटल संस्करण • INDIA</span>
+    </div>
+
+{get_header_html(prefix="", active_file="about.html")}
+
+    <main class="container">
+        <article class="article-box">
+            <a href="index.html" class="back-btn">← मुख्य पृष्ठ पर वापस जाएं</a>
+            <div><span class="badge">हमारे बारे में / About Us</span></div>
+            <h1 class="single-title">अबतक24.in (Aabtak24.in) — सटीक और निष्पक्ष डिजिटल हिंदी पत्रकारिता</h1>
+            <div class="article-content">
+                <p><strong>अबतक24.in (Aabtak24.in)</strong> भारत का एक आधुनिक डिजिटल हिंदी समाचार पोर्टल है। हमारा उद्देश्य देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था, राजनीति और मनोरंजन की प्रमुख खबरों को सरल, स्पष्ट और तथ्यपूर्ण हिंदी भाषा में पाठकों तक पहुँचाना है।</p>
+                <h3>हमारा संपादकीय मानक (Editorial Policy)</h3>
+                <p>हम विश्वसनीय राष्ट्रीय और अंतरराष्ट्रीय समाचार स्रोतों से तथ्यों का संकलन कर उन्हें पाठकों के लिए सहज और प्रवाहपूर्ण पत्रकारिता शैली में प्रस्तुत करते हैं तथा प्रत्येक रिपोर्ट के साथ उचित फोटो और स्रोत साभार (Attribution) प्रदान करते हैं।</p>
+                <h3>संपर्क करें (Contact Us)</h3>
+                <p>किसी भी सुझाव, प्रतिक्रिया या संपादकीय प्रश्न के लिए आप हमसे संपर्क कर सकते हैं:<br>
+                <strong>वेबसाइट:</strong> <a href="{SITE_URL}" style="color: var(--accent); font-weight: 700;">aabtak24.in</a><br>
+                <strong>ईमेल:</strong> contact@aabtak24.in</p>
+            </div>
+        </article>
+    </main>
+</body>
+</html>"""
+
+    with open("about.html", "w", encoding="utf-8") as f:
+        f.write(about_html)
+    print("✅ Generated about.html static page!")
+
 def build_seo_files(articles):
     """Generates sitemap.xml and robots.txt for Google Search Console."""
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S+00:00")
@@ -493,6 +636,22 @@ def build_seo_files(articles):
     <lastmod>{now_iso}</lastmod>
     <changefreq>hourly</changefreq>
     <priority>1.0</priority>
+  </url>\n"""
+
+    # Include Category Pages & About Page in Sitemap
+    for cat in CATEGORIES:
+        urls_xml += f"""  <url>
+    <loc>{SITE_URL}/{cat['file']}</loc>
+    <lastmod>{now_iso}</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>0.9</priority>
+  </url>\n"""
+
+    urls_xml += f"""  <url>
+    <loc>{SITE_URL}/about.html</loc>
+    <lastmod>{now_iso}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>\n"""
 
     for art in articles:
@@ -522,7 +681,7 @@ Sitemap: {SITE_URL}/sitemap.xml
     print("✅ Generated sitemap.xml and robots.txt for Google SEO!")
 
 def build_website_html(articles):
-    """Generates index.html with real <a href> SEO links to every article."""
+    """Generates index.html, category pages, about page, and individual article pages."""
     today_str = datetime.now().strftime("%d %B %Y")
     if not articles:
         return
@@ -548,7 +707,6 @@ def build_website_html(articles):
             </div>
         </a>"""
 
-    # Additional Archive Stories Grid (if more than 5 articles exist)
     more_html = ""
     if len(articles) > 5:
         cards = ""
@@ -577,7 +735,7 @@ def build_website_html(articles):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>अबतक24.in (Aabtak24.in) | ताज़ा हिंदी समाचार और देश-दुनिया की खबरें</title>
-    <meta name="description" content="अबतक24.in (Aabtak24.in) पर पढ़ें देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था और राजनीति की ताज़ा हिंदी खबरें।">
+    <meta name="description" content="अबतक24.in (Aabtak24.in) पर पढ़ें देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था, राजनीति और मनोरंजन की ताज़ा हिंदी खबरें।">
     <link rel="canonical" href="{SITE_URL}/">
     <meta property="og:type" content="website">
     <meta property="og:title" content="अबतक24.in | हिंदी न्यूज़ पोर्टल">
@@ -592,14 +750,7 @@ def build_website_html(articles):
         <span class="edition-tag">डिजिटल संस्करण • INDIA</span>
     </div>
 
-    <header>
-        <a href="index.html" class="logo">अब<span>तक24</span><span class="dot-in">.in</span></a>
-        <nav class="nav-pills">
-            <a href="index.html">मुख्य खबरें</a>
-            <a href="index.html">देश-विदेश</a>
-            <a href="index.html">टेक्नोलॉजी</a>
-        </nav>
-    </header>
+{get_header_html(prefix="", active_file="index.html")}
 
     <main class="container">
         <div class="section-rule">
@@ -627,7 +778,9 @@ def build_website_html(articles):
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_template)
 
-    # 3. Generate sitemap.xml & robots.txt
+    # 3. Generate Category Pages, Static Pages, and SEO Sitemap
+    build_category_pages(articles, today_str)
+    build_static_pages(today_str)
     build_seo_files(articles)
     print("✅ Live multi-page SEO website generated!")
 
@@ -640,7 +793,6 @@ def fetch_and_rewrite():
         except Exception:
             articles = []
 
-    # Ensure any older saved articles have clean slugs and iso_date
     for a in articles:
         a["slug"] = clean_slug(a.get("slug", "news-story"))
         if "iso_date" not in a:
@@ -677,7 +829,7 @@ def fetch_and_rewrite():
         3. फोटो का निर्णय: यदि खबर किसी राजनेता, व्यक्ति या विशेष घटना पर है, तो "image_strategy" को "original" रखें। यदि सामान्य टेक, AI, अर्थव्यवस्था, स्वास्थ्य आदि पर है, तो "stock" रखें।
         4. केवल वैध JSON में उत्तर दें जिसमें ये 6 keys हों:
            - "title": हिंदी शीर्षक
-           - "category": हिंदी श्रेणी (जैसे: "देश-विदेश", "टेक्नोलॉजी", "अर्थव्यवस्था", "राजनीति")
+           - "category": केवल इन 5 में से एक चुनें: "देश-विदेश", "टेक्नोलॉजी", "अर्थव्यवस्था", "राजनीति", "मनोरंजन"
            - "slug": 4-5 शब्दों का अंग्रेजी SEO URL slug (केवल lowercase letters और hyphens, जैसे: "india-new-ai-policy-2026")
            - "content_html": हिंदी लेख का HTML कोड (<p>, <h3> टैग्स के साथ)
            - "image_strategy": "original" या "stock"
@@ -703,7 +855,7 @@ def fetch_and_rewrite():
 
         new_article = {
             "title": article_data["title"],
-            "category": article_data.get("category", "प्रमुख समाचार"),
+            "category": article_data.get("category", "देश-विदेश"),
             "slug": clean_slug(article_data.get("slug", "hindi-news")),
             "content_html": article_data["content_html"],
             "image_url": final_image_url,
@@ -718,7 +870,6 @@ def fetch_and_rewrite():
         added += 1
         time.sleep(2)
 
-    # Keep up to 100 articles in the archive for growing SEO footprint!
     articles = articles[:100]
     with open(ARCHIVE_FILE, "w", encoding="utf-8") as f:
         json.dump(articles, f, ensure_ascii=False, indent=2)

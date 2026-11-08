@@ -33,5 +33,4 @@ jobs:
           git config user.name "Auto Hindi News Bot"
           git config user.email "actions@github.com"
           git add index.html articles_db.json
-          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-update Hindi news portal"
-          git push
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update Hindi news portal" && git pull --rebase && git push)

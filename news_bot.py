@@ -584,7 +584,10 @@ def build_category_pages(articles, today_str):
     print("✅ Generated all category HTML pages!")
 
 def build_static_pages(today_str):
-    """Creates static pages like About Us / Contact Us (about.html)."""
+    """Creates static pages like About Us (about.html) ONLY if they don't already exist."""
+    if os.path.exists("about.html"):
+        print("ℹ️ about.html already exists — skipping so custom edits are preserved!")
+        return
     about_html = f"""<!DOCTYPE html>
 <html lang="hi">
 <head>

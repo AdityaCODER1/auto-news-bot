@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>भारत समाचार (Bharat Samachar) | AI हिंदी न्यूज़ पोर्टल</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #F8FAFC;
+            --card: #FFFFFF;
+            --text-main: #0F172A;
+            --text-muted: #64748B;
+            --accent: #E11D48;
+            --border: #E2E8F0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            font-family: 'Noto Sans Devanagari', sans-serif;
+            line-height: 1.7;
+        }
+        /* Astra-Style Top Utility & Sticky Header */
+        .top-bar {
+            background: #0F172A;
+            color: #CBD5E1;
+            font-size: 13px;
+            padding: 6px 5%;
+            display: flex;
+            justify-content: space-between;
+        }
+        header {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 16px 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-family: 'Mukta', sans-serif;
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--text-main);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .logo span { color: var(--accent); }
+        .nav-pills span {
+            margin-left: 18px;
+            font-weight: 600;
+            font-size: 15px;
+            color: var(--text-muted);
+            cursor: pointer;
+        }
+        .nav-pills span:hover { color: var(--accent); }
+        .container { max-width: 1200px; margin: 32px auto; padding: 0 20px; }
+
+        /* Astra + Spectra Hero Bento Grid */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 1.8fr 1fr;
+            gap: 28px;
+            margin-bottom: 40px;
+        }
+        @media (max-width: 860px) { .bento-grid { grid-template-columns: 1fr; } }
+        .card {
+            background: var(--card);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+            cursor: pointer;
+            transition: box-shadow 0.25s ease, transform 0.25s ease;
+        }
+        .card:hover { box-shadow: 0 12px 24px -6px rgba(15, 23, 42, 0.08); }
+        .img-wrap { overflow: hidden; position: relative; background: #e2e8f0; }
+        .img-wrap img {
+            width: 100%;
+            height: 380px;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.35s ease;
+        }
+        .card:hover .img-wrap img { transform: scale(1.04); }
+        .card-body { padding: 24px; }
+        .badge {
+            display: inline-block;
+            background: #FFE4E6;
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .hero-title {
+            font-family: 'Mukta', sans-serif;
+            font-size: 28px;
+            line-height: 1.3;
+            margin-bottom: 12px;
+        }
+        .meta { font-size: 13px; color: var(--text-muted); }
+
+        /* Right Sidebar Stack */
+        .side-stack { display: flex; flex-direction: column; gap: 16px; }
+        .side-card {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            gap: 14px;
+            padding: 14px;
+            align-items: center;
+        }
+        .side-card img {
+            width: 120px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .side-title {
+            font-family: 'Mukta', sans-serif;
+            font-size: 17px;
+            line-height: 1.35;
+            font-weight: 700;
+        }
+
+        /* Single Post Focused Reading View (740px Astra Layout) */
+        #article-view {
+            display: none;
+            max-width: 740px;
+            margin: 0 auto;
+            background: var(--card);
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--accent);
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .single-title {
+            font-family: 'Mukta', sans-serif;
+            font-size: 34px;
+            line-height: 1.25;
+            margin: 10px 0 16px;
+        }
+        .single-figure img {
+            width: 100%;
+            max-height: 440px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-top: 16px;
+        }
+        .image-credit {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-align: right;
+            margin-top: 6px;
+            font-style: italic;
+        }
+        .article-content {
+            margin-top: 24px;
+            font-size: 18px;
+            line-height: 1.85;
+        }
+        .article-content p { margin-bottom: 18px; }
+        .article-content h3 {
+            font-family: 'Mukta', sans-serif;
+            font-size: 23px;
+            margin: 28px 0 10px;
+        }
+        .source-box {
+            margin-top: 30px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <span>📅 08 November 2026 | Live GitHub Actions Preview</span>
+        <span>Powered by Gemini AI + Astra UI Blueprint</span>
+    </div>
+
+    <header>
+        <div class="logo" onclick="showHome()">भारत<span>समाचार</span>.in</div>
+        <div class="nav-pills">
+            <span onclick="showHome()">मुख्य खबरें</span>
+            <span onclick="showHome()">देश-विदेश</span>
+            <span onclick="showHome()">टेक्नोलॉजी</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- HOME BENTO GRID -->
+        <div id="home-view">
+            <div class="bento-grid" id="bento-container"></div>
+        </div>
+
+        <!-- SINGLE ARTICLE VIEW -->
+        <div id="article-view">
+            <div class="back-btn" onclick="showHome()">← मुख्य पृष्ठ पर वापस जाएं (Back to Home)</div>
+            <div class="badge" id="art-badge">ताज़ा खबर</div>
+            <h1 class="single-title" id="art-title"></h1>
+            <div class="meta" id="art-meta"></div>
+            <figure class="single-figure">
+                <img id="art-img" src="" alt="" />
+                <figcaption class="image-credit" id="art-credit"></figcaption>
+            </figure>
+            <div class="article-content" id="art-body"></div>
+            <div class="source-box" id="art-source"></div>
+        </div>
+    </div>
+
+    <script>
+        const articles = [{"title": "दिल्ली में फिर लौटने लगा 'ज़हरीला' धुआं: विंटर एक्शन प्लान तैयार, लेकिन क्या प्रदूषण से मिल पाएगी राहत?", "category": "पर्यावरण", "slug": "delhi-winter-toxic-air-pollution-action-plan-experts-warning", "content_html": "<h3>सर्दियों की दस्तक के साथ गहराने लगा प्रदूषण का संकट</h3><p>देश की राजधानी दिल्ली में एक बार फिर गुलाबी ठंड के आगमन के साथ ही 'ज़हरीली हवा' का दमघोंटू साया मंडराने लगा है। दिल्ली सरकार ने प्रदूषण से निपटने के लिए अपनी तैयारियों का दावा करते हुए चार महीने के विंटर एक्शन प्लान की घोषणा की है। इसमें धूल नियंत्रण, हॉटस्पॉट की निगरानी, पराली के धुएं पर रोक और वाहनों से होने वाले उत्सर्जन को कम करने जैसे कई उपाय शामिल किए गए हैं। हालांकि, पर्यावरण विशेषज्ञों और नीतिगत विश्लेषकों का स्पष्ट मानना है कि सिर्फ चार महीने की यह मौसमी योजना दिल्ली-एनसीआर के निवासियों को स्वच्छ हवा देने के लिए पर्याप्त साबित नहीं होगी।</p><h3>स्थायी समाधान के बजाय आपातकालीन उपायों पर निर्भरता</h3><p>पर्यावरणविदों के अनुसार, दिल्ली की जहरीली हवा केवल सर्दियों का संकट नहीं है, बल्कि यह पूरे वर्ष बने रहने वाले ढांचागत प्रदूषण का परिणाम है जो सर्दियों में प्रतिकूल मौसम के कारण विकराल रूप ले लेता है। विशेषज्ञों का कहना है कि जब तक पड़ोसी राज्यों के साथ तालमेल बिठाकर पूरे इंडो-गांगेय मैदानी क्षेत्र (Indo-Gangetic Plain) के लिए एक एकीकृत रणनीति नहीं बनाई जाती, तब तक समस्या का समाधान असंभव है। केवल निर्माण कार्यों पर रोक लगाने या कुछ दिनों के लिए ऑड-इवन लागू करने जैसे तात्कालिक कदम सिर्फ 'बैंड-एड' उपचार की तरह हैं।</p><h3>स्वास्थ्य पर गंभीर प्रभाव और नागरिकों की चिंताएं</h3><p>हर साल विंटर सीजन के दौरान दिल्ली-एनसीआर की वायु गुणवत्ता सूचकांक (AQI) 'गंभीर' और 'अति गंभीर' श्रेणी में पहुंच जाता है। इसके कारण बच्चों, बुजुर्गों और अस्थमा तथा हृदय रोग से पीड़ित मरीजों के लिए जीवन कठिन हो जाता है। अस्पतालों में सांस के मरीजों की संख्या में भारी उछाल दर्ज किया जाता है। स्थानीय नागरिक और स्वास्थ्य विशेषज्ञ लगातार मांग कर रहे हैं कि सरकारें राजनीति से ऊपर उठकर सार्वजनिक परिवहन के सुदृढ़ीकरण, ठोस कचरा प्रबंधन और औद्योगिक उत्सर्जन पर कड़े नियम लागू करने जैसे दीर्घकालिक और ठोस कदम उठाएं।</p>", "image_url": "https://live.staticflickr.com/4909/45424627185_59792f2bc8_b.jpg", "image_courtesy": "फोटो साभार: oatsy40 / Flickr (प्रतीकात्मक तस्वीर)", "original_link": "https://www.bbc.co.uk/news/articles/cm78p0n09q3xo?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 11:44 AM"}, {"title": "दीपों के पर्व दिवाली की देशभर में धूम, रोशनी से जगमगाए घर और मंदिर", "category": "देश", "slug": "diwali-celebrations-begin-across-india-lights-sweets", "content_html": "<h3>रोशनी और खुशियों का महापर्व</h3><p>देशभर में रोशनी का सबसे बड़ा त्योहार, 'दीपावली' बड़े ही धूमधाम और पारंपरिक उत्साह के साथ मनाया जा रहा है। कार्तिक मास की अमावस्या पर मनाया जाने वाला यह पर्व बुराई पर अच्छाई और अंधेरे पर उजाले की विजय का प्रतीक है। देश के कोने-कोने में स्थित ऐतिहासिक मंदिरों से लेकर आम लोगों के घरों तक, हर तरफ मिट्टी के दीयों और रंग-बिरंगी आधुनिक रोशनी की अद्भुत जगमगाहट देखने को मिल रही है।</p><h3>बाजारों में रौनक, दीयों से सजे घर</h3><p>त्योहार को लेकर पिछले कई दिनों से चल रही तैयारियां अब अपने चरम पर पहुंच गई हैं। देश के छोटे-बड़े बाजारों में लोगों की भारी भीड़ उमड़ रही है। नए वस्त्रों, सजावटी सामान, रंगोली के रंगों और पारंपरिक मिठाइयों की दुकानों पर ग्राहकों का तांता लगा हुआ है। लोग अपने रिश्तेदारों और मित्रों को मिठाइयां व उपहार भेंट कर दिवाली की शुभकामनाएं दे रहे हैं। शाम ढलते ही लाखों दीये जलाकर धन-धान्य की देवी मां लक्ष्मी और विघ्नहर्ता भगवान गणेश का स्वागत किया जा रहा है।</p><h3>धार्मिक स्थलों पर भव्य सजावट</h3><p>अयोध्या, वाराणसी, मथुरा और अमृतसर के स्वर्ण मंदिर सहित देश के सभी प्रमुख धार्मिक स्थलों पर दिवाली की भव्यता देखते ही बन रही है। मंदिरों को ताजे फूलों और जगमगाती लड़ियों से दुल्हन की तरह सजाया गया है। श्रद्धालु तड़के से ही पवित्र नदियों में स्नान कर मंदिरों में दर्शन-पूजन के लिए पहुंच रहे हैं। कई ऐतिहासिक शहरों में भव्य महाआरती और 'दीपोत्सव' का आयोजन किया गया है, जहां लाखों दीये एक साथ प्रज्वलित कर नया रिकॉर्ड बनाया जा रहा है।</p><h3>परंपरा और उत्सव का संगम</h3><p>इस साल दीपावली पर पारंपरिक उत्साह के साथ-साथ आतिशबाजी का भी आनंद लिया जा रहा है। परिवारों में एक साथ मिलकर मिठाइयां बांटने, घरों के आंगन में आकर्षक रंगोली बनाने और बच्चों द्वारा पटाखे छुड़ाने का दौर जारी है। रोशनी के इस पावन पर्व ने पूरे देश को एकता, सद्भाव और उल्लास के अनूठे रंग में रंग दिया है।</p>", "image_url": "https://live.staticflickr.com/6103/6322666160_96de687c57_b.jpg", "image_courtesy": "फोटो साभार: MDGovpics / Flickr (प्रतीकात्मक तस्वीर)", "original_link": "https://www.bbc.co.uk/news/articles/cm70pdwz122ro?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 11:44 AM"}, {"title": "18 अवॉर्ड्स जीतने के बाद रिलीज हुई यह भारतीय फिल्म, सिनेमाघरों से रोते हुए बाहर निकल रहे दर्शक", "category": "मनोरंजन", "slug": "indian-film-hits-theatres-after-18-awards-emotional-audience-response", "content_html": "<p>भारतीय सिनेमा के इतिहास में अक्सर देखा गया है कि लीक से हटकर बनी फिल्मों को सिनेमाघरों तक पहुंचाने के लिए निर्माताओं को कड़ा संघर्ष करना पड़ता है। ऐसा ही कुछ एक भारतीय फिल्म के साथ हुआ, जिसे शुरुआत में कोई भी डिस्ट्रीब्यूटर रिलीज करने को तैयार नहीं था। हालांकि, दमदार कहानी के दम पर इस फिल्म ने न केवल अंतरराष्ट्रीय स्तर पर सफलता के झंडे गाड़े, बल्कि 18 प्रतिष्ठित पुरस्कार जीतने के बाद जब यह बड़े पर्दे पर आई, तो इसने दर्शकों का दिल पूरी तरह से जीत लिया।</p><h3>थिएटर्स से रोते हुए बाहर निकल रहे लोग</h3><p>सोशल मीडिया पर इन दिनों सिनेमाघरों के बाहर के ऐसे कई भावुक दृश्य वायरल हो रहे हैं, जिन्हें देखकर हर कोई हैरान है। फिल्म देखकर बाहर निकल रहे दर्शक अपनी भावनाओं पर काबू नहीं रख पा रहे हैं और कई लोगों की आंखों में आंसू साफ देखे जा सकते हैं। दर्शकों का कहना है कि फिल्म का कथानक और पात्रों की संवेदनाएं इतनी गहरी हैं कि यह सीधे दिल को छूती हैं। सोशल मीडिया पर लोग इसे इस दशक की सबसे प्रभावशाली फिल्मों में से एक बता रहे हैं।</p><h3>18 अंतरराष्ट्रीय पुरस्कारों के बाद मिला खरीदार</h3><p>इस फिल्म का निर्माण सफर काफी कठिनाइयों भरा रहा। शुरुआत में जब निर्माताओं ने इसे बड़े डिस्ट्रीब्यूटर्स और थिएटर्स मालिकों के सामने पेश किया, तो सभी ने इसे कमर्शियल न मानते हुए रिलीज करने से इनकार कर दिया था। इसके बाद निर्माताओं ने इसे वैश्विक फिल्म समारोहों में भेजने का फैसला किया। दुनिया भर के फेस्टिवल्स में फिल्म की जमकर तारीफ हुई और इसने एक-एक करके 18 अंतरराष्ट्रीय पुरस्कार अपने नाम किए। इन अवॉर्ड्स की बदौलत फिल्म को पहचान मिली और आखिरकार इसे सिनेमाघरों में भव्य रिलीज नसीब हुई।</p><h3>कंटेंट और स्वतंत्र सिनेमा की बड़ी जीत</h3><p>फिल्म को मिल रहा यह अप्रत्याशित प्यार भारतीय इंडिपेंडेंट (स्वतंत्र) सिनेमा के लिए एक नया सवेरा माना जा रहा है। फिल्म समीक्षकों का मानना है कि इस घटना ने साबित कर दिया है कि अगर फिल्म की कहानी सच्ची और कंटेंट मजबूत हो, तो उसे दर्शकों के दिलों तक पहुंचने से कोई नहीं रोक सकता। यह सफलता उन तमाम युवा फिल्म निर्माताओं के लिए प्रेरणा है जो बिना किसी बड़े स्टारकास्ट के बेहतरीन कहानियां कहने का माद्दा रखते हैं।</p>", "image_url": "https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/1489/live/c9303e00-d9eb-11f1-bbe5-797ee05bee69.jpg", "image_courtesy": "फोटो साभार: BBC News (RSS फ़ीड के माध्यम से)", "original_link": "https://www.bbc.co.uk/news/articles/c6ly334rem5do?at_medium=RSS&at_campaign=rss", "source_name": "BBC News", "date": "08 Nov 2026, 11:44 AM"}];
+
+        function renderHome() {
+            const container = document.getElementById('bento-container');
+            if (!articles.length) return;
+
+            const hero = articles[0];
+            let sideHtml = '';
+            articles.slice(1, 5).forEach((art, idx) => {
+                sideHtml += `
+                <div class="card side-card" onclick="openArticle(${idx + 1})">
+                    <img src="${art.image_url}" alt="">
+                    <div>
+                        <span class="badge">${art.category || 'प्रमुख समाचार'}</span>
+                        <div class="side-title">${art.title}</div>
+                        <div class="meta">${art.date}</div>
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = `
+                <div class="card" onclick="openArticle(0)">
+                    <div class="img-wrap"><img src="${hero.image_url}" alt=""></div>
+                    <div class="card-body">
+                        <span class="badge">${hero.category || 'बड़ी खबर'}</span>
+                        <h2 class="hero-title">${hero.title}</h2>
+                        <div class="meta">प्रकाशित: ${hero.date} • 2 मिनट पठन</div>
+                    </div>
+                </div>
+                <div class="side-stack">${sideHtml}</div>
+            `;
+        }
+
+        function openArticle(index) {
+            const art = articles[index];
+            document.getElementById('art-badge').innerText = art.category || 'ताज़ा खबर';
+            document.getElementById('art-title').innerText = art.title;
+            document.getElementById('art-meta').innerText = `प्रकाशित: ${art.date} | SEO Slug: /${art.slug}`;
+            document.getElementById('art-img').src = art.image_url;
+            document.getElementById('art-credit').innerText = art.image_courtesy;
+            document.getElementById('art-body').innerHTML = art.content_html;
+            document.getElementById('art-source').innerHTML = `<em>स्रोत और साभार: यह रिपोर्ट <a href="${art.original_link}" target="_blank" rel="nofollow">${art.source_name}</a> की मूल खबर के तथ्यों पर आधारित है।</em>`;
+
+            document.getElementById('home-view').style.display = 'none';
+            document.getElementById('article-view').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function showHome() {
+            document.getElementById('article-view').style.display = 'none';
+            document.getElementById('home-view').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        renderHome();
+    </script>
+</body>
+</html>

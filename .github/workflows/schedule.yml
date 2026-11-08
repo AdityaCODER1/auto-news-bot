@@ -32,5 +32,5 @@ jobs:
         run: |
           git config user.name "Auto Hindi News Bot"
           git config user.email "actions@github.com"
-          git add index.html articles_db.json sitemap.xml robots.txt news/
+          git add *.html articles_db.json sitemap.xml robots.txt news/
           git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update Hindi news portal & SEO sitemap" && git pull --rebase && git push)

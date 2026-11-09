@@ -360,6 +360,13 @@ def build_website_html(articles):
     if not articles:
         return
 
+    # NEW: Delete any old HTML files in news/ that were removed from articles_db.json
+    os.makedirs(NEWS_DIR, exist_ok=True)
+    valid_files = {f"{art['slug']}.html" for art in articles}
+    for fname in os.listdir(NEWS_DIR):
+        if fname.endswith(".html") and fname not in valid_files:
+            os.remove(os.path.join(NEWS_DIR, fname))
+    
     for art in articles:
         build_individual_article_page(art, today_str)
 

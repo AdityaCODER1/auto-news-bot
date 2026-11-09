@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 */3 * * *'
   workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Run mode (fetch = get new RSS article, rebuild = only update HTML)'
+        required: false
+        default: 'fetch'
 
 permissions:
   contents: write

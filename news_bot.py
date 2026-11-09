@@ -547,5 +547,13 @@ def fetch_and_rewrite():
 
     build_website_html(articles)
 
+
 if __name__ == "__main__":
-    fetch_and_rewrite()
+    import sys
+    if "--rebuild-only" in sys.argv:
+        with open(ARCHIVE_FILE, "r", encoding="utf-8") as f:
+            articles = json.load(f)
+        build_website_html(articles)
+    else:
+        fetch_and_rewrite()
+    

@@ -181,7 +181,7 @@ header {
     justify-content: space-between;
     align-items: center;
 }
-.section-rule h2 {
+.section-rule h1, .section-rule h2 {
     font-family: var(--font-heading);
     font-size: 16px;
     font-weight: 800;
@@ -401,7 +401,7 @@ header {
     color: var(--text-body);
 }
 .article-content p { margin-bottom: 20px; }
-.article-content h3 {
+.article-content h2, .article-content h3 {
     font-family: var(--font-heading);
     font-size: 25px;
     font-weight: 800;

@@ -1,4 +1,0 @@
-streamlit
-streamlit-quill
-PyGithub
-beautifulsoup4

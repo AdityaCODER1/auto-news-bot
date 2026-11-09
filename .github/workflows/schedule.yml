@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # Allows the bot to save your generated index.html webpage!
+  contents: write
 
 jobs:
   run-news-bot:
@@ -26,11 +26,16 @@ jobs:
       - name: Run News Paraphraser & Website Builder
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-        run: python news_bot.py
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            python news_bot.py --rebuild-only
+          else
+            python news_bot.py
+          fi
 
       - name: Publish Updated Website to Repository
         run: |
           git config user.name "Auto Hindi News Bot"
           git config user.email "actions@github.com"
-          git add *.html articles_db.json sitemap.xml robots.txt news/ uploads/
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update Hindi news portal & SEO sitemap" && git pull --rebase && git push)
+          git add *.html articles_db.json sitemap.xml robots.txt news/ uploads/ || git add *.html articles_db.json sitemap.xml robots.txt news/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update Hindi news portal" && git pull --rebase && git push)

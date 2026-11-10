@@ -1,8 +1,10 @@
 import os
 import re
+import sys
 import json
 import time
 from datetime import datetime, timezone
+from urllib.parse import quote
 import requests
 import feedparser
 from bs4 import BeautifulSoup
@@ -10,7 +12,7 @@ from google import genai
 
 # 1. Load Gemini Secret Key
 api_key = os.environ.get("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key)
+client = genai.Client(api_key=api_key) if api_key else None
 
 # 2. Configuration & Domain Settings
 SITE_URL = "https://aabtak24.in"
@@ -41,6 +43,24 @@ def clean_slug(slug_text):
     slug = re.sub(r'[^a-zA-Z0-9\-]', '', slug_text.lower().replace(' ', '-'))
     slug = re.sub(r'-+', '-', slug).strip('-')
     return slug or f"news-{int(time.time())}"
+
+def optimize_img_url(url, width=800):
+    """
+    Compresses & converts heavy external images into fast WebP via wsrv.nl CDN.
+    Leaves local editor uploads (e.g., uploads/...) untouched.
+    """
+    if not url or "wsrv.nl" in url or not url.startswith("http"):
+        return url
+    return f"https://wsrv.nl/?url={quote(url, safe='')}&w={width}&output=webp&q=80"
+
+def get_head_links(css_path="style.css"):
+    """Common <head> tags: Inline SVG Favicon (fixes 404 console error), Font Preconnects, and CSS."""
+    return f"""    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2216%22 fill=%22%23141210%22/><text x=%2250%%22 y=%2254%%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 fill=%22%23FF4C00%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22>अ</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://wsrv.nl" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{css_path}">"""
 
 def generate_with_fallback(prompt):
     for model_name in MODELS_TO_TRY:
@@ -108,14 +128,21 @@ def build_individual_article_page(art, today_str):
     slug = art["slug"]
     canonical_url = f"{SITE_URL}/news/{slug}.html"
     
-    plain_text = BeautifulSoup(art["content_html"], "html.parser").get_text().strip()
+    # Normalize any old <h3> subheadings in existing articles to <h2> for sequential accessibility
+    body_html = art["content_html"].replace("<h3>", "<h2>").replace("</h3>", "</h2>")
+    plain_text = BeautifulSoup(body_html, "html.parser").get_text().strip()
     meta_desc = plain_text[:155].replace('"', "'") + "..."
+
+    # Handle relative local image paths if uploaded via editor vs external URLs
+    raw_img = art["image_url"]
+    article_img_src = f"../{raw_img}" if not raw_img.startswith("http") else optimize_img_url(raw_img, width=900)
+    og_img_url = f"{SITE_URL}/{raw_img}" if not raw_img.startswith("http") else raw_img
 
     schema_ld = {
         "@context": "https://schema.org",
         "@type": "NewsArticle",
         "headline": art["title"],
-        "image": [art["image_url"]],
+        "image": [og_img_url],
         "datePublished": art.get("iso_date", datetime.now(timezone.utc).isoformat()),
         "dateModified": art.get("iso_date", datetime.now(timezone.utc).isoformat()),
         "author": [{
@@ -149,7 +176,7 @@ def build_individual_article_page(art, today_str):
     <meta property="og:type" content="article">
     <meta property="og:title" content="{art['title']}">
     <meta property="og:description" content="{meta_desc}">
-    <meta property="og:image" content="{art['image_url']}">
+    <meta property="og:image" content="{og_img_url}">
     <meta property="og:url" content="{canonical_url}">
     <meta property="og:site_name" content="अबतक24.in">
     <meta name="twitter:card" content="summary_large_image">
@@ -157,9 +184,7 @@ def build_individual_article_page(art, today_str):
     <!-- Google News JSON-LD Schema -->
     <script type="application/ld+json">{schema_json}</script>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../style.css">
+{get_head_links(css_path="../style.css")}
 </head>
 <body>
     <div class="top-bar">
@@ -176,11 +201,11 @@ def build_individual_article_page(art, today_str):
             <h1 class="single-title">{art['title']}</h1>
             <div class="meta single-meta">प्रकाशित: {art['date']} <span class="meta-dot"></span> अबतक24 न्यूज़ डेस्क</div>
             <figure class="single-figure">
-                <img src="{art['image_url']}" alt="{art['title']}" />
+                <img src="{article_img_src}" alt="{art['title']}" width="800" height="450" fetchpriority="high" decoding="async" />
                 <figcaption class="image-credit">{art['image_courtesy']}</figcaption>
             </figure>
             <div class="article-content">
-                {art['content_html']}
+                {body_html}
             </div>
         </article>
     </main>
@@ -206,14 +231,16 @@ def build_category_pages(articles, today_str):
         
         cards_html = ""
         if filtered:
-            for art in filtered:
+            for idx, art in enumerate(filtered):
                 art_link = f"news/{art['slug']}.html"
+                card_img = optimize_img_url(art['image_url'], width=480)
+                load_attr = 'fetchpriority="high"' if idx == 0 else 'loading="lazy"'
                 cards_html += f"""
                 <a href="{art_link}" class="archive-card">
-                    <img src="{art['image_url']}" alt="{art['title']}">
+                    <img src="{card_img}" alt="{art['title']}" width="400" height="200" {load_attr} decoding="async">
                     <div class="archive-card-body">
                         <span class="badge">{art.get('category', cat_name)}</span>
-                        <h3 class="side-title">{art['title']}</h3>
+                        <h2 class="side-title">{art['title']}</h2>
                         <div class="meta">{art['date']}</div>
                     </div>
                 </a>"""
@@ -228,9 +255,7 @@ def build_category_pages(articles, today_str):
     <title>{cat_name} समाचार | अबतक24.in (Aabtak24.in)</title>
     <meta name="description" content="अबतक24.in पर पढ़ें {cat_name} से जुड़ी ताज़ा और प्रमुख हिंदी खबरें।">
     <link rel="canonical" href="{SITE_URL}/{cat_file}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+{get_head_links(css_path="style.css")}
 </head>
 <body>
     <div class="top-bar">
@@ -242,7 +267,7 @@ def build_category_pages(articles, today_str):
 
     <main class="container">
         <div class="section-rule">
-            <h2>{cat_name} / Category News</h2>
+            <h1>{cat_name} / Category News</h1>
             <span>कुल {len(filtered)} समाचार</span>
         </div>
         <div class="archive-grid">{cards_html}</div>
@@ -268,9 +293,7 @@ def build_static_pages(today_str):
     <title>हमारे बारे में (About Us) | अबतक24.in</title>
     <meta name="description" content="अबतक24.in (Aabtak24.in) — भारत का आधुनिक डिजिटल हिंदी समाचार पोर्टल। जानें हमारे संपादकीय मानक और संपर्क सूत्र।">
     <link rel="canonical" href="{SITE_URL}/about.html">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+{get_head_links(css_path="style.css")}
 </head>
 <body>
     <div class="top-bar">
@@ -287,9 +310,9 @@ def build_static_pages(today_str):
             <h1 class="single-title">अबतक24.in (Aabtak24.in) — सटीक और निष्पक्ष डिजिटल हिंदी पत्रकारिता</h1>
             <div class="article-content">
                 <p><strong>अबतक24.in (Aabtak24.in)</strong> भारत का एक आधुनिक डिजिटल हिंदी समाचार पोर्टल है। हमारा उद्देश्य देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था, राजनीति और मनोरंजन की प्रमुख खबरों को सरल, स्पष्ट और तथ्यपूर्ण हिंदी भाषा में पाठकों तक पहुँचाना है।</p>
-                <h3>हमारा संपादकीय मानक (Editorial Policy)</h3>
+                <h2>हमारा संपादकीय मानक (Editorial Policy)</h2>
                 <p>हम विश्वसनीय राष्ट्रीय और अंतरराष्ट्रीय समाचार स्रोतों से तथ्यों का संकलन कर उन्हें पाठकों के लिए सहज और प्रवाहपूर्ण पत्रकारिता शैली में प्रस्तुत करते हैं तथा प्रत्येक रिपोर्ट के साथ उचित फोटो और स्रोत साभार (Attribution) प्रदान करते हैं।</p>
-                <h3>संपर्क करें (Contact Us)</h3>
+                <h2>संपर्क करें (Contact Us)</h2>
                 <p>किसी भी सुझाव, प्रतिक्रिया या संपादकीय प्रश्न के लिए आप हमसे संपर्क कर सकते हैं:<br>
                 <strong>वेबसाइट:</strong> <a href="{SITE_URL}" style="color: var(--accent); font-weight: 700;">aabtak24.in</a><br>
                 <strong>ईमेल:</strong> contact@aabtak24.in</p>
@@ -360,28 +383,30 @@ def build_website_html(articles):
     if not articles:
         return
 
-    # NEW: Delete any old HTML files in news/ that were removed from articles_db.json
+    # Delete any old HTML files in news/ that were removed from articles_db.json
     os.makedirs(NEWS_DIR, exist_ok=True)
     valid_files = {f"{art['slug']}.html" for art in articles}
     for fname in os.listdir(NEWS_DIR):
         if fname.endswith(".html") and fname not in valid_files:
             os.remove(os.path.join(NEWS_DIR, fname))
-    
+
     for art in articles:
         build_individual_article_page(art, today_str)
 
     hero = articles[0]
     hero_link = f"news/{hero['slug']}.html"
+    hero_img = optimize_img_url(hero['image_url'], width=800)
 
     side_html = ""
     for art in articles[1:5]:
         art_link = f"news/{art['slug']}.html"
+        thumb_img = optimize_img_url(art['image_url'], width=300)
         side_html += f"""
         <a href="{art_link}" class="side-card">
-            <img src="{art['image_url']}" alt="{art['title']}">
+            <img src="{thumb_img}" alt="{art['title']}" width="128" height="94" loading="lazy" decoding="async">
             <div>
                 <span class="badge">{art.get('category', 'प्रमुख समाचार')}</span>
-                <h3 class="side-title">{art['title']}</h3>
+                <h2 class="side-title">{art['title']}</h2>
                 <div class="meta">{art['date']}</div>
             </div>
         </a>"""
@@ -391,12 +416,13 @@ def build_website_html(articles):
         cards = ""
         for art in articles[5:]:
             art_link = f"news/{art['slug']}.html"
+            card_img = optimize_img_url(art['image_url'], width=480)
             cards += f"""
             <a href="{art_link}" class="archive-card">
-                <img src="{art['image_url']}" alt="{art['title']}">
+                <img src="{card_img}" alt="{art['title']}" width="400" height="200" loading="lazy" decoding="async">
                 <div class="archive-card-body">
                     <span class="badge">{art.get('category', 'समाचार')}</span>
-                    <h3 class="side-title">{art['title']}</h3>
+                    <h2 class="side-title">{art['title']}</h2>
                     <div class="meta">{art['date']}</div>
                 </div>
             </a>"""
@@ -419,9 +445,7 @@ def build_website_html(articles):
     <meta property="og:type" content="website">
     <meta property="og:title" content="अबतक24.in | हिंदी न्यूज़ पोर्टल">
     <meta property="og:url" content="{SITE_URL}/">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+{get_head_links(css_path="style.css")}
 </head>
 <body>
     <div class="top-bar">
@@ -438,7 +462,7 @@ def build_website_html(articles):
         </div>
         <div class="bento-grid">
             <a href="{hero_link}" class="hero-card">
-                <div class="img-wrap"><img src="{hero['image_url']}" alt="{hero['title']}"></div>
+                <div class="img-wrap"><img src="{hero_img}" alt="{hero['title']}" width="800" height="410" fetchpriority="high" decoding="async"></div>
                 <div class="card-body">
                     <div>
                         <span class="badge">{hero.get('category', 'बड़ी खबर')}</span>
@@ -460,7 +484,7 @@ def build_website_html(articles):
     build_category_pages(articles, today_str)
     build_static_pages(today_str)
     build_seo_files(articles)
-    print("✅ Live multi-page SEO website generated (linked to external style.css)!")
+    print("✅ Live multi-page SEO & PageSpeed-optimized website generated!")
 
 def fetch_and_rewrite():
     articles = []
@@ -509,7 +533,7 @@ def fetch_and_rewrite():
            - "title": हिंदी शीर्षक
            - "category": केवल इन 5 में से एक चुनें: "देश-विदेश", "टेक्नोलॉजी", "अर्थव्यवस्था", "राजनीति", "मनोरंजन"
            - "slug": 4-5 शब्दों का अंग्रेजी SEO URL slug (केवल lowercase letters और hyphens, जैसे: "india-new-ai-policy-2026")
-           - "content_html": हिंदी लेख का HTML कोड (<p>, <h3> टैग्स के साथ)
+           - "content_html": हिंदी लेख का HTML कोड (<p>, <h2> टैग्स के साथ)
            - "image_strategy": "original" या "stock"
            - "stock_search_query": 2 शब्दों का अंग्रेजी सर्च कीवर्ड
 
@@ -554,13 +578,14 @@ def fetch_and_rewrite():
 
     build_website_html(articles)
 
-
 if __name__ == "__main__":
-    import sys
     if "--rebuild-only" in sys.argv:
         with open(ARCHIVE_FILE, "r", encoding="utf-8") as f:
             articles = json.load(f)
+        for a in articles:
+            a["slug"] = clean_slug(a.get("slug", "news-story"))
+            if "iso_date" not in a:
+                a["iso_date"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S+00:00")
         build_website_html(articles)
     else:
         fetch_and_rewrite()
-    

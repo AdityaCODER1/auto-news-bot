@@ -186,7 +186,7 @@ def build_individual_article_page(art, today_str):
     <!-- Google News JSON-LD Schema -->
     <script type="application/ld+json">{schema_json}</script>
 
-{get_head_links(css_path="../style.css", preload_img=hero_img)}
+{get_head_links(css_path="../style.css", preload_img=article_img_src)}
 </head>
 <body>
     <div class="top-bar">

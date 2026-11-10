@@ -53,14 +53,16 @@ def optimize_img_url(url, width=800):
         return url
     return f"https://wsrv.nl/?url={quote(url, safe='')}&w={width}&output=webp&q=80"
 
-def get_head_links(css_path="style.css"):
-    """Common <head> tags: Inline SVG Favicon (fixes 404 console error), Font Preconnects, and CSS."""
+def get_head_links(css_path="style.css", preload_img=None):
+    """Common <head> tags: Non-blocking Google Fonts, optional LCP preload, and CSS."""
+    preload_tag = f'    <link rel="preload" as="image" href="{preload_img}" fetchpriority="high">\n' if preload_img else ""
     return f"""    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2216%22 fill=%22%23141210%22/><text x=%2250%%22 y=%2254%%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 fill=%22%23FF4C00%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22>अ</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://wsrv.nl" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{css_path}">"""
+{preload_tag}    <link rel="stylesheet" href="{css_path}">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Mukta:wght@700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Mukta:wght@700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet"></noscript>"""    
 
 def generate_with_fallback(prompt):
     for model_name in MODELS_TO_TRY:
@@ -184,7 +186,7 @@ def build_individual_article_page(art, today_str):
     <!-- Google News JSON-LD Schema -->
     <script type="application/ld+json">{schema_json}</script>
 
-{get_head_links(css_path="../style.css")}
+{get_head_links(css_path="../style.css", preload_img=hero_img)}
 </head>
 <body>
     <div class="top-bar">
@@ -201,7 +203,7 @@ def build_individual_article_page(art, today_str):
             <h1 class="single-title">{art['title']}</h1>
             <div class="meta single-meta">प्रकाशित: {art['date']} <span class="meta-dot"></span> अबतक24 न्यूज़ डेस्क</div>
             <figure class="single-figure">
-                <img src="{article_img_src}" alt="{art['title']}" width="800" height="450" fetchpriority="high" decoding="async" />
+                <img src="{article_img_src}" alt="{art['title']}" width="800" height="450" fetchpriority="high" decoding="sync" />
                 <figcaption class="image-credit">{art['image_courtesy']}</figcaption>
             </figure>
             <div class="article-content">
@@ -445,7 +447,7 @@ def build_website_html(articles):
     <meta property="og:type" content="website">
     <meta property="og:title" content="अबतक24.in | हिंदी न्यूज़ पोर्टल">
     <meta property="og:url" content="{SITE_URL}/">
-{get_head_links(css_path="style.css")}
+{get_head_links(css_path="style.css", preload_img=hero_img)}
 </head>
 <body>
     <div class="top-bar">
@@ -462,7 +464,7 @@ def build_website_html(articles):
         </div>
         <div class="bento-grid">
             <a href="{hero_link}" class="hero-card">
-                <div class="img-wrap"><img src="{hero_img}" alt="{hero['title']}" width="800" height="410" fetchpriority="high" decoding="async"></div>
+                <div class="img-wrap"><img src="{hero_img}" alt="{hero['title']}" width="800" height="410" fetchpriority="high" loading="eager" decoding="sync"></div>
                 <div class="card-body">
                     <div>
                         <span class="badge">{hero.get('category', 'बड़ी खबर')}</span>

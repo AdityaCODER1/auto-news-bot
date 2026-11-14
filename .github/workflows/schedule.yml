@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'Run mode (fetch = get new RSS article, workflow_dispatch = only update HTML)'
+        description: 'Run mode (fetch = get new RSS article, rebuild = only update HTML)'
         required: false
         default: 'fetch'
 

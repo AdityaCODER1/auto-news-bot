@@ -6,9 +6,13 @@
     <title>हमारे बारे में (About Us) | अबतक24.in</title>
     <meta name="description" content="अबतक24.in (Aabtak24.in) — भारत का आधुनिक डिजिटल हिंदी समाचार पोर्टल। जानें हमारे संपादकीय मानक और संपर्क सूत्र।">
     <link rel="canonical" href="https://aabtak24.in/about.html">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2216%22 fill=%22%23141210%22/><text x=%2250%%22 y=%2254%%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 fill=%22%23FF4C00%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22>अ</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://wsrv.nl" crossorigin>
     <link rel="stylesheet" href="style.css">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Mukta:wght@700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Mukta:wght@700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
 </head>
 <body>
     <div class="top-bar">
@@ -17,8 +21,12 @@
     </div>
 
     <header>
-        <a href="index.html" class="logo">अब<span>तक24</span><span class="dot-in">.in</span></a>
-        <nav class="nav-pills">
+        <a href="index.html" class="logo notranslate" translate="no" aria-label="अबतक24.in होमपेज">
+            <img src="logo.svg" alt="अबतक24.in" width="206" height="36" decoding="sync">
+        </a>
+
+        <!-- Desktop Navigation -->
+        <nav class="nav-pills desktop-nav" aria-label="मुख्य नेविगेशन">
             <a href="index.html">मुख्य खबरें</a>
             <a href="desh-videsh.html">देश-विदेश</a>
             <a href="technology.html">टेक्नोलॉजी</a>
@@ -27,6 +35,23 @@
             <a href="entertainment.html">मनोरंजन</a>
             <a href="about.html" class="active">हमारे बारे में</a>
         </nav>
+
+        <!-- Mobile Dropdown Menu -->
+        <details class="mobile-nav">
+            <summary class="menu-toggle" aria-label="मेनू खोलें">
+                <span class="menu-label">श्रेणियाँ</span>
+                <span class="menu-icon" aria-hidden="true">☰</span>
+            </summary>
+            <nav class="mobile-dropdown" aria-label="मोबाइल नेविगेशन">
+                <a href="index.html">मुख्य खबरें</a>
+                <a href="desh-videsh.html">देश-विदेश</a>
+                <a href="technology.html">टेक्नोलॉजी</a>
+                <a href="economy.html">अर्थव्यवस्था</a>
+                <a href="politics.html">राजनीति</a>
+                <a href="entertainment.html">मनोरंजन</a>
+                <a href="about.html" class="active">हमारे बारे में</a>
+            </nav>
+        </details>
     </header>
 
     <main class="container">
@@ -36,12 +61,12 @@
             <h1 class="single-title">अबतक24.in (Aabtak24.in) — सटीक और निष्पक्ष डिजिटल हिंदी पत्रकारिता</h1>
             <div class="article-content">
                 <p><strong>अबतक24.in (Aabtak24.in)</strong> भारत का एक आधुनिक डिजिटल हिंदी समाचार पोर्टल है। हमारा उद्देश्य देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था, राजनीति और मनोरंजन की प्रमुख खबरों को सरल, स्पष्ट और तथ्यपूर्ण हिंदी भाषा में पाठकों तक पहुँचाना है।</p>
-                <h3>हमारा संपादकीय मानक (Editorial Policy)</h3>
+                <h2>हमारा संपादकीय मानक (Editorial Policy)</h2>
                 <p>हम विश्वसनीय राष्ट्रीय और अंतरराष्ट्रीय समाचार स्रोतों से तथ्यों का संकलन कर उन्हें पाठकों के लिए सहज और प्रवाहपूर्ण पत्रकारिता शैली में प्रस्तुत करते हैं तथा प्रत्येक रिपोर्ट के साथ उचित फोटो और स्रोत साभार (Attribution) प्रदान करते हैं।</p>
-                <h3>संपर्क करें (Contact Us)</h3>
+                <h2>संपर्क करें (Contact Us)</h2>
                 <p>किसी भी सुझाव, प्रतिक्रिया या संपादकीय प्रश्न के लिए आप हमसे संपर्क कर सकते हैं:<br>
                 <strong>वेबसाइट:</strong> <a href="https://aabtak24.in" style="color: var(--accent); font-weight: 700;">aabtak24.in</a><br>
-                <strong>ईमेल:</strong> <a href="mailto:contact@aabtak24.in" style="color: var(--accent); font-weight: 700;">contact@aabtak24.in</a>
+                <strong>ईमेल:</strong> <a href="mailto:contact@aabtak24.in" style="color: var(--accent); font-weight: 700;">contact@aabtak24.in</a></p>
             </div>
         </article>
     </main>

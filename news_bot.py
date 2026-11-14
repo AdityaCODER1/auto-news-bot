@@ -119,7 +119,7 @@ def get_rss_image(entry):
     return None
 
 def get_header_html(prefix="", active_file=""):
-    """Generates the header with the custom logo.svg and working links from both root ('') and /news/ ('../')."""
+    """Generates the header with logo.svg, desktop nav pills, and a mobile dropdown menu."""
     home_cls = ' class="active"' if active_file == "index.html" else ""
     nav_links = f'<a href="{prefix}index.html"{home_cls}>मुख्य खबरें</a>\n'
     
@@ -134,9 +134,22 @@ def get_header_html(prefix="", active_file=""):
         <a href="{prefix}index.html" class="logo notranslate" translate="no" aria-label="अबतक24.in होमपेज">
             <img src="{prefix}logo.svg" alt="अबतक24.in" width="206" height="36" decoding="sync">
         </a>
-        <nav class="nav-pills">
+
+        <!-- Desktop Navigation -->
+        <nav class="nav-pills desktop-nav" aria-label="मुख्य नेविगेशन">
             {nav_links}
         </nav>
+
+        <!-- Mobile Dropdown Menu -->
+        <details class="mobile-nav">
+            <summary class="menu-toggle" aria-label="मेनू खोलें">
+                <span class="menu-label">श्रेणियाँ</span>
+                <span class="menu-icon" aria-hidden="true">☰</span>
+            </summary>
+            <nav class="mobile-dropdown" aria-label="मोबाइल नेविगेशन">
+                {nav_links}
+            </nav>
+        </details>
     </header>"""
 
 def build_individual_article_page(art, today_str):

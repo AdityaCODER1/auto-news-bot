@@ -34,7 +34,7 @@ CATEGORIES = [
 # 4. Model Fallback List
 MODELS_TO_TRY = [
     "gemini-3.6-flash",
-    "gemini-3.8-flash",
+    "gemini-3.8-flash"
 ]
 
 def clean_slug(slug_text):

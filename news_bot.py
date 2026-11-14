@@ -17,8 +17,12 @@ client = genai.Client(api_key=api_key) if api_key else None
 # 2. Configuration & Domain Settings
 SITE_URL = "https://aabtak24.in"
 SITE_NAME = "अबतक24.in (Aabtak24.in)"
-RSS_URL = "https://feeds.bbci.co.uk/news/world/asia/india/rss.xml"
-SOURCE_NAME = "BBC News"
+RSS_FEEDS = [
+    {"url": "https://feeds.bbci.co.uk/news/world/asia/india/rss.xml", "source": "BBC News"},
+    {"url": "https://www.thehindu.com/news/national/feeder/default.rss", "source": "The Hindu"},
+    {"url": "https://indianexpress.com/section/india/feed/", "source": "Indian Express"},
+    {"url": "https://feeds.feedburner.com/ndtvnews-top-stories", "source": "NDTV"},
+]
 ARCHIVE_FILE = "articles_db.json"
 NEWS_DIR = "news"
 

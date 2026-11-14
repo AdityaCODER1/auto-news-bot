@@ -1,7 +1,3 @@
-https://pagespeed.web.dev/analysis/https-aabtak24-in/vlhk054w55?utm_source=search_console&form_factor=desktop&hl=en
-work on above problems
-
 add music site
 add subdomain sites
 customize style
-ui for phone

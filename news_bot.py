@@ -119,7 +119,7 @@ def get_rss_image(entry):
     return None
 
 def get_header_html(prefix="", active_file=""):
-    """Generates the header with working links from both root ('') and /news/ ('../')."""
+    """Generates the header with the custom logo.svg and working links from both root ('') and /news/ ('../')."""
     home_cls = ' class="active"' if active_file == "index.html" else ""
     nav_links = f'<a href="{prefix}index.html"{home_cls}>मुख्य खबरें</a>\n'
     
@@ -131,7 +131,9 @@ def get_header_html(prefix="", active_file=""):
     nav_links += f'            <a href="{prefix}about.html"{about_cls}>हमारे बारे में</a>'
 
     return f"""    <header>
-        <a href="{prefix}index.html" class="logo">अब<span>तक24</span><span class="dot-in">.in</span></a>
+        <a href="{prefix}index.html" class="logo notranslate" translate="no" aria-label="अबतक24.in होमपेज">
+            <img src="{prefix}logo.svg" alt="अबतक24.in" width="206" height="36" decoding="sync">
+        </a>
         <nav class="nav-pills">
             {nav_links}
         </nav>

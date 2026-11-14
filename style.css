@@ -126,14 +126,20 @@ header {
     gap: 12px;
 }
 .logo {
-    font-family: var(--font-heading);
-    font-size: 36px;
-    font-weight: 800;
-    color: var(--text-main);
-    letter-spacing: -0.5px;
-    line-height: 1;
-    display: flex;
-    align-items: baseline;
+    text-decoration: none;
+    line-height: 0;
+    display: inline-flex;
+    align-items: center;
+}
+.logo img {
+    height: 36px;
+    width: auto;
+    display: block;
+}
+@media (max-width: 900px) {
+    .logo img {
+        height: 30px;
+    }
 }
 .logo span { color: var(--accent); }
 .logo .dot-in {

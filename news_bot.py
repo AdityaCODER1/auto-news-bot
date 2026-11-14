@@ -14,17 +14,54 @@ from google import genai
 api_key = os.environ.get("GEMINI_API_KEY")
 client = genai.Client(api_key=api_key) if api_key else None
 
-# 2. Configuration & Domain Settings
+# 2. Configuration, Multi-RSS Feeds & Dual Bias Settings
 SITE_URL = "https://aabtak24.in"
 SITE_NAME = "अबतक24.in (Aabtak24.in)"
-RSS_FEEDS = [
-    {"url": "https://feeds.bbci.co.uk/news/world/asia/india/rss.xml", "source": "BBC News"},
-    {"url": "https://www.thehindu.com/news/national/feeder/default.rss", "source": "The Hindu"},
-    {"url": "https://indianexpress.com/section/india/feed/", "source": "Indian Express"},
-    {"url": "https://feeds.feedburner.com/ndtvnews-top-stories", "source": "NDTV"},
-]
 ARCHIVE_FILE = "articles_db.json"
 NEWS_DIR = "news"
+
+# A. SOURCE BIAS: Higher 'weight' gives stories from that feed a head start
+RSS_FEEDS = [
+    {"url": "https://feeds.bbci.co.uk/news/world/asia/india/rss.xml", "source": "BBC News", "weight": 8.0},
+    {"url": "https://www.thehindu.com/news/national/feeder/default.rss", "source": "The Hindu", "weight": 9.0},
+    {"url": "https://indianexpress.com/section/india/feed/", "source": "Indian Express", "weight": 8.5},
+    {"url": "https://feeds.feedburner.com/ndtvnews-top-stories", "source": "NDTV", "weight": 7.5},
+]
+
+# B. KEYWORD BIAS: Positive numbers boost a story; negative numbers push it down
+KEYWORD_BIAS = {
+    "india": 3.0,
+    "ai": 5.0,
+    "artificial intelligence": 5.0,
+    "isro": 4.0,
+    "economy": 3.5,
+    "sensex": 3.0,
+    "rbi": 3.0,
+    "budget": 3.5,
+    "parliament": 3.0,
+    "supreme court": 3.0,
+    "policy": 2.5,
+    "election": 3.0,
+    "cricket": -2.0,  # Example: slightly deprioritize routine sports scores
+}
+
+# Completely skip stories containing these words
+BLOCKED_KEYWORDS = [
+    "horoscope", "astrology", "wordle", "crossword", "sponsored", "betting", "coupon"
+]
+
+# C. AI SELECTION BIAS: Which story should Gemini choose from the top 5 candidates?
+SELECTION_BIAS_PROMPT = """
+- उन खबरों को सर्वोच्च प्राथमिकता दें जो भारत की आर्थिक प्रगति, नई टेक्नोलॉजी (AI/ISRO/Startups), राष्ट्रीय सुरक्षा, बड़ी नीतियों या आम मिडिल-क्लास नागरिकों के हितों से जुड़ी हों।
+- मामूली स्थानीय अपराध, सेलिब्रिटी गपशप या कम महत्व की खबरों को छोड़ दें।
+"""
+
+# D. AI FRAMING & PHRASING BIAS: How should Gemini phrase the article while keeping facts 100% intact?
+TONE_AND_FRAMING_BIAS = """
+- दृष्टिकोण (Editorial Angle): खबर को 'भारत-प्रथम' (India-First), प्रगतिशील और आम भारतीय नागरिक के हित के दृष्टिकोण से प्रस्तुत करें।
+- शब्दावली और लहजा (Phrasing & Tone): आत्मविश्वासपूर्ण, मुखर और प्रभावशाली पत्रकारिता की भाषा का प्रयोग करें। यदि खबर भारत की किसी उपलब्धि, तकनीक या नीति के बारे में है, तो शीर्षक और पहली पंक्ति में उसकी रणनीतिक ताकत और दूरगामी महत्व को उभारें। यदि खबर किसी समस्या या संकट पर है, तो आम जनता पर उसके प्रभाव और समाधान की राह पर जोर देते हुए समापन करें।
+- कठोर तथ्य नियम (100% Fact Lock): मूल खबर के किसी भी तथ्य, आंकड़े, नाम, तारीख या बयान को बिल्कुल न बदलें और न ही अपनी तरफ से कोई काल्पनिक तथ्य जोड़ें। केवल प्रस्तुति के कोण (Framing), शब्दों के चयन (Word Choice) और शीर्षक के जोर (Headline Emphasis) में यह संपादकीय दृष्टिकोण दिखाएं।
+"""
 
 # 3. Navigation Categories & Aliases
 CATEGORIES = [
@@ -516,6 +553,56 @@ def build_website_html(articles):
     build_seo_files(articles)
     print("✅ Live multi-page SEO & PageSpeed-optimized website generated!")
 
+def collect_ranked_candidates(existing_links):
+    """Pools unread stories from all feeds and ranks them using Source + Keyword Bias."""
+    candidates = []
+    for feed_info in RSS_FEEDS:
+        source_name = feed_info["source"]
+        feed_url = feed_info["url"]
+        base_weight = feed_info.get("weight", 5.0)
+
+        print(f"📡 Scanning {source_name}...")
+        try:
+            feed = feedparser.parse(feed_url)
+            for entry in feed.entries[:10]:
+                link = entry.get("link", "")
+                if not link or link in existing_links:
+                    continue
+
+                title = entry.get("title", "").strip()
+                raw_summary = entry.get("summary", "") or entry.get("description", "")
+                summary = BeautifulSoup(raw_summary, "html.parser").get_text().strip()
+                combined_text = f"{title} {summary}".lower()
+
+                # 1. Hard filter out blocked topics
+                if any(bad in combined_text for bad in BLOCKED_KEYWORDS):
+                    continue
+
+                # 2. Calculate Selection Bias Score
+                score = base_weight
+                for kw, kw_weight in KEYWORD_BIAS.items():
+                    if re.search(r'\b' + re.escape(kw.lower()) + r'\b', combined_text):
+                        score += kw_weight
+
+                rss_img = get_rss_image(entry)
+                if rss_img:
+                    score += 1.0  # Slight bonus for stories with an original RSS photo
+
+                candidates.append({
+                    "title": title,
+                    "summary": summary[:700],
+                    "link": link,
+                    "source_name": source_name,
+                    "rss_image_url": rss_img,
+                    "score": round(score, 2)
+                })
+        except Exception as e:
+            print(f"⚠️ Failed to fetch {source_name}: {e}")
+
+    # Sort highest bias score first
+    candidates.sort(key=lambda x: x["score"], reverse=True)
+    return candidates
+
 def fetch_and_rewrite():
     articles = []
     if os.path.exists(ARCHIVE_FILE):
@@ -534,82 +621,91 @@ def fetch_and_rewrite():
     target_count = 3 if len(articles) == 0 else 1
     added = 0
 
-    for feed_info in RSS_FEEDS:
-        if added >= target_count:
+    for _ in range(target_count):
+        candidates = collect_ranked_candidates(existing_links)
+        if not candidates:
+            print("ℹ️ All matching stories across all RSS feeds have already been published.")
             break
 
-        source_name = feed_info["source"]
-        feed_url = feed_info["url"]
-        print(f"Fetching latest English news from {source_name}...")
-        feed = feedparser.parse(feed_url)
+        # Shortlist the top 5 highest-scoring stories for Gemini to evaluate
+        shortlist = candidates[:5]
+        candidates_text = ""
+        for idx, c in enumerate(shortlist):
+            candidates_text += (
+                f"\n[{idx}] Source: {c['source_name']} (Bias Score: {c['score']})\n"
+                f"Title: {c['title']}\n"
+                f"Summary: {c['summary']}\n"
+            )
 
-        if not feed.entries:
-            print(f"⚠️ No entries returned from {source_name}.")
-            continue
+        prompt = f"""
+        आप एक वरिष्ठ हिंदी समाचार संपादक (Senior Hindi News Editor) हैं।
+        नीचे {len(shortlist)} अलग-अलग अंग्रेजी समाचारों के विकल्प ([0] से [{len(shortlist)-1}]) दिए गए हैं।
 
-        for entry in feed.entries:
-            link = entry.get("link", "")
-            if not link or link in existing_links:
-                continue
-            if added >= target_count:
-                break
+        1. समाचार चयन प्राथमिकता (Selection Bias):
+        {SELECTION_BIAS_PROMPT}
 
-            original_title = entry.title
-            raw_summary = entry.get("summary", "") or entry.get("description", "")
-            original_summary = BeautifulSoup(raw_summary, "html.parser").get_text().strip()
-            rss_image_url = get_rss_image(entry)
+        2. लेखन कोण और भाषा शैली (Framing & Phrasing Bias):
+        {TONE_AND_FRAMING_BIAS}
 
-            prompt = f"""
-            आप एक वरिष्ठ हिंदी समाचार संपादक (Senior Hindi News Editor) हैं।
-            नीचे दिए गए अंग्रेजी समाचार को पढ़कर एक मौलिक, आकर्षक और प्रभावशाली हिंदी समाचार लेख (लगभग 300-350 शब्द) लिखें।
+        दिशानिर्देश (Instructions):
+        - चरण 1: 'समाचार चयन प्राथमिकता' के आधार पर सबसे उपयुक्त 1 खबर चुनें और उसका नंबर "selected_index" में दें।
+        - चरण 2: चुनी गई खबर को 'लेखन कोण और भाषा शैली' (Framing Bias) के अनुसार लगभग 300-350 शब्दों के प्रभावशाली और मौलिक हिंदी समाचार लेख में लिखें। मशीनी अनुवाद न करें।
+        - चरण 3 (तथ्य सुरक्षा): मूल खबर के सभी तथ्य, नाम, संख्याएं और घटनाएं 100% सटीक और अपरिवर्तित रखें।
+        - चरण 4 (फोटो निर्णय): यदि खबर किसी राजनेता, व्यक्ति या विशेष घटना पर है, तो "image_strategy" को "original" रखें। यदि सामान्य टेक, AI, अर्थव्यवस्था, स्वास्थ्य आदि पर है, तो "stock" रखें।
+        - केवल वैध JSON में उत्तर दें जिसमें ये 7 keys हों:
+           - "selected_index": चुनी गई खबर का नंबर (integer, जैसे 0 या 1)
+           - "title": संपादकीय दृष्टिकोण को दर्शाता आकर्षक हिंदी शीर्षक
+           - "category": केवल इन 5 में से एक चुनें: "देश-विदेश", "टेक्नोलॉजी", "अर्थव्यवस्था", "राजनीति", "मनोरंजन"
+           - "slug": 4-5 शब्दों का अंग्रेजी SEO URL slug (केवल lowercase letters और hyphens, जैसे: "india-new-ai-policy-2026")
+           - "content_html": हिंदी लेख का HTML कोड (<p>, <h2> टैग्स के साथ)
+           - "image_strategy": "original" या "stock"
+           - "stock_search_query": 2 शब्दों का अंग्रेजी सर्च कीवर्ड
 
-            दिशानिर्देश:
-            1. मशीनी अनुवाद न करें। खबर को सहज हिंदी पत्रकारिता की भाषा में दोबारा लिखें।
-            2. सभी तथ्य 100% सटीक रखें।
-            3. फोटो का निर्णय: यदि खबर किसी राजनेता, व्यक्ति या विशेष घटना पर है, तो "image_strategy" को "original" रखें। यदि सामान्य टेक, AI, अर्थव्यवस्था, स्वास्थ्य आदि पर है, तो "stock" रखें।
-            4. केवल वैध JSON में उत्तर दें जिसमें ये 6 keys हों:
-               - "title": हिंदी शीर्षक
-               - "category": केवल इन 5 में से एक चुनें: "देश-विदेश", "टेक्नोलॉजी", "अर्थव्यवस्था", "राजनीति", "मनोरंजन"
-               - "slug": 4-5 शब्दों का अंग्रेजी SEO URL slug (केवल lowercase letters और hyphens, जैसे: "india-new-ai-policy-2026")
-               - "content_html": हिंदी लेख का HTML कोड (<p>, <h2> टैग्स के साथ)
-               - "image_strategy": "original" या "stock"
-               - "stock_search_query": 2 शब्दों का अंग्रेजी सर्च कीवर्ड
+        समाचार विकल्प (Candidates):
+        {candidates_text}
+        """
 
-            Original English Title: {original_title}
-            Original English Details: {original_summary}
-            """
+        article_data = generate_with_fallback(prompt)
 
-            article_data = generate_with_fallback(prompt)
-            strategy = article_data.get("image_strategy", "original")
-            search_query = article_data.get("stock_search_query", "technology")
+        chosen_idx = article_data.get("selected_index", 0)
+        if not isinstance(chosen_idx, int) or chosen_idx < 0 or chosen_idx >= len(shortlist):
+            chosen_idx = 0
+        chosen = shortlist[chosen_idx]
 
-            final_image_url, image_courtesy = (None, "")
-            if strategy == "stock":
-                final_image_url, image_courtesy = fetch_free_stock_image(search_query)
-            if not final_image_url and rss_image_url:
-                final_image_url = rss_image_url
-                image_courtesy = f"फोटो साभार: {source_name} (RSS फ़ीड के माध्यम से)"
-            if not final_image_url:
-                final_image_url = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80"
-                image_courtesy = "फोटो साभार: Unsplash (प्रतीकात्मक तस्वीर)"
+        print(f"🎯 Selected [{chosen_idx}] ({chosen['source_name']} | Score {chosen['score']}): {chosen['title']}")
 
-            new_article = {
-                "title": article_data["title"],
-                "category": article_data.get("category", "देश-विदेश"),
-                "slug": clean_slug(article_data.get("slug", "hindi-news")),
-                "content_html": article_data["content_html"],
-                "image_url": final_image_url,
-                "image_courtesy": image_courtesy,
-                "original_link": link,
-                "source_name": source_name,
-                "date": datetime.now().strftime("%d %b %Y, %I:%M %p"),
-                "iso_date": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S+00:00")
-            }
+        strategy = article_data.get("image_strategy", "original")
+        search_query = article_data.get("stock_search_query", "technology")
+        rss_image_url = chosen["rss_image_url"]
+        source_name = chosen["source_name"]
 
-            articles.insert(0, new_article)
-            existing_links.add(link)
-            added += 1
-            time.sleep(2)
+        final_image_url, image_courtesy = (None, "")
+        if strategy == "stock":
+            final_image_url, image_courtesy = fetch_free_stock_image(search_query)
+        if not final_image_url and rss_image_url:
+            final_image_url = rss_image_url
+            image_courtesy = f"फोटो साभार: {source_name} (RSS फ़ीड के माध्यम से)"
+        if not final_image_url:
+            final_image_url = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80"
+            image_courtesy = "फोटो साभार: Unsplash (प्रतीकात्मक तस्वीर)"
+
+        new_article = {
+            "title": article_data["title"],
+            "category": article_data.get("category", "देश-विदेश"),
+            "slug": clean_slug(article_data.get("slug", "hindi-news")),
+            "content_html": article_data["content_html"],
+            "image_url": final_image_url,
+            "image_courtesy": image_courtesy,
+            "original_link": chosen["link"],
+            "source_name": source_name,
+            "date": datetime.now().strftime("%d %b %Y, %I:%M %p"),
+            "iso_date": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+        }
+
+        articles.insert(0, new_article)
+        existing_links.add(chosen["link"])
+        added += 1
+        time.sleep(2)
 
     if added == 0:
         print("ℹ️ All stories across all RSS feeds have already been published. No new articles to generate.")

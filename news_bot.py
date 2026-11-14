@@ -603,6 +603,57 @@ def collect_ranked_candidates(existing_links):
     candidates.sort(key=lambda x: x["score"], reverse=True)
     return candidates
 
+def collect_ranked_candidates(existing_links):
+    """Pools unread stories from all feeds and ranks them using Source + Keyword Bias."""
+    candidates = []
+    for feed_info in RSS_FEEDS:
+        source_name = feed_info["source"]
+        feed_url = feed_info["url"]
+        base_weight = feed_info.get("weight", 5.0)
+
+        print(f"📡 Scanning {source_name}...")
+        try:
+            feed = feedparser.parse(feed_url)
+            for entry in feed.entries[:12]:
+                link = entry.get("link", "")
+                if not link or link in existing_links:
+                    continue
+
+                title = entry.get("title", "").strip()
+                raw_summary = entry.get("summary", "") or entry.get("description", "")
+                summary = BeautifulSoup(raw_summary, "html.parser").get_text().strip()
+                combined_text = f"{title} {summary}".lower()
+
+                # 1. Hard filter out blocked topics
+                if any(bad in combined_text for bad in BLOCKED_KEYWORDS):
+                    continue
+
+                # 2. Calculate Selection Bias Score
+                score = base_weight
+                for kw, kw_weight in KEYWORD_BIAS.items():
+                    if re.search(r'\b' + re.escape(kw.lower()) + r'\b', combined_text):
+                        score += kw_weight
+
+                rss_img = get_rss_image(entry)
+                if rss_img:
+                    score += 1.0  # Slight bonus for stories with an original RSS photo
+
+                candidates.append({
+                    "title": title,
+                    "summary": summary[:700],
+                    "link": link,
+                    "source_name": source_name,
+                    "rss_image_url": rss_img,
+                    "score": round(score, 2)
+                })
+        except Exception as e:
+            print(f"⚠️ Failed to fetch {source_name}: {e}")
+
+    # Sort highest bias score first
+    candidates.sort(key=lambda x: x["score"], reverse=True)
+    return candidates
+
+
 def fetch_and_rewrite():
     articles = []
     if os.path.exists(ARCHIVE_FILE):
@@ -638,7 +689,7 @@ def fetch_and_rewrite():
             )
 
         prompt = f"""
-        आप एक वरिष्ठ हिंदी समाचार संपादक (Senior Hindi News Editor) हैं।
+        आप एक वरिष्ठ राष्ट्रवादी हिंदी समाचार संपादक (Senior Hindi News Editor) हैं।
         नीचे {len(shortlist)} अलग-अलग अंग्रेजी समाचारों के विकल्प ([0] से [{len(shortlist)-1}]) दिए गए हैं।
 
         1. समाचार चयन प्राथमिकता (Selection Bias):
@@ -649,12 +700,12 @@ def fetch_and_rewrite():
 
         दिशानिर्देश (Instructions):
         - चरण 1: 'समाचार चयन प्राथमिकता' के आधार पर सबसे उपयुक्त 1 खबर चुनें और उसका नंबर "selected_index" में दें।
-        - चरण 2: चुनी गई खबर को 'लेखन कोण और भाषा शैली' (Framing Bias) के अनुसार लगभग 300-350 शब्दों के प्रभावशाली और मौलिक हिंदी समाचार लेख में लिखें। मशीनी अनुवाद न करें।
-        - चरण 3 (तथ्य सुरक्षा): मूल खबर के सभी तथ्य, नाम, संख्याएं और घटनाएं 100% सटीक और अपरिवर्तित रखें।
+        - चरण 2: चुनी गई खबर को 'लेखन कोण और भाषा शैली' (Pro-Government, Pro-Right-Wing, Pro-India Framing) के अनुसार लगभग 300-350 शब्दों के प्रभावशाली और मौलिक हिंदी समाचार लेख में लिखें। मशीनी अनुवाद न करें।
+        - चरण 3 (100% तथ्य सुरक्षा): मूल खबर के सभी तथ्य, नाम, संख्याएं और घटनाएं 100% सटीक और अपरिवर्तित रखें। कोई भी काल्पनिक तथ्य न जोड़ें।
         - चरण 4 (फोटो निर्णय): यदि खबर किसी राजनेता, व्यक्ति या विशेष घटना पर है, तो "image_strategy" को "original" रखें। यदि सामान्य टेक, AI, अर्थव्यवस्था, स्वास्थ्य आदि पर है, तो "stock" रखें।
         - केवल वैध JSON में उत्तर दें जिसमें ये 7 keys हों:
            - "selected_index": चुनी गई खबर का नंबर (integer, जैसे 0 या 1)
-           - "title": संपादकीय दृष्टिकोण को दर्शाता आकर्षक हिंदी शीर्षक
+           - "title": राष्ट्रवादी और सरकार-समर्थक दृष्टिकोण को दर्शाता आकर्षक हिंदी शीर्षक
            - "category": केवल इन 5 में से एक चुनें: "देश-विदेश", "टेक्नोलॉजी", "अर्थव्यवस्था", "राजनीति", "मनोरंजन"
            - "slug": 4-5 शब्दों का अंग्रेजी SEO URL slug (केवल lowercase letters और hyphens, जैसे: "india-new-ai-policy-2026")
            - "content_html": हिंदी लेख का HTML कोड (<p>, <h2> टैग्स के साथ)

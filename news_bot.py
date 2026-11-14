@@ -33,6 +33,7 @@ CATEGORIES = [
 
 # 4. Model Fallback List
 MODELS_TO_TRY = [
+    "gemma-4-31b-it",
     "gemini-3.6-flash",
     "gemini-3.8-flash",
     "gemma-4-31b-it"

@@ -507,6 +507,7 @@ def fetch_and_rewrite():
 
     print(f"Fetching latest English news from {SOURCE_NAME}...")
     feed = feedparser.parse(RSS_URL)
+    print(f"Parsed from feed")
     if not feed.entries:
         print("No news entries found!")
         return

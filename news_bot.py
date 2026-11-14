@@ -105,8 +105,23 @@ def get_head_links(css_path="style.css", preload_img=None):
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Mukta:wght@700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Mukta:wght@700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet"></noscript>"""    
 
+def parse_ai_json(raw_text):
+    """Safely parses JSON from Gemini even if HTML strings contain raw newlines."""
+    cleaned = raw_text.strip()
+    if cleaned.startswith("```"):
+        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
+        cleaned = re.sub(r"\s*```$", "", cleaned)
+    return json.loads(cleaned, strict=False)
+
+
 def generate_with_fallback(prompt):
-    for model_name in MODELS_TO_TRY:
+    attempt_plan = [
+        ("gemini-3.6-flash", 3),
+        ("gemini-3.6-flash", 8),
+        ("gemini-3.8-flash", 5),
+        ("gemma-4-31b-it", 5),
+    ]
+    for model_name, wait_sec in attempt_plan:
         try:
             print(f"Attempting to write Hindi article using {model_name}...")
             response = client.models.generate_content(
@@ -114,11 +129,15 @@ def generate_with_fallback(prompt):
                 contents=prompt,
                 config={"response_mime_type": "application/json"}
             )
+            article_data = parse_ai_json(response.text)
             print(f"✅ Success with {model_name}!")
-            return json.loads(response.text)
+            return article_data
+        except json.JSONDecodeError as e:
+            print(f"⚠️ {model_name} returned malformed JSON ({e}). Retrying...")
+            time.sleep(wait_sec)
         except Exception as e:
             print(f"⚠️ {model_name} busy ({e}). Switching to backup model...")
-            time.sleep(2)
+            time.sleep(wait_sec)
     raise RuntimeError("All models failed. Please try again later.")
 
 def fetch_free_stock_image(query):
@@ -566,56 +585,6 @@ def collect_ranked_candidates(existing_links):
         try:
             feed = feedparser.parse(feed_url)
             for entry in feed.entries[:10]:
-                link = entry.get("link", "")
-                if not link or link in existing_links:
-                    continue
-
-                title = entry.get("title", "").strip()
-                raw_summary = entry.get("summary", "") or entry.get("description", "")
-                summary = BeautifulSoup(raw_summary, "html.parser").get_text().strip()
-                combined_text = f"{title} {summary}".lower()
-
-                # 1. Hard filter out blocked topics
-                if any(bad in combined_text for bad in BLOCKED_KEYWORDS):
-                    continue
-
-                # 2. Calculate Selection Bias Score
-                score = base_weight
-                for kw, kw_weight in KEYWORD_BIAS.items():
-                    if re.search(r'\b' + re.escape(kw.lower()) + r'\b', combined_text):
-                        score += kw_weight
-
-                rss_img = get_rss_image(entry)
-                if rss_img:
-                    score += 1.0  # Slight bonus for stories with an original RSS photo
-
-                candidates.append({
-                    "title": title,
-                    "summary": summary[:700],
-                    "link": link,
-                    "source_name": source_name,
-                    "rss_image_url": rss_img,
-                    "score": round(score, 2)
-                })
-        except Exception as e:
-            print(f"⚠️ Failed to fetch {source_name}: {e}")
-
-    # Sort highest bias score first
-    candidates.sort(key=lambda x: x["score"], reverse=True)
-    return candidates
-
-def collect_ranked_candidates(existing_links):
-    """Pools unread stories from all feeds and ranks them using Source + Keyword Bias."""
-    candidates = []
-    for feed_info in RSS_FEEDS:
-        source_name = feed_info["source"]
-        feed_url = feed_info["url"]
-        base_weight = feed_info.get("weight", 5.0)
-
-        print(f"📡 Scanning {source_name}...")
-        try:
-            feed = feedparser.parse(feed_url)
-            for entry in feed.entries[:12]:
                 link = entry.get("link", "")
                 if not link or link in existing_links:
                     continue

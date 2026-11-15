@@ -86,6 +86,15 @@
       "output_file": "editorial-policy.html",
       "include_in_sitemap": true,
       "changefreq": "yearly"
+    },
+    {
+      "id": "privacy-policy",
+      "title": "गोपनीयता नीति (Privacy Policy) | Aabtak24.in",
+      "meta_description": "Aabtak24.in की गोपनीयता नीति पढ़िए। जानें हम कुकीज़ (Cookies), लॉग फ़ाइलों, विज्ञापन नेटवर्क और पाठकों की डेटा सुरक्षा का प्रबंधन कैसे करते हैं।",
+      "source_fragment": "pages/privacy-policy.html",
+      "output_file": "privacy-policy.html",
+      "include_in_sitemap": true,
+      "changefreq": "yearly"
     }
   ],
   "header_menu": [

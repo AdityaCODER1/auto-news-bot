@@ -77,6 +77,15 @@
       "output_file": "contact.html",
       "include_in_sitemap": true,
       "changefreq": "monthly"
+    },
+    {
+      "id": "editorial-policy",
+      "title": "Editorial Policy | Aabtak24.in",
+      "meta_description": "जानें Aabtak24.in की संपादकीय नीति, तथ्य-जांच (Fact-Checking) प्रक्रिया, स्रोत पारदर्शिता और सुधार मानकों के बारे में।",
+      "source_fragment": "pages/editorial-policy.html",
+      "output_file": "editorial-policy.html",
+      "include_in_sitemap": true,
+      "changefreq": "yearly"
     }
   ],
   "header_menu": [

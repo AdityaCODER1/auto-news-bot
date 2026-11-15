@@ -68,6 +68,15 @@
       "output_file": "about.html",
       "include_in_sitemap": true,
       "changefreq": "monthly"
+    },
+    {
+      "id": "contact",
+      "title": "संपर्क करें (Contact Us) | अबतक24.in",
+      "meta_description": "Aabtak24.in की संपादकीय टीम से संपर्क करें। समाचार सुझाव, तथ्य सुधार (Correction), प्रतिक्रिया या विज्ञापन संबंधी प्रश्नों के लिए हमें ईमेल करें।",
+      "source_fragment": "pages/contact.html",
+      "output_file": "contact.html",
+      "include_in_sitemap": true,
+      "changefreq": "monthly"
     }
   ],
   "header_menu": [

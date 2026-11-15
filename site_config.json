@@ -5,35 +5,58 @@
       "name": "देश-विदेश",
       "file": "desh-videsh.html",
       "active_for_ai": true,
-      "aliases": ["देश-विदेश", "देश", "विदेश", "प्रमुख समाचार", "बड़ी खबर"]
+      "aliases": [
+        "देश-विदेश",
+        "देश",
+        "विदेश",
+        "प्रमुख समाचार",
+        "बड़ी खबर"
+      ]
     },
     {
       "id": "technology",
       "name": "टेक्नोलॉजी",
       "file": "technology.html",
       "active_for_ai": true,
-      "aliases": ["टेक्नोलॉजी", "विज्ञान", "AI"]
+      "aliases": [
+        "टेक्नोलॉजी",
+        "विज्ञान",
+        "AI"
+      ]
     },
     {
       "id": "economy",
       "name": "अर्थव्यवस्था",
       "file": "economy.html",
       "active_for_ai": true,
-      "aliases": ["अर्थव्यवस्था", "बिजनेस एवं ट्रेंड्स", "बिजनेस", "व्यापार"]
+      "aliases": [
+        "अर्थव्यवस्था",
+        "बिजनेस एवं ट्रेंड्स",
+        "बिजनेस",
+        "व्यापार"
+      ]
     },
     {
       "id": "politics",
       "name": "राजनीति",
       "file": "politics.html",
       "active_for_ai": true,
-      "aliases": ["राजनीति", "चुनाव"]
+      "aliases": [
+        "राजनीति",
+        "चुनाव"
+      ]
     },
     {
       "id": "entertainment",
       "name": "मनोरंजन",
       "file": "entertainment.html",
       "active_for_ai": true,
-      "aliases": ["मनोरंजन", "बॉलीवुड", "सिनेमा", "खेल"]
+      "aliases": [
+        "मनोरंजन",
+        "बॉलीवुड",
+        "सिनेमा",
+        "खेल"
+      ]
     }
   ],
   "custom_pages": [
@@ -48,12 +71,33 @@
     }
   ],
   "header_menu": [
-    { "label": "मुख्य खबरें", "href": "index.html" },
-    { "label": "देश-विदेश", "href": "desh-videsh.html" },
-    { "label": "टेक्नोलॉजी", "href": "technology.html" },
-    { "label": "अर्थव्यवस्था", "href": "economy.html" },
-    { "label": "राजनीति", "href": "politics.html" },
-    { "label": "मनोरंजन", "href": "entertainment.html" },
-    { "label": "हमारे बारे में", "href": "about.html" }
+    {
+      "label": "मुख्य खबरें",
+      "href": "index.html"
+    },
+    {
+      "label": "देश-विदेश",
+      "href": "desh-videsh.html"
+    },
+    {
+      "label": "टेक्नोलॉजी",
+      "href": "technology.html"
+    },
+    {
+      "label": "अर्थव्यवस्था",
+      "href": "economy.html"
+    },
+    {
+      "label": "मनोरंजन",
+      "href": "entertainment.html"
+    },
+    {
+      "label": "राजनीति",
+      "href": "politics.html"
+    },
+    {
+      "label": "हमारे बारे में",
+      "href": "about.html"
+    }
   ]
 }

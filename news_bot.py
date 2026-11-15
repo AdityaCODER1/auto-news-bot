@@ -19,6 +19,8 @@ SITE_URL = "https://aabtak24.in"
 SITE_NAME = "अबतक24.in (Aabtak24.in)"
 ARCHIVE_FILE = "articles_db.json"
 NEWS_DIR = "news"
+CONFIG_FILE = "site_config.json"
+GENERATED_MANIFEST = ".generated_pages.json"
 
 # A. SOURCE BIAS: Higher 'weight' gives stories from that feed a head start
 RSS_FEEDS = [
@@ -63,14 +65,36 @@ TONE_AND_FRAMING_BIAS = """
 - कठोर तथ्य नियम (100% Fact Lock): मूल खबर के किसी भी तथ्य, आंकड़े, नाम, तारीख या बयान को बिल्कुल न बदलें और न ही अपनी तरफ से कोई काल्पनिक तथ्य जोड़ें। केवल प्रस्तुति के कोण (Framing), शब्दों के चयन (Word Choice) और शीर्षक के जोर (Headline Emphasis) में यह संपादकीय दृष्टिकोण दिखाएं।
 """
 
-# 3. Navigation Categories & Aliases
-CATEGORIES = [
-    {"name": "देश-विदेश", "file": "desh-videsh.html", "aliases": ["देश-विदेश", "देश", "विदेश", "प्रमुख समाचार", "बड़ी खबर"]},
-    {"name": "टेक्नोलॉजी", "file": "technology.html", "aliases": ["टेक्नोलॉजी", "विज्ञान", "AI"]},
-    {"name": "अर्थव्यवस्था", "file": "economy.html", "aliases": ["अर्थव्यवस्था", "बिजनेस एवं ट्रेंड्स", "बिजनेस", "व्यापार"]},
-    {"name": "राजनीति", "file": "politics.html", "aliases": ["राजनीति", "चुनाव"]},
-    {"name": "मनोरंजन", "file": "entertainment.html", "aliases": ["मनोरंजन", "बॉलीवुड", "सिनेमा", "खेल"]},
-]
+# 3. Fallback Site Configuration (used automatically if site_config.json is missing or invalid)
+DEFAULT_SITE_CONFIG = {
+    "categories": [
+        {"id": "desh-videsh", "name": "देश-विदेश", "file": "desh-videsh.html", "active_for_ai": True, "aliases": ["देश-विदेश", "देश", "विदेश", "प्रमुख समाचार", "बड़ी खबर"]},
+        {"id": "technology", "name": "टेक्नोलॉजी", "file": "technology.html", "active_for_ai": True, "aliases": ["टेक्नोलॉजी", "विज्ञान", "AI"]},
+        {"id": "economy", "name": "अर्थव्यवस्था", "file": "economy.html", "active_for_ai": True, "aliases": ["अर्थव्यवस्था", "बिजनेस एवं ट्रेंड्स", "बिजनेस", "व्यापार"]},
+        {"id": "politics", "name": "राजनीति", "file": "politics.html", "active_for_ai": True, "aliases": ["राजनीति", "चुनाव"]},
+        {"id": "entertainment", "name": "मनोरंजन", "file": "entertainment.html", "active_for_ai": True, "aliases": ["मनोरंजन", "बॉलीवुड", "सिनेमा", "खेल"]},
+    ],
+    "custom_pages": [
+        {
+            "id": "about",
+            "title": "हमारे बारे में (About Us) | अबतक24.in",
+            "meta_description": "अबतक24.in (Aabtak24.in) — भारत का आधुनिक डिजिटल हिंदी समाचार पोर्टल। जानें हमारे संपादकीय मानक और संपर्क सूत्र।",
+            "source_fragment": "pages/about.html",
+            "output_file": "about.html",
+            "include_in_sitemap": True,
+            "changefreq": "monthly"
+        }
+    ],
+    "header_menu": [
+        {"label": "मुख्य खबरें", "href": "index.html"},
+        {"label": "देश-विदेश", "href": "desh-videsh.html"},
+        {"label": "टेक्नोलॉजी", "href": "technology.html"},
+        {"label": "अर्थव्यवस्था", "href": "economy.html"},
+        {"label": "राजनीति", "href": "politics.html"},
+        {"label": "मनोरंजन", "href": "entertainment.html"},
+        {"label": "हमारे बारे में", "href": "about.html"}
+    ]
+}
 
 # 4. Model Fallback List
 MODELS_TO_TRY = [
@@ -79,11 +103,46 @@ MODELS_TO_TRY = [
     "gemma-4-31b-it"
 ]
 
+
+def load_site_config():
+    """Loads site_config.json with safe fallback to DEFAULT_SITE_CONFIG."""
+    if os.path.exists(CONFIG_FILE):
+        try:
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict) and "categories" in data and "header_menu" in data:
+                data.setdefault("custom_pages", [])
+                return data
+            print(f"⚠️ {CONFIG_FILE} missing required keys. Using fallback config.")
+        except Exception as e:
+            print(f"⚠️ Error reading {CONFIG_FILE} ({e}). Using fallback config.")
+    else:
+        print(f"ℹ️ {CONFIG_FILE} not found. Using built-in default config.")
+    return DEFAULT_SITE_CONFIG
+
+
+def normalize_ai_category(raw_category, config, ai_categories):
+    """Ensures the AI-assigned category always resolves to a valid active category name."""
+    cleaned = str(raw_category or "").strip()
+    if cleaned in ai_categories:
+        return cleaned
+
+    for cat in config.get("categories", []):
+        if not cat.get("active_for_ai", True):
+            continue
+        aliases = {a.strip() for a in cat.get("aliases", []) if str(a).strip()}
+        if cleaned in aliases:
+            return cat["name"].strip()
+
+    return ai_categories[0]
+
+
 def clean_slug(slug_text):
     """Ensures the SEO slug only contains clean URL-safe characters."""
     slug = re.sub(r'[^a-zA-Z0-9\-]', '', slug_text.lower().replace(' ', '-'))
     slug = re.sub(r'-+', '-', slug).strip('-')
     return slug or f"news-{int(time.time())}"
+
 
 def optimize_img_url(url, width=800):
     """
@@ -94,6 +153,7 @@ def optimize_img_url(url, width=800):
         return url
     return f"https://wsrv.nl/?url={quote(url, safe='')}&w={width}&output=webp&q=80"
 
+
 def get_head_links(css_path="style.css", preload_img=None):
     """Common <head> tags: Non-blocking Google Fonts, optional LCP preload, and CSS."""
     preload_tag = f'    <link rel="preload" as="image" href="{preload_img}" fetchpriority="high">\n' if preload_img else ""
@@ -103,7 +163,8 @@ def get_head_links(css_path="style.css", preload_img=None):
     <link rel="preconnect" href="https://wsrv.nl" crossorigin>
 {preload_tag}    <link rel="stylesheet" href="{css_path}">
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Mukta:wght@700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Mukta:wght@700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet"></noscript>"""    
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Mukta:wght@700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet"></noscript>"""
+
 
 def parse_ai_json(raw_text):
     """Safely parses JSON from Gemini even if HTML strings contain raw newlines."""
@@ -140,6 +201,7 @@ def generate_with_fallback(prompt):
             time.sleep(wait_sec)
     raise RuntimeError("All models failed. Please try again later.")
 
+
 def fetch_free_stock_image(query):
     """Fetches a royalty-free image URL & creator credit using Openverse."""
     try:
@@ -158,6 +220,7 @@ def fetch_free_stock_image(query):
         print(f"Openverse stock fetch error: {e}")
     return None, None
 
+
 def get_rss_image(entry):
     if "media_thumbnail" in entry and len(entry.media_thumbnail) > 0:
         return entry.media_thumbnail[0]["url"].replace("/240/", "/976/")
@@ -175,17 +238,26 @@ def get_rss_image(entry):
             return img_tag["src"]
     return None
 
-def get_header_html(prefix="", active_file=""):
-    """Generates the header with logo.svg, desktop nav pills, and a mobile dropdown menu."""
-    home_cls = ' class="active"' if active_file == "index.html" else ""
-    nav_links = f'<a href="{prefix}index.html"{home_cls}>मुख्य खबरें</a>\n'
-    
-    for cat in CATEGORIES:
-        cls = ' class="active"' if active_file == cat["file"] else ""
-        nav_links += f'            <a href="{prefix}{cat["file"]}"{cls}>{cat["name"]}</a>\n'
-        
-    about_cls = ' class="active"' if active_file == "about.html" else ""
-    nav_links += f'            <a href="{prefix}about.html"{about_cls}>हमारे बारे में</a>'
+
+def get_header_html(config, prefix="", active_file=""):
+    """Generates the header purely from header_menu in site_config.json."""
+    link_items = []
+    for item in config.get("header_menu", []):
+        label = item.get("label", "").strip()
+        raw_href = item.get("href", "index.html").strip()
+        if not label or not raw_href:
+            continue
+
+        is_external = raw_href.startswith(("http://", "https://", "mailto:", "tel:"))
+        if is_external:
+            target_attr = ' target="_blank" rel="noopener noreferrer"' if item.get("new_tab", True) else ""
+            link_items.append(f'<a href="{raw_href}"{target_attr}>{label}</a>')
+        else:
+            clean_href = raw_href.lstrip("./")
+            cls = ' class="active"' if active_file == clean_href else ""
+            link_items.append(f'<a href="{prefix}{clean_href}"{cls}>{label}</a>')
+
+    nav_links = "\n            ".join(link_items)
 
     return f"""    <header>
         <a href="{prefix}index.html" class="logo notranslate" translate="no" aria-label="अबतक24.in होमपेज">
@@ -209,12 +281,13 @@ def get_header_html(prefix="", active_file=""):
         </details>
     </header>"""
 
-def build_individual_article_page(art, today_str):
+
+def build_individual_article_page(art, today_str, config):
     """Creates a dedicated SEO-optimized HTML page for a single article inside /news/."""
     os.makedirs(NEWS_DIR, exist_ok=True)
     slug = art["slug"]
     canonical_url = f"{SITE_URL}/news/{slug}.html"
-    
+
     # Normalize any old <h3> subheadings in existing articles to <h2> for sequential accessibility
     body_html = art["content_html"].replace("<h3>", "<h2>").replace("</h3>", "</h2>")
     plain_text = BeautifulSoup(body_html, "html.parser").get_text().strip()
@@ -279,7 +352,7 @@ def build_individual_article_page(art, today_str):
         <span class="edition-tag">डिजिटल संस्करण • INDIA</span>
     </div>
 
-{get_header_html(prefix="../")}
+{get_header_html(config, prefix="../")}
 
     <main class="container">
         <article class="article-box">
@@ -303,19 +376,21 @@ def build_individual_article_page(art, today_str):
     with open(filepath, "w", encoding="utf-8") as f:
         f.write(article_html)
 
-def build_category_pages(articles, today_str):
-    """Creates a dedicated HTML page for each category in the header."""
-    for cat in CATEGORIES:
-        cat_name = cat["name"]
-        cat_file = cat["file"]
-        aliases = cat["aliases"]
-        
+
+def build_category_pages(articles, today_str, config):
+    """Creates a dedicated HTML page for every category defined in site_config.json."""
+    generated_files = []
+    for cat in config.get("categories", []):
+        cat_name = cat["name"].strip()
+        cat_file = os.path.basename(cat["file"])
+        valid_aliases = {a.strip() for a in cat.get("aliases", []) if str(a).strip()} | {cat_name}
+
+        # Exact alias matching prevents substring overlap (e.g., "देश" matching "देश-विदेश")
         filtered = [
             a for a in articles
-            if a.get("category", "").strip() in aliases
-            or any(alias in a.get("category", "") for alias in aliases)
+            if a.get("category", "").strip() in valid_aliases
         ]
-        
+
         cards_html = ""
         if filtered:
             for idx, art in enumerate(filtered):
@@ -350,7 +425,7 @@ def build_category_pages(articles, today_str):
         <span class="edition-tag">डिजिटल संस्करण • INDIA</span>
     </div>
 
-{get_header_html(prefix="", active_file=cat_file)}
+{get_header_html(config, prefix="", active_file=cat_file)}
 
     <main class="container">
         <div class="section-rule">
@@ -364,22 +439,58 @@ def build_category_pages(articles, today_str):
 
         with open(cat_file, "w", encoding="utf-8") as f:
             f.write(page_html)
-    print("✅ Generated all category HTML pages!")
+        generated_files.append(cat_file)
 
-def build_static_pages(today_str):
-    """Creates static pages like About Us (about.html) ONLY if they don't already exist."""
-    if os.path.exists("about.html"):
-        print("ℹ️ about.html already exists — skipping so custom edits are preserved!")
-        return
+    print(f"✅ Generated {len(generated_files)} category HTML pages!")
+    return generated_files
 
-    about_html = f"""<!DOCTYPE html>
+
+def build_custom_pages(today_str, config):
+    """Wraps body fragments in pages/*.html with the live header and head tags so headers never drift."""
+    generated_files = []
+    for page in config.get("custom_pages", []):
+        output_file = os.path.basename(page.get("output_file", ""))
+        fragment_path = page.get("source_fragment", "")
+        if not output_file or not fragment_path:
+            continue
+
+        # Auto-migrate existing standalone HTML page into fragment on first run if fragment doesn't exist yet
+        if not os.path.exists(fragment_path):
+            frag_dir = os.path.dirname(fragment_path)
+            if frag_dir:
+                os.makedirs(frag_dir, exist_ok=True)
+            if os.path.exists(output_file):
+                with open(output_file, "r", encoding="utf-8") as existing_f:
+                    soup = BeautifulSoup(existing_f.read(), "html.parser")
+                    main_el = soup.find("main")
+                    extracted = main_el.decode_contents().strip() if main_el else ""
+                fragment_html = extracted or f'<article class="article-box"><h1 class="single-title">{page.get("title", output_file)}</h1></article>'
+            else:
+                fragment_html = f"""<article class="article-box">
+    <a href="index.html" class="back-btn">← मुख्य पृष्ठ पर वापस जाएं</a>
+    <h1 class="single-title">{page.get("title", output_file)}</h1>
+    <div class="article-content">
+        <p>इस पृष्ठ की सामग्री शीघ्र ही अपडेट की जाएगी।</p>
+    </div>
+</article>"""
+            with open(fragment_path, "w", encoding="utf-8") as f:
+                f.write(fragment_html)
+            print(f"📝 Created initial fragment {fragment_path}")
+
+        with open(fragment_path, "r", encoding="utf-8") as f:
+            body_fragment = f.read().strip()
+
+        page_title = page.get("title", f"{output_file} | अबतक24.in")
+        meta_desc = page.get("meta_description", "अबतक24.in (Aabtak24.in) — डिजिटल हिंदी समाचार पोर्टल।").replace('"', "'")
+
+        full_html = f"""<!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>हमारे बारे में (About Us) | अबतक24.in</title>
-    <meta name="description" content="अबतक24.in (Aabtak24.in) — भारत का आधुनिक डिजिटल हिंदी समाचार पोर्टल। जानें हमारे संपादकीय मानक और संपर्क सूत्र।">
-    <link rel="canonical" href="{SITE_URL}/about.html">
+    <title>{page_title}</title>
+    <meta name="description" content="{meta_desc}">
+    <link rel="canonical" href="{SITE_URL}/{output_file}">
 {get_head_links(css_path="style.css")}
 </head>
 <body>
@@ -388,32 +499,46 @@ def build_static_pages(today_str):
         <span class="edition-tag">डिजिटल संस्करण • INDIA</span>
     </div>
 
-{get_header_html(prefix="", active_file="about.html")}
+{get_header_html(config, prefix="", active_file=output_file)}
 
     <main class="container">
-        <article class="article-box">
-            <a href="index.html" class="back-btn">← मुख्य पृष्ठ पर वापस जाएं</a>
-            <div><span class="badge">हमारे बारे में / About Us</span></div>
-            <h1 class="single-title">अबतक24.in (Aabtak24.in) — सटीक और निष्पक्ष डिजिटल हिंदी पत्रकारिता</h1>
-            <div class="article-content">
-                <p><strong>अबतक24.in (Aabtak24.in)</strong> भारत का एक आधुनिक डिजिटल हिंदी समाचार पोर्टल है। हमारा उद्देश्य देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था, राजनीति और मनोरंजन की प्रमुख खबरों को सरल, स्पष्ट और तथ्यपूर्ण हिंदी भाषा में पाठकों तक पहुँचाना है।</p>
-                <h2>हमारा संपादकीय मानक (Editorial Policy)</h2>
-                <p>हम विश्वसनीय राष्ट्रीय और अंतरराष्ट्रीय समाचार स्रोतों से तथ्यों का संकलन कर उन्हें पाठकों के लिए सहज और प्रवाहपूर्ण पत्रकारिता शैली में प्रस्तुत करते हैं तथा प्रत्येक रिपोर्ट के साथ उचित फोटो और स्रोत साभार (Attribution) प्रदान करते हैं।</p>
-                <h2>संपर्क करें (Contact Us)</h2>
-                <p>किसी भी सुझाव, प्रतिक्रिया या संपादकीय प्रश्न के लिए आप हमसे संपर्क कर सकते हैं:<br>
-                <strong>वेबसाइट:</strong> <a href="{SITE_URL}" style="color: var(--accent); font-weight: 700;">aabtak24.in</a><br>
-                <strong>ईमेल:</strong> contact@aabtak24.in</p>
-            </div>
-        </article>
+        {body_fragment}
     </main>
 </body>
 </html>"""
 
-    with open("about.html", "w", encoding="utf-8") as f:
-        f.write(about_html)
-    print("✅ Generated about.html static page!")
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write(full_html)
+        generated_files.append(output_file)
 
-def build_seo_files(articles):
+    print(f"✅ Generated {len(generated_files)} custom HTML pages!")
+    return generated_files
+
+
+def cleanup_retired_root_pages(current_generated_files):
+    """Safely removes root .html files that were previously generated by config but later removed."""
+    previous_files = set()
+    if os.path.exists(GENERATED_MANIFEST):
+        try:
+            with open(GENERATED_MANIFEST, "r", encoding="utf-8") as f:
+                previous_files = set(json.load(f))
+        except Exception:
+            previous_files = set()
+
+    current_set = set(current_generated_files)
+    protected = {"index.html"}
+
+    for obsolete in previous_files - current_set - protected:
+        safe_name = os.path.basename(obsolete)
+        if safe_name.endswith(".html") and os.path.exists(safe_name):
+            os.remove(safe_name)
+            print(f"🗑️ Removed retired generated page: {safe_name}")
+
+    with open(GENERATED_MANIFEST, "w", encoding="utf-8") as f:
+        json.dump(sorted(current_set), f, ensure_ascii=False, indent=2)
+
+
+def build_seo_files(articles, config):
     """Generates sitemap.xml and robots.txt for Google Search Console."""
     now_iso = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S+00:00")
     urls_xml = f"""  <url>
@@ -423,18 +548,23 @@ def build_seo_files(articles):
     <priority>1.0</priority>
   </url>\n"""
 
-    for cat in CATEGORIES:
+    for cat in config.get("categories", []):
+        cat_file = os.path.basename(cat["file"])
         urls_xml += f"""  <url>
-    <loc>{SITE_URL}/{cat['file']}</loc>
+    <loc>{SITE_URL}/{cat_file}</loc>
     <lastmod>{now_iso}</lastmod>
     <changefreq>hourly</changefreq>
     <priority>0.9</priority>
   </url>\n"""
 
-    urls_xml += f"""  <url>
-    <loc>{SITE_URL}/about.html</loc>
+    for page in config.get("custom_pages", []):
+        if page.get("include_in_sitemap", True):
+            out_file = os.path.basename(page["output_file"])
+            freq = page.get("changefreq", "monthly")
+            urls_xml += f"""  <url>
+    <loc>{SITE_URL}/{out_file}</loc>
     <lastmod>{now_iso}</lastmod>
-    <changefreq>monthly</changefreq>
+    <changefreq>{freq}</changefreq>
     <priority>0.7</priority>
   </url>\n"""
 
@@ -449,7 +579,7 @@ def build_seo_files(articles):
   </url>\n"""
 
     sitemap_content = f"""<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="[http://www.sitemaps.org/schemas/sitemap/0.9](http://www.sitemaps.org/schemas/sitemap/0.9)">
 {urls_xml}</urlset>"""
 
     with open("sitemap.xml", "w", encoding="utf-8") as f:
@@ -464,8 +594,12 @@ Sitemap: {SITE_URL}/sitemap.xml
         f.write(robots_content)
     print("✅ Generated sitemap.xml and robots.txt for Google SEO!")
 
-def build_website_html(articles):
-    """Generates index.html, category pages, about page, and individual article pages."""
+
+def build_website_html(articles, config=None):
+    """Generates index.html, category pages, custom pages, and individual article pages."""
+    if config is None:
+        config = load_site_config()
+
     today_str = datetime.now().strftime("%d %B %Y")
     if not articles:
         return
@@ -478,7 +612,7 @@ def build_website_html(articles):
             os.remove(os.path.join(NEWS_DIR, fname))
 
     for art in articles:
-        build_individual_article_page(art, today_str)
+        build_individual_article_page(art, today_str, config)
 
     hero = articles[0]
     hero_link = f"news/{hero['slug']}.html"
@@ -540,7 +674,7 @@ def build_website_html(articles):
         <span class="edition-tag">डिजिटल संस्करण • INDIA</span>
     </div>
 
-{get_header_html(prefix="", active_file="index.html")}
+{get_header_html(config, prefix="", active_file="index.html")}
 
     <main class="container">
         <div class="section-rule">
@@ -568,10 +702,12 @@ def build_website_html(articles):
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_template)
 
-    build_category_pages(articles, today_str)
-    build_static_pages(today_str)
-    build_seo_files(articles)
+    cat_files = build_category_pages(articles, today_str, config)
+    custom_files = build_custom_pages(today_str, config)
+    cleanup_retired_root_pages(cat_files + custom_files)
+    build_seo_files(articles, config)
     print("✅ Live multi-page SEO & PageSpeed-optimized website generated!")
+
 
 def collect_ranked_candidates(existing_links):
     """Pools unread stories from all feeds and ranks them using Source + Keyword Bias."""
@@ -625,6 +761,12 @@ def collect_ranked_candidates(existing_links):
 
 
 def fetch_and_rewrite():
+    config = load_site_config()
+    ai_categories = [c["name"].strip() for c in config.get("categories", []) if c.get("active_for_ai", True)]
+    if not ai_categories:
+        ai_categories = [c["name"].strip() for c in config.get("categories", [])] or ["देश-विदेश"]
+    category_choices_str = ", ".join(f'"{name}"' for name in ai_categories)
+
     articles = []
     if os.path.exists(ARCHIVE_FILE):
         try:
@@ -676,7 +818,7 @@ def fetch_and_rewrite():
         - केवल वैध JSON में उत्तर दें जिसमें ये 7 keys हों:
            - "selected_index": चुनी गई खबर का नंबर (integer, जैसे 0 या 1)
            - "title": राष्ट्रवादी और सरकार-समर्थक दृष्टिकोण को दर्शाता आकर्षक हिंदी शीर्षक
-           - "category": केवल इन 5 में से एक चुनें: "देश-विदेश", "टेक्नोलॉजी", "अर्थव्यवस्था", "राजनीति", "मनोरंजन"
+           - "category": केवल इन {len(ai_categories)} में से एक चुनें: {category_choices_str}
            - "slug": 4-5 शब्दों का अंग्रेजी SEO URL slug (केवल lowercase letters और hyphens, जैसे: "india-new-ai-policy-2026")
            - "content_html": हिंदी लेख का HTML कोड (<p>, <h2> टैग्स के साथ)
            - "image_strategy": "original" या "stock"
@@ -710,9 +852,15 @@ def fetch_and_rewrite():
             final_image_url = "https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80"
             image_courtesy = "फोटो साभार: Unsplash (प्रतीकात्मक तस्वीर)"
 
+        validated_category = normalize_ai_category(
+            article_data.get("category"),
+            config,
+            ai_categories
+        )
+
         new_article = {
             "title": article_data["title"],
-            "category": article_data.get("category", "देश-विदेश"),
+            "category": validated_category,
             "slug": clean_slug(article_data.get("slug", "hindi-news")),
             "content_html": article_data["content_html"],
             "image_url": final_image_url,
@@ -735,16 +883,20 @@ def fetch_and_rewrite():
     with open(ARCHIVE_FILE, "w", encoding="utf-8") as f:
         json.dump(articles, f, ensure_ascii=False, indent=2)
 
-    build_website_html(articles)
+    build_website_html(articles, config)
+
 
 if __name__ == "__main__":
     if "--rebuild-only" in sys.argv:
-        with open(ARCHIVE_FILE, "r", encoding="utf-8") as f:
-            articles = json.load(f)
-        for a in articles:
-            a["slug"] = clean_slug(a.get("slug", "news-story"))
-            if "iso_date" not in a:
-                a["iso_date"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S+00:00")
-        build_website_html(articles)
+        if os.path.exists(ARCHIVE_FILE):
+            with open(ARCHIVE_FILE, "r", encoding="utf-8") as f:
+                articles = json.load(f)
+            for a in articles:
+                a["slug"] = clean_slug(a.get("slug", "news-story"))
+                if "iso_date" not in a:
+                    a["iso_date"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S+00:00")
+            build_website_html(articles)
+        else:
+            print(f"ℹ️ {ARCHIVE_FILE} not found — nothing to rebuild.")
     else:
         fetch_and_rewrite()

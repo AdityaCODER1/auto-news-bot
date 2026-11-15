@@ -62,7 +62,7 @@
   "custom_pages": [
     {
       "id": "about",
-      "title": "हमारे बारे में (About Us) | अबतक24.in",
+      "title": "हमारे बारे में (About Us) | Aabtak24.in",
       "meta_description": "अबतक24.in (Aabtak24.in) — भारत का आधुनिक डिजिटल हिंदी समाचार पोर्टल। जानें हमारे संपादकीय मानक और संपर्क सूत्र।",
       "source_fragment": "pages/about.html",
       "output_file": "about.html",

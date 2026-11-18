@@ -1674,7 +1674,7 @@ def build_404_page(articles, today_str, config, image_resolver=None):
             <p class="error-404-desc">हो सकता है कि यह लिंक पुराना हो गया हो, समाचार हटा दिया गया हो या वेब पता गलत टाइप हुआ हो। आप नीचे दिए गए विकल्पों से सीधे मुख्य पृष्ठ या अपनी पसंदीदा श्रेणी पर जा सकते हैं।</p>
             <p class="error-404-path" id="error-404-path" hidden>अनुरोधित पता: <code id="error-404-path-code"></code></p>
             <div class="error-404-actions">
-                <a href="/index.html" class="btn-404-primary">🏠 मुख्य पृष्ठ पर जाएं (Home)</a>
+                <a href="/index.html" class="btn-404-primary">मुख्य पृष्ठ पर जाएं (Home)</a>
                 <a href="/index.html" class="btn-404-secondary" id="error-404-back-btn">← पिछले पृष्ठ पर लौटें</a>
             </div>{cats_html}
         </section>

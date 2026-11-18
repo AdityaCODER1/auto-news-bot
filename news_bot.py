@@ -5,16 +5,51 @@ import copy
 import html
 import json
 import time
+import threading
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
-from urllib.parse import quote
+from urllib.parse import quote, urlparse, parse_qs
 import requests
 import feedparser
 from bs4 import BeautifulSoup
-from google import genai
 
-# 1. Load Gemini Secret Key
+try:
+    from google import genai
+    from google.genai import types as genai_types
+except ImportError:
+    genai = None
+    genai_types = None
+
+GEMINI_HTTP_TIMEOUT_MS = 45_000
+NIM_HTTP_TIMEOUT = (10, 45)
+IMAGE_CHECK_TIMEOUT_SEC = 6
+
+
+def build_google_client(key):
+    """Creates a Google GenAI client with fail-fast HTTP timeouts when supported."""
+    if not key or genai is None:
+        return None
+    if genai_types is not None and hasattr(genai_types, "HttpOptions"):
+        http_kwargs = {"timeout": GEMINI_HTTP_TIMEOUT_MS}
+        if hasattr(genai_types, "HttpRetryOptions"):
+            try:
+                http_kwargs["retry_options"] = genai_types.HttpRetryOptions(attempts=1)
+            except Exception:
+                pass
+        try:
+            return genai.Client(
+                api_key=key,
+                http_options=genai_types.HttpOptions(**http_kwargs),
+            )
+        except Exception:
+            pass
+    return genai.Client(api_key=key)
+
+
+# 1. Load AI Provider Secret Keys
 api_key = os.environ.get("GEMINI_API_KEY")
-client = genai.Client(api_key=api_key) if api_key else None
+nvidia_api_key = os.environ.get("NVIDIA_API_KEY")
+client = build_google_client(api_key) if api_key else None
 
 # 2. Configuration, Multi-RSS Feeds & Dual Bias Settings
 SITE_URL = "https://aabtak24.in"
@@ -138,12 +173,31 @@ DEFAULT_SITE_CONFIG = {
     }
 }
 
-# 4. Model Fallback List
-MODELS_TO_TRY = [
-    "gemini-3.6-flash",
-    "gemini-3.8-flash",
-    "gemma-4-31b-it"
+# 4. Multi-Provider AI Model Fallback Configuration
+NVIDIA_NIM_API_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
+
+MODEL_FALLBACK_CHAIN = [
+    # Tier 1: Google Gemini (GEMINI_API_KEY)
+    {"provider": "google", "model": "gemini-3.8-flash", "wait_sec": 2},
+    {"provider": "google", "model": "gemini-4-hydrogen", "wait_sec": 2},
+    {"provider": "google", "model": "gemini-3.6-flash", "wait_sec": 2},
+    {"provider": "google", "model": "gemini-3.5-flash-lite", "wait_sec": 2},
+    {"provider": "google", "model": "gemini-3.1-flash-lite", "wait_sec": 2},
+    {"provider": "google", "model": "gemini-3-flash-preview", "wait_sec": 2},
+    # Tier 2: Google Open-Weight Gemma 4 (GEMINI_API_KEY, ~14,400 RPD)
+    {"provider": "google", "model": "gemma-4-31b-it", "wait_sec": 2},
+    {"provider": "google", "model": "gemma-4-26b-a4b-it", "wait_sec": 2},
+    # Tier 3: Non-Google Open-Source Hindi Models via NVIDIA NIM (NVIDIA_API_KEY)
+    {"provider": "nvidia_nim", "model": "nvidia/nemotron-3.5-super-vl-120b-a12b", "wait_sec": 2},
+    {"provider": "nvidia_nim", "model": "mistralai/mistral-large-4-1t-a52b", "wait_sec": 2},
+    {"provider": "nvidia_nim", "model": "nvidia/nemotron-3-ultra-550b-a55b", "wait_sec": 2},
+    {"provider": "nvidia_nim", "model": "mistralai/mistral-small-4-119b-2603", "wait_sec": 2},
+    {"provider": "nvidia_nim", "model": "qwen/qwen2.5-72b-instruct", "wait_sec": 2},
+    {"provider": "nvidia_nim", "model": "openai/gpt-oss-120b", "wait_sec": 2},
+    {"provider": "nvidia_nim", "model": "nvidia/nemotron-3.5-lightning-30b-a3b", "wait_sec": 2},
 ]
+
+MODELS_TO_TRY = [entry["model"] for entry in MODEL_FALLBACK_CHAIN]
 
 
 def load_site_config():
@@ -193,19 +247,250 @@ def clean_slug(slug_text):
     return slug or f"news-{int(time.time())}"
 
 
+IMAGE_FALLBACK_ONERROR = "this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}"
+DEVANAGARI_RE = re.compile(r"[\u0900-\u097F]")
+
+
+def _is_wsrv_url(url):
+    """Returns True if the URL already points to the wsrv.nl proxy host."""
+    try:
+        netloc = urlparse(str(url or "").strip()).netloc.lower().split(":")[0]
+        return netloc == "wsrv.nl" or netloc.endswith(".wsrv.nl")
+    except Exception:
+        return False
+
+
+def normalize_external_url(url):
+    """Strips whitespace and escapes raw spaces/non-ASCII chars while preserving valid encodings."""
+    cleaned = str(url or "").strip()
+    if not cleaned:
+        return cleaned
+    return quote(cleaned, safe=":/?#[]@!$&'()*+,;=%")
+
+
+def _extract_raw_from_wsrv(wsrv_url):
+    """Extracts the embedded origin URL from an existing wsrv.nl proxy link, if present."""
+    try:
+        qs = parse_qs(urlparse(wsrv_url).query)
+        origin = (qs.get("url") or [""])[0].strip()
+        if origin.startswith(("http://", "https://")):
+            return normalize_external_url(origin)
+    except Exception:
+        pass
+    return ""
+
+
 def optimize_img_url(url, width=800):
     """
     Compresses & converts heavy external images into fast WebP via wsrv.nl CDN.
-    Leaves local editor uploads (e.g., uploads/...) untouched.
+    Leaves local editor uploads (e.g., uploads/...) and existing wsrv.nl links untouched.
     """
-    if not url or "wsrv.nl" in url or not url.startswith("http"):
+    if not url:
         return url
-    return f"https://wsrv.nl/?url={quote(url, safe='')}&w={width}&output=webp&q=80"
+    cleaned = str(url).strip()
+    if not cleaned or not cleaned.startswith(("http://", "https://")) or _is_wsrv_url(cleaned):
+        return cleaned
+    normalized = normalize_external_url(cleaned)
+    return f"https://wsrv.nl/?url={quote(normalized, safe='')}&w={width}&output=webp&q=80"
+
+
+def should_skip_image_check(explicit=None):
+    """Determines whether build-time wsrv.nl health verification should be skipped."""
+    if explicit is not None:
+        return bool(explicit)
+    if "--skip-image-check" in sys.argv:
+        return True
+    return os.environ.get("SKIP_IMAGE_CHECK", "").strip().lower() in {"1", "true", "yes"}
+
+
+def check_wsrv_image_health(raw_url, width=800):
+    """
+    Probes wsrv.nl for a candidate image URL without downloading the body.
+    Returns 'healthy', 'failed' (HTTP >= 400 or non-image MIME), or 'transport_error'.
+    """
+    probe_url = str(raw_url or "").strip()
+    if not _is_wsrv_url(probe_url):
+        probe_url = optimize_img_url(probe_url, width=width)
+    resp = None
+    try:
+        resp = requests.get(
+            probe_url,
+            stream=True,
+            timeout=IMAGE_CHECK_TIMEOUT_SEC,
+            allow_redirects=True,
+            headers={"User-Agent": "AutoHindiNewsBot/1.0"},
+        )
+        status = getattr(resp, "status_code", 0)
+        if 200 <= status < 300:
+            raw_headers = getattr(resp, "headers", None) or {}
+            raw_ctype = ""
+            for k, v in raw_headers.items():
+                if str(k).lower() == "content-type":
+                    raw_ctype = str(v or "")
+                    break
+            ctype = raw_ctype.split(";")[0].strip().lower()
+            if ctype and not (ctype.startswith("image/") or ctype == "application/octet-stream"):
+                return "failed"
+            return "healthy"
+        if status >= 400:
+            return "failed"
+        return "transport_error"
+    except (requests.exceptions.RequestException, TimeoutError, ConnectionError, OSError):
+        return "transport_error"
+    finally:
+        if resp is not None and hasattr(resp, "close"):
+            try:
+                resp.close()
+            except Exception:
+                pass
+
+
+class ImageResolver:
+    """
+    Caches wsrv.nl health checks across a build run so each unique image is probed at most once,
+    falls back directly to raw image URLs on confirmed 404/errors, and trips a transport-error
+    circuit breaker in offline/proxied sandboxes without erasing wsrv.nl URLs globally.
+    """
+
+    MAX_CONSECUTIVE_TRANSPORT_ERRORS = 3
+
+    def __init__(self, skip_check=False):
+        self.skip_check = bool(skip_check)
+        self.disabled = bool(skip_check)
+        self._cache = {}
+        self._lock = threading.Lock()
+        self._transport_error_streak = 0
+        self._logged_failures = set()
+
+    def _probe_and_cache(self, cache_key, check_target=None, width=800):
+        with self._lock:
+            if cache_key in self._cache:
+                return self._cache[cache_key]
+            if self.disabled:
+                return "unknown"
+
+        status = check_wsrv_image_health(check_target or cache_key, width=width)
+
+        with self._lock:
+            if status in ("healthy", "failed"):
+                self._transport_error_streak = 0
+                self._cache[cache_key] = status
+                if status == "failed" and cache_key not in self._logged_failures:
+                    self._logged_failures.add(cache_key)
+                    print(f"⚠️ wsrv.nl failed for image — using direct original URL: {cache_key}")
+                return status
+
+            # Transport error reaching wsrv.nl itself
+            self._transport_error_streak += 1
+            if self._transport_error_streak >= self.MAX_CONSECUTIVE_TRANSPORT_ERRORS and not self.disabled:
+                self.disabled = True
+                print(
+                    "⚠️ Skipping remaining build-time wsrv.nl checks after repeated transport errors "
+                    "(runtime browser onerror fallback remains active)."
+                )
+            self._cache[cache_key] = "unknown"
+            return "unknown"
+
+    def prewarm(self, raw_urls, max_workers=4):
+        """Pre-checks unique external image URLs concurrently before rendering pages."""
+        if self.skip_check or self.disabled:
+            return
+        targets = []
+        seen = set()
+        for url in raw_urls:
+            cleaned = str(url or "").strip()
+            if not cleaned.startswith(("http://", "https://")):
+                continue
+            if _is_wsrv_url(cleaned):
+                cache_key = _extract_raw_from_wsrv(cleaned) or cleaned
+                check_target = cleaned
+            else:
+                cache_key = normalize_external_url(cleaned)
+                check_target = cache_key
+            if cache_key not in seen and cache_key not in self._cache:
+                seen.add(cache_key)
+                targets.append((cache_key, check_target))
+
+        if not targets:
+            return
+
+        workers = min(max_workers, len(targets))
+        if workers <= 1:
+            for cache_key, check_target in targets:
+                if self.disabled:
+                    break
+                self._probe_and_cache(cache_key, check_target=check_target, width=800)
+            return
+
+        with ThreadPoolExecutor(max_workers=workers) as executor:
+            futures = [
+                executor.submit(self._probe_and_cache, cache_key, check_target, 800)
+                for cache_key, check_target in targets
+            ]
+            for fut in futures:
+                try:
+                    fut.result()
+                except Exception:
+                    pass
+
+    def resolve(self, raw_url, width=800, local_prefix=""):
+        """
+        Resolves an article image URL to (primary_src, browser_fallback_src).
+        Confirmed wsrv.nl 404/failures return (raw_url, '') directly with no wsrv.nl link.
+        Healthy or unchecked wsrv.nl links return (wsrv_url, raw_url) for runtime fallback.
+        """
+        cleaned = str(raw_url or "").strip()
+        if not cleaned:
+            return "", ""
+
+        if not cleaned.startswith(("http://", "https://")):
+            if local_prefix and not cleaned.startswith(("../", "/")):
+                return f"{local_prefix}{cleaned.lstrip('./')}", ""
+            return cleaned, ""
+
+        if _is_wsrv_url(cleaned):
+            raw_origin = _extract_raw_from_wsrv(cleaned)
+            cache_key = raw_origin or cleaned
+            status = self._probe_and_cache(cache_key, check_target=cleaned, width=width)
+            if status == "failed" and raw_origin:
+                return raw_origin, ""
+            return cleaned, (raw_origin if raw_origin and raw_origin != cleaned else "")
+
+        normalized_raw = normalize_external_url(cleaned)
+        wsrv_url = optimize_img_url(normalized_raw, width=width)
+        status = self._probe_and_cache(normalized_raw, check_target=normalized_raw, width=width)
+        if status == "failed":
+            return normalized_raw, ""
+        return wsrv_url, normalized_raw
+
+
+def resolve_image_src(raw_url, width=800, local_prefix="", resolver=None):
+    """Convenience helper resolving (src, fallback_src) using an ImageResolver."""
+    active_resolver = resolver or ImageResolver(skip_check=should_skip_image_check())
+    return active_resolver.resolve(raw_url, width=width, local_prefix=local_prefix)
+
+
+def build_img_tag(src, alt, width, height, fallback_src="", extra_attrs="", self_closing=False):
+    """Builds an <img> tag with escaped attributes and loop-safe browser onerror fallback."""
+    attrs = [
+        f'src="{html.escape(str(src or ""), quote=True)}"',
+        f'alt="{html.escape(str(alt or ""), quote=True)}"',
+        f'width="{width}"',
+        f'height="{height}"',
+    ]
+    if fallback_src and fallback_src != src:
+        attrs.append(f'data-fallback-src="{html.escape(str(fallback_src), quote=True)}"')
+        attrs.append(f'onerror="{IMAGE_FALLBACK_ONERROR}"')
+    if extra_attrs and extra_attrs.strip():
+        attrs.append(extra_attrs.strip())
+    closing = " /" if self_closing else ""
+    return f"<img {' '.join(attrs)}{closing}>"
 
 
 def get_head_links(css_path="style.css", preload_img=None):
     """Common <head> tags: Non-blocking Google Fonts, optional LCP preload, and CSS."""
-    preload_tag = f'    <link rel="preload" as="image" href="{preload_img}" fetchpriority="high">\n' if preload_img else ""
+    escaped_preload = html.escape(preload_img, quote=True) if preload_img else ""
+    preload_tag = f'    <link rel="preload" as="image" href="{escaped_preload}" fetchpriority="high">\n' if escaped_preload else ""
     return f"""    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2216%22 fill=%22%23141210%22/><text x=%2250%%22 y=%2254%%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 fill=%22%23FF4C00%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22>अ</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -216,39 +501,331 @@ def get_head_links(css_path="style.css", preload_img=None):
 
 
 def parse_ai_json(raw_text):
-    """Safely parses JSON from Gemini even if HTML strings contain raw newlines."""
-    cleaned = raw_text.strip()
+    """Safely parses JSON from Gemini or open-source models even with think tags, fences, or preamble."""
+    if not raw_text or not str(raw_text).strip():
+        raise ValueError("Empty AI response text")
+
+    cleaned = str(raw_text).strip()
+    cleaned = re.sub(r"<think\b[^>]*>.*?</think>", "", cleaned, flags=re.IGNORECASE | re.DOTALL).strip()
+
+    fence_match = re.search(r"```(?:json)?\s*(\{.*\})\s*```", cleaned, flags=re.IGNORECASE | re.DOTALL)
+    if fence_match:
+        fenced_candidate = fence_match.group(1).strip()
+        try:
+            parsed = json.loads(fenced_candidate, strict=False)
+            if isinstance(parsed, dict):
+                return parsed
+        except json.JSONDecodeError:
+            pass
+
     if cleaned.startswith("```"):
-        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned)
-        cleaned = re.sub(r"\s*```$", "", cleaned)
+        cleaned = re.sub(r"^```(?:json)?\s*", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"\s*```$", "", cleaned).strip()
+
+    try:
+        parsed = json.loads(cleaned, strict=False)
+        if isinstance(parsed, dict):
+            return parsed
+    except json.JSONDecodeError:
+        pass
+
+    # Extract balanced JSON object candidates while ignoring braces inside string literals
+    candidates = []
+    n = len(cleaned)
+    i = 0
+    while i < n:
+        if cleaned[i] == "{":
+            depth = 0
+            in_string = False
+            escape = False
+            start = i
+            j = i
+            while j < n:
+                ch = cleaned[j]
+                if in_string:
+                    if escape:
+                        escape = False
+                    elif ch == "\\":
+                        escape = True
+                    elif ch == '"':
+                        in_string = False
+                else:
+                    if ch == '"':
+                        in_string = True
+                    elif ch == "{":
+                        depth += 1
+                    elif ch == "}":
+                        depth -= 1
+                        if depth == 0:
+                            snippet = cleaned[start : j + 1]
+                            try:
+                                obj = json.loads(snippet, strict=False)
+                                if isinstance(obj, dict):
+                                    candidates.append(obj)
+                                    i = j
+                            except json.JSONDecodeError:
+                                pass
+                            break
+                j += 1
+        i += 1
+
+    for obj in candidates:
+        if "title" in obj or "content_html" in obj:
+            return obj
+    if candidates:
+        return candidates[0]
+
     return json.loads(cleaned, strict=False)
 
 
-def generate_with_fallback(prompt):
-    attempt_plan = [
-        ("gemini-3.6-flash", 3),
-        ("gemini-3.6-flash", 8),
-        ("gemini-3.8-flash", 5),
-        ("gemma-4-31b-it", 5),
-    ]
-    for model_name, wait_sec in attempt_plan:
-        try:
-            print(f"Attempting to write Hindi article using {model_name}...")
-            response = client.models.generate_content(
+def validate_article_payload(article_data):
+    """Validates parsed AI output has required article fields and Hindi (Devanagari) text."""
+    if not isinstance(article_data, dict):
+        raise ValueError("AI response JSON must be an object")
+
+    title = article_data.get("title")
+    content_html = article_data.get("content_html")
+
+    if not isinstance(title, str) or not title.strip():
+        raise ValueError("AI response missing non-empty 'title'")
+    if not DEVANAGARI_RE.search(title):
+        raise ValueError("AI response 'title' must be in Hindi (Devanagari)")
+
+    if not isinstance(content_html, str) or not content_html.strip():
+        raise ValueError("AI response missing non-empty 'content_html'")
+
+    plain_text = re.sub(r"<[^>]+>", " ", content_html)
+    plain_text = re.sub(r"\s+", " ", plain_text).strip()
+    if len(plain_text) < 12 or len(DEVANAGARI_RE.findall(plain_text)) < 5:
+        raise ValueError("AI response 'content_html' lacks sufficient Hindi prose")
+
+    raw_idx = article_data.get("selected_index", 0)
+    if isinstance(raw_idx, bool):
+        article_data["selected_index"] = 0
+    elif isinstance(raw_idx, str) and raw_idx.strip().isdigit():
+        article_data["selected_index"] = int(raw_idx.strip())
+
+    return article_data
+
+
+class _ProviderHttpError(RuntimeError):
+    """HTTP error carrying status code and credential-failure classification."""
+
+    def __init__(self, message, status_code=None, is_auth=False):
+        super().__init__(message)
+        self.status_code = status_code
+        self.is_provider_auth_error = is_auth
+
+
+def _extract_http_status(exc):
+    """Best-effort extraction of HTTP status code from SDK or HTTP exceptions."""
+    for attr in ("code", "status_code", "http_status"):
+        val = getattr(exc, attr, None)
+        if isinstance(val, int) and 100 <= val < 600:
+            return val
+    resp = getattr(exc, "response", None)
+    if resp is not None:
+        val = getattr(resp, "status_code", None)
+        if isinstance(val, int) and 100 <= val < 600:
+            return val
+    return None
+
+
+def _is_provider_auth_error(exc, status_code=None):
+    """
+    Identifies explicit credential/key failures (HTTP 401 or invalid-key errors) so a provider
+    can be circuit-broken without aborting sibling 403/404 model fallbacks on that provider.
+    """
+    if getattr(exc, "is_provider_auth_error", False):
+        return True
+    code = status_code if status_code is not None else _extract_http_status(exc)
+    if code == 401:
+        return True
+    msg = str(exc or "").lower()
+    auth_markers = (
+        "api_key_invalid",
+        "api key not valid",
+        "invalid api key",
+        "invalid_api_key",
+        "authentication failed",
+        "invalid authentication",
+        "token expired",
+        "key revoked",
+        "unauthenticated",
+        "unauthorized",
+    )
+    return any(marker in msg for marker in auth_markers)
+
+
+def _resolve_google_client():
+    """Resolves the active Google GenAI client using module state and live environment."""
+    env_key = os.environ.get("GEMINI_API_KEY")
+    if env_key:
+        if client is not None and env_key == api_key:
+            return client
+        return build_google_client(env_key)
+    if client is not None and not api_key:
+        return client
+    if client is not None and api_key and "GEMINI_API_KEY" not in os.environ:
+        return None
+    return client
+
+
+def _resolve_nvidia_key():
+    """Resolves the active NVIDIA NIM API key using live environment and module fallback."""
+    if "NVIDIA_API_KEY" in os.environ:
+        return (os.environ.get("NVIDIA_API_KEY") or "").strip() or None
+    return (nvidia_api_key or "").strip() or None
+
+
+def _call_google_model(model_name, prompt, google_client):
+    """Invokes a Google Gemini/Gemma model with JSON-mode first, retrying once without config on 400."""
+    try:
+        response = google_client.models.generate_content(
+            model=model_name,
+            contents=prompt,
+            config={"response_mime_type": "application/json"},
+        )
+    except Exception as e:
+        if _is_provider_auth_error(e):
+            raise
+        status = _extract_http_status(e)
+        err_lower = str(e).lower()
+        if status == 400 or "400" in err_lower or "response_mime_type" in err_lower or "json" in err_lower or "invalid_argument" in err_lower:
+            print(f"ℹ️ {model_name} rejected strict JSON config; retrying without response_mime_type...")
+            response = google_client.models.generate_content(
                 model=model_name,
                 contents=prompt,
-                config={"response_mime_type": "application/json"}
             )
-            article_data = parse_ai_json(response.text)
-            print(f"✅ Success with {model_name}!")
+        else:
+            raise
+
+    raw_text = getattr(response, "text", None)
+    if not isinstance(raw_text, str) or not raw_text.strip():
+        raise ValueError(f"{model_name} returned empty response text")
+    return raw_text
+
+
+def _call_nvidia_nim_model(model_name, prompt, nim_key):
+    """Invokes an NVIDIA NIM OpenAI-compatible chat model with HTTP 400 JSON-mode fallback."""
+    headers = {
+        "Authorization": f"Bearer {nim_key}",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+    base_payload = {
+        "model": model_name,
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "You are a senior Hindi news editor. Respond ONLY with a valid raw JSON object "
+                    "matching the requested schema, with no markdown fences, thinking tags, or commentary."
+                ),
+            },
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.4,
+        "max_tokens": 4096,
+    }
+
+    resp = requests.post(
+        NVIDIA_NIM_API_URL,
+        headers=headers,
+        json={**base_payload, "response_format": {"type": "json_object"}},
+        timeout=NIM_HTTP_TIMEOUT,
+    )
+
+    if resp.status_code == 400:
+        err_preview = resp.text[:300]
+        if _is_provider_auth_error(RuntimeError(err_preview), status_code=400):
+            raise _ProviderHttpError(f"HTTP 400: {err_preview}", status_code=400, is_auth=True)
+        print(f"ℹ️ {model_name} rejected response_format=json_object (HTTP 400); retrying without response_format...")
+        resp = requests.post(
+            NVIDIA_NIM_API_URL,
+            headers=headers,
+            json=base_payload,
+            timeout=NIM_HTTP_TIMEOUT,
+        )
+
+    if resp.status_code >= 400:
+        err_preview = resp.text[:300]
+        raise _ProviderHttpError(
+            f"HTTP {resp.status_code}: {err_preview}",
+            status_code=resp.status_code,
+            is_auth=_is_provider_auth_error(RuntimeError(err_preview), status_code=resp.status_code),
+        )
+
+    data = resp.json()
+    choices = data.get("choices") or []
+    if not choices:
+        raise ValueError(f"{model_name} returned empty choices")
+    message = choices[0].get("message") or {}
+    raw_content = message.get("content")
+    if not isinstance(raw_content, str) or not raw_content.strip():
+        finish_reason = choices[0].get("finish_reason")
+        raise ValueError(f"{model_name} returned empty content (finish_reason={finish_reason})")
+    return raw_content
+
+
+def generate_with_fallback(prompt):
+    """Generates a validated Hindi article payload strictly following MODEL_FALLBACK_CHAIN."""
+    google_client = _resolve_google_client()
+    nim_key = _resolve_nvidia_key()
+    disabled_providers = set()
+    missing_logged = set()
+
+    if google_client is None:
+        disabled_providers.add("google")
+        missing_logged.add("google")
+        print("ℹ️ Skipping Google Gemini/Gemma models (GEMINI_API_KEY / client not configured).")
+    if not nim_key:
+        disabled_providers.add("nvidia_nim")
+        missing_logged.add("nvidia_nim")
+        print("ℹ️ Skipping NVIDIA NIM models (NVIDIA_API_KEY not configured).")
+
+    last_error = None
+    total = len(MODEL_FALLBACK_CHAIN)
+
+    for idx, entry in enumerate(MODEL_FALLBACK_CHAIN):
+        provider = entry["provider"]
+        model_name = entry["model"]
+        wait_sec = entry.get("wait_sec", 2)
+
+        if provider in disabled_providers:
+            if provider not in missing_logged:
+                print(f"⏭️ Skipping {model_name} (provider '{provider}' disabled after auth error).")
+            continue
+
+        try:
+            print(f"Attempting to write Hindi article using [{provider}] {model_name}...")
+            if provider == "google":
+                raw_text = _call_google_model(model_name, prompt, google_client)
+            elif provider == "nvidia_nim":
+                raw_text = _call_nvidia_nim_model(model_name, prompt, nim_key)
+            else:
+                raise ValueError(f"Unsupported provider: {provider}")
+
+            article_data = validate_article_payload(parse_ai_json(raw_text))
+            print(f"✅ Success with [{provider}] {model_name}!")
             return article_data
-        except json.JSONDecodeError as e:
-            print(f"⚠️ {model_name} returned malformed JSON ({e}). Retrying...")
-            time.sleep(wait_sec)
+
+        except (json.JSONDecodeError, ValueError) as e:
+            last_error = e
+            print(f"⚠️ [{provider}] {model_name} returned invalid/non-Hindi JSON ({e}). Switching to backup model...")
         except Exception as e:
-            print(f"⚠️ {model_name} busy ({e}). Switching to backup model...")
+            last_error = e
+            if _is_provider_auth_error(e):
+                disabled_providers.add(provider)
+                print(f"🔒 Provider '{provider}' credential error on {model_name} ({e}). Skipping remaining '{provider}' models.")
+            else:
+                print(f"⚠️ [{provider}] {model_name} busy/failed ({e}). Switching to backup model...")
+
+        # Sleep briefly before trying the next enabled model
+        if idx < total - 1 and any(e["provider"] not in disabled_providers for e in MODEL_FALLBACK_CHAIN[idx + 1 :]):
             time.sleep(wait_sec)
-    raise RuntimeError("All models failed. Please try again later.")
+
+    raise RuntimeError(f"All configured AI models failed. Last error: {last_error}")
 
 
 def fetch_free_stock_image(query):
@@ -471,7 +1048,7 @@ def get_footer_html(config, prefix="", active_file=""):
     </footer>"""
 
 
-def build_individual_article_page(art, today_str, config):
+def build_individual_article_page(art, today_str, config, image_resolver=None):
     """Creates a dedicated SEO-optimized HTML page for a single article inside /news/."""
     os.makedirs(NEWS_DIR, exist_ok=True)
     slug = art["slug"]
@@ -483,9 +1060,19 @@ def build_individual_article_page(art, today_str, config):
     meta_desc = plain_text[:155].replace('"', "'") + "..."
 
     # Handle relative local image paths if uploaded via editor vs external URLs
-    raw_img = art["image_url"]
-    article_img_src = f"../{raw_img}" if not raw_img.startswith("http") else optimize_img_url(raw_img, width=900)
-    og_img_url = f"{SITE_URL}/{raw_img}" if not raw_img.startswith("http") else raw_img
+    resolver = image_resolver or ImageResolver(skip_check=should_skip_image_check())
+    raw_img = str(art.get("image_url", "") or "").strip()
+    article_img_src, article_img_fallback = resolver.resolve(raw_img, width=900, local_prefix="../")
+    og_img_url = f"{SITE_URL}/{raw_img.lstrip('./')}" if not raw_img.startswith(("http://", "https://")) else raw_img
+    article_img_tag = build_img_tag(
+        article_img_src,
+        art["title"],
+        width=800,
+        height=450,
+        fallback_src=article_img_fallback,
+        extra_attrs='fetchpriority="high" decoding="sync"',
+        self_closing=True,
+    )
 
     schema_ld = {
         "@context": "https://schema.org",
@@ -550,7 +1137,7 @@ def build_individual_article_page(art, today_str, config):
             <h1 class="single-title">{art['title']}</h1>
             <div class="meta single-meta">प्रकाशित: {art['date']} <span class="meta-dot"></span> अबतक24 न्यूज़ डेस्क</div>
             <figure class="single-figure">
-                <img src="{article_img_src}" alt="{art['title']}" width="800" height="450" fetchpriority="high" decoding="sync" />
+                {article_img_tag}
                 <figcaption class="image-credit">{art['image_courtesy']}</figcaption>
             </figure>
             <div class="article-content">
@@ -568,8 +1155,9 @@ def build_individual_article_page(art, today_str, config):
         f.write(article_html)
 
 
-def build_category_pages(articles, today_str, config):
+def build_category_pages(articles, today_str, config, image_resolver=None):
     """Creates a dedicated HTML page for every category defined in site_config.json."""
+    resolver = image_resolver or ImageResolver(skip_check=should_skip_image_check())
     generated_files = []
     for cat in config.get("categories", []):
         cat_name = cat["name"].strip()
@@ -586,11 +1174,19 @@ def build_category_pages(articles, today_str, config):
         if filtered:
             for idx, art in enumerate(filtered):
                 art_link = f"news/{art['slug']}.html"
-                card_img = optimize_img_url(art['image_url'], width=480)
+                card_img, card_fallback = resolver.resolve(art.get("image_url", ""), width=480)
                 load_attr = 'fetchpriority="high"' if idx == 0 else 'loading="lazy"'
+                card_img_tag = build_img_tag(
+                    card_img,
+                    art["title"],
+                    width=400,
+                    height=200,
+                    fallback_src=card_fallback,
+                    extra_attrs=f'{load_attr} decoding="async"',
+                )
                 cards_html += f"""
                 <a href="{art_link}" class="archive-card">
-                    <img src="{card_img}" alt="{art['title']}" width="400" height="200" {load_attr} decoding="async">
+                    {card_img_tag}
                     <div class="archive-card-body">
                         <span class="badge">{art.get('category', cat_name)}</span>
                         <h2 class="side-title">{art['title']}</h2>
@@ -790,7 +1386,7 @@ Sitemap: {SITE_URL}/sitemap.xml
     print("✅ Generated sitemap.xml and robots.txt for Google SEO!")
 
 
-def build_website_html(articles, config=None):
+def build_website_html(articles, config=None, skip_image_check=None, image_resolver=None):
     """Generates index.html, category pages, custom pages, and individual article pages."""
     if config is None:
         config = load_site_config()
@@ -798,6 +1394,9 @@ def build_website_html(articles, config=None):
     today_str = datetime.now().strftime("%d %B %Y")
     if not articles:
         return
+
+    resolver = image_resolver or ImageResolver(skip_check=should_skip_image_check(skip_image_check))
+    resolver.prewarm([a.get("image_url", "") for a in articles])
 
     # Delete any old HTML files in news/ that were removed from articles_db.json
     os.makedirs(NEWS_DIR, exist_ok=True)
@@ -807,19 +1406,35 @@ def build_website_html(articles, config=None):
             os.remove(os.path.join(NEWS_DIR, fname))
 
     for art in articles:
-        build_individual_article_page(art, today_str, config)
+        build_individual_article_page(art, today_str, config, image_resolver=resolver)
 
     hero = articles[0]
     hero_link = f"news/{hero['slug']}.html"
-    hero_img = optimize_img_url(hero['image_url'], width=800)
+    hero_img, hero_fallback = resolver.resolve(hero.get("image_url", ""), width=800)
+    hero_img_tag = build_img_tag(
+        hero_img,
+        hero["title"],
+        width=800,
+        height=410,
+        fallback_src=hero_fallback,
+        extra_attrs='fetchpriority="high" loading="eager" decoding="sync"',
+    )
 
     side_html = ""
     for art in articles[1:5]:
         art_link = f"news/{art['slug']}.html"
-        thumb_img = optimize_img_url(art['image_url'], width=300)
+        thumb_img, thumb_fallback = resolver.resolve(art.get("image_url", ""), width=300)
+        thumb_img_tag = build_img_tag(
+            thumb_img,
+            art["title"],
+            width=128,
+            height=94,
+            fallback_src=thumb_fallback,
+            extra_attrs='loading="lazy" decoding="async"',
+        )
         side_html += f"""
         <a href="{art_link}" class="side-card">
-            <img src="{thumb_img}" alt="{art['title']}" width="128" height="94" loading="lazy" decoding="async">
+            {thumb_img_tag}
             <div>
                 <span class="badge">{art.get('category', 'प्रमुख समाचार')}</span>
                 <h2 class="side-title">{art['title']}</h2>
@@ -832,10 +1447,18 @@ def build_website_html(articles, config=None):
         cards = ""
         for art in articles[5:]:
             art_link = f"news/{art['slug']}.html"
-            card_img = optimize_img_url(art['image_url'], width=480)
+            card_img, card_fallback = resolver.resolve(art.get("image_url", ""), width=480)
+            card_img_tag = build_img_tag(
+                card_img,
+                art["title"],
+                width=400,
+                height=200,
+                fallback_src=card_fallback,
+                extra_attrs='loading="lazy" decoding="async"',
+            )
             cards += f"""
             <a href="{art_link}" class="archive-card">
-                <img src="{card_img}" alt="{art['title']}" width="400" height="200" loading="lazy" decoding="async">
+                {card_img_tag}
                 <div class="archive-card-body">
                     <span class="badge">{art.get('category', 'समाचार')}</span>
                     <h2 class="side-title">{art['title']}</h2>
@@ -878,7 +1501,7 @@ def build_website_html(articles, config=None):
         </div>
         <div class="bento-grid">
             <a href="{hero_link}" class="hero-card">
-                <div class="img-wrap"><img src="{hero_img}" alt="{hero['title']}" width="800" height="410" fetchpriority="high" loading="eager" decoding="sync"></div>
+                <div class="img-wrap">{hero_img_tag}</div>
                 <div class="card-body">
                     <div>
                         <span class="badge">{hero.get('category', 'बड़ी खबर')}</span>
@@ -899,7 +1522,7 @@ def build_website_html(articles, config=None):
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_template)
 
-    cat_files = build_category_pages(articles, today_str, config)
+    cat_files = build_category_pages(articles, today_str, config, image_resolver=resolver)
     custom_files = build_custom_pages(today_str, config)
     cleanup_retired_root_pages(cat_files + custom_files)
     build_seo_files(articles, config)
@@ -1028,14 +1651,14 @@ def fetch_and_rewrite():
         article_data = generate_with_fallback(prompt)
 
         chosen_idx = article_data.get("selected_index", 0)
-        if not isinstance(chosen_idx, int) or chosen_idx < 0 or chosen_idx >= len(shortlist):
+        if isinstance(chosen_idx, bool) or not isinstance(chosen_idx, int) or chosen_idx < 0 or chosen_idx >= len(shortlist):
             chosen_idx = 0
         chosen = shortlist[chosen_idx]
 
         print(f"🎯 Selected [{chosen_idx}] ({chosen['source_name']} | Score {chosen['score']}): {chosen['title']}")
 
-        strategy = article_data.get("image_strategy", "original")
-        search_query = article_data.get("stock_search_query", "technology")
+        strategy = str(article_data.get("image_strategy", "original") or "original").strip().lower()
+        search_query = str(article_data.get("stock_search_query", "technology") or "technology").strip()
         rss_image_url = chosen["rss_image_url"]
         source_name = chosen["source_name"]
 

@@ -31,6 +31,7 @@ jobs:
       - name: Run News Paraphraser & Website Builder
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
         run: |
           if [ "${{ github.event.inputs.mode }}" = "rebuild" ]; then
             python news_bot.py --rebuild-only

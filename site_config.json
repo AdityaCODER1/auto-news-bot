@@ -126,5 +126,83 @@
       "label": "हमारे बारे में",
       "href": "about.html"
     }
-  ]
+  ],
+  "footer": {
+    "enabled": true,
+    "theme": "dark",
+    "show_logo": true,
+    "brand_title": "अबतक24.in (Aabtak24.in)",
+    "brand_tagline": "भारत का आधुनिक डिजिटल हिंदी समाचार पोर्टल। देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था, राजनीति और मनोरंजन की सटीक एवं तथ्यपूर्ण खबरें।",
+    "contact_label": "संपादकीय संपर्क:",
+    "contact_email": "contact@aabtak24.in",
+    "columns": [
+      {
+        "id": "categories",
+        "title": "प्रमुख श्रेणियाँ",
+        "links": [
+          {
+            "label": "मुख्य खबरें",
+            "href": "index.html"
+          },
+          {
+            "label": "देश-विदेश",
+            "href": "desh-videsh.html"
+          },
+          {
+            "label": "टेक्नोलॉजी",
+            "href": "technology.html"
+          },
+          {
+            "label": "अर्थव्यवस्था",
+            "href": "economy.html"
+          },
+          {
+            "label": "राजनीति",
+            "href": "politics.html"
+          },
+          {
+            "label": "मनोरंजन",
+            "href": "entertainment.html"
+          }
+        ]
+      },
+      {
+        "id": "pages",
+        "title": "संस्थान एवं नीतियाँ",
+        "links": [
+          {
+            "label": "हमारे बारे में (About Us)",
+            "href": "about.html"
+          },
+          {
+            "label": "संपर्क करें (Contact Us)",
+            "href": "contact.html"
+          },
+          {
+            "label": "संपादकीय नीति (Editorial Policy)",
+            "href": "editorial-policy.html"
+          },
+          {
+            "label": "गोपनीयता नीति (Privacy Policy)",
+            "href": "privacy-policy.html"
+          }
+        ]
+      }
+    ],
+    "social_links": [
+      {
+        "label": "🌐 वेबसाइट",
+        "href": "https://aabtak24.in",
+        "new_tab": true
+      },
+      {
+        "label": "✉️ ईमेल संपर्क",
+        "href": "mailto:contact@aabtak24.in",
+        "new_tab": false
+      }
+    ],
+    "copyright_text": "© {year} अबतक24.in (Aabtak24.in) • सर्वाधिकार सुरक्षित।",
+    "bottom_note": "डिजिटल संस्करण • INDIA",
+    "colors": {}
+  }
 }

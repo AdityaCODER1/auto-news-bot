@@ -1,6 +1,8 @@
 import os
 import re
 import sys
+import copy
+import html
 import json
 import time
 from datetime import datetime, timezone
@@ -93,7 +95,47 @@ DEFAULT_SITE_CONFIG = {
         {"label": "राजनीति", "href": "politics.html"},
         {"label": "मनोरंजन", "href": "entertainment.html"},
         {"label": "हमारे बारे में", "href": "about.html"}
-    ]
+    ],
+    "footer": {
+        "enabled": True,
+        "theme": "dark",
+        "show_logo": True,
+        "brand_title": "अबतक24.in (Aabtak24.in)",
+        "brand_tagline": "भारत का आधुनिक डिजिटल हिंदी समाचार पोर्टल। देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था, राजनीति और मनोरंजन की सटीक एवं तथ्यपूर्ण खबरें।",
+        "contact_label": "संपादकीय संपर्क:",
+        "contact_email": "contact@aabtak24.in",
+        "columns": [
+            {
+                "id": "categories",
+                "title": "प्रमुख श्रेणियाँ",
+                "links": [
+                    {"label": "मुख्य खबरें", "href": "index.html"},
+                    {"label": "देश-विदेश", "href": "desh-videsh.html"},
+                    {"label": "टेक्नोलॉजी", "href": "technology.html"},
+                    {"label": "अर्थव्यवस्था", "href": "economy.html"},
+                    {"label": "राजनीति", "href": "politics.html"},
+                    {"label": "मनोरंजन", "href": "entertainment.html"}
+                ]
+            },
+            {
+                "id": "pages",
+                "title": "संस्थान एवं नीतियाँ",
+                "links": [
+                    {"label": "हमारे बारे में (About Us)", "href": "about.html"},
+                    {"label": "संपर्क करें (Contact Us)", "href": "contact.html"},
+                    {"label": "संपादकीय नीति (Editorial Policy)", "href": "editorial-policy.html"},
+                    {"label": "गोपनीयता नीति (Privacy Policy)", "href": "privacy-policy.html"}
+                ]
+            }
+        ],
+        "social_links": [
+            {"label": "🌐 वेबसाइट", "href": "https://aabtak24.in", "new_tab": True},
+            {"label": "✉️ ईमेल संपर्क", "href": "mailto:contact@aabtak24.in", "new_tab": False}
+        ],
+        "copyright_text": "© {year} अबतक24.in (Aabtak24.in) • सर्वाधिकार सुरक्षित।",
+        "bottom_note": "डिजिटल संस्करण • INDIA",
+        "colors": {}
+    }
 }
 
 # 4. Model Fallback List
@@ -112,13 +154,20 @@ def load_site_config():
                 data = json.load(f)
             if isinstance(data, dict) and "categories" in data and "header_menu" in data:
                 data.setdefault("custom_pages", [])
+                footer_cfg = data.get("footer")
+                if not isinstance(footer_cfg, dict):
+                    data["footer"] = copy.deepcopy(DEFAULT_SITE_CONFIG["footer"])
+                else:
+                    for key, default_val in DEFAULT_SITE_CONFIG["footer"].items():
+                        if key not in footer_cfg:
+                            footer_cfg[key] = copy.deepcopy(default_val)
                 return data
             print(f"⚠️ {CONFIG_FILE} missing required keys. Using fallback config.")
         except Exception as e:
             print(f"⚠️ Error reading {CONFIG_FILE} ({e}). Using fallback config.")
     else:
         print(f"ℹ️ {CONFIG_FILE} not found. Using built-in default config.")
-    return DEFAULT_SITE_CONFIG
+    return copy.deepcopy(DEFAULT_SITE_CONFIG)
 
 
 def normalize_ai_category(raw_category, config, ai_categories):
@@ -282,6 +331,146 @@ def get_header_html(config, prefix="", active_file=""):
     </header>"""
 
 
+def _build_footer_link(item, prefix="", active_file="", extra_class=""):
+    """Formats a single footer link safely with prefix handling and active state."""
+    label = str(item.get("label", "")).strip()
+    raw_href = str(item.get("href", "")).strip()
+    if not label or not raw_href:
+        return ""
+    if raw_href.lower().startswith(("javascript:", "vbscript:", "data:")):
+        return ""
+
+    safe_label = html.escape(label, quote=True)
+    is_http = raw_href.startswith(("http://", "https://"))
+    is_special = raw_href.startswith(("mailto:", "tel:", "#"))
+
+    if is_http or is_special:
+        safe_href = html.escape(raw_href, quote=True)
+        default_new_tab = is_http
+        target_attr = ' target="_blank" rel="noopener noreferrer"' if item.get("new_tab", default_new_tab) else ""
+        cls_attr = f' class="{extra_class}"' if extra_class else ""
+        return f'<a href="{safe_href}"{cls_attr}{target_attr}>{safe_label}</a>'
+
+    clean_href = raw_href.lstrip("./")
+    safe_href = html.escape(f"{prefix}{clean_href}", quote=True)
+    is_active = bool(active_file and active_file == clean_href and not extra_class)
+    classes = [c for c in [extra_class, "active" if is_active else ""] if c]
+    cls_attr = f' class="{" ".join(classes)}"' if classes else ""
+    aria_attr = ' aria-current="page"' if is_active else ""
+    return f'<a href="{safe_href}"{cls_attr}{aria_attr}>{safe_label}</a>'
+
+
+def get_footer_html(config, prefix="", active_file=""):
+    """Generates a customizable site-wide editorial footer from site_config.json."""
+    footer = config.get("footer") or {}
+    if not footer.get("enabled", True):
+        return ""
+
+    theme = str(footer.get("theme", "dark")).strip().lower()
+    theme_class = "footer-theme-light" if theme == "light" else "footer-theme-dark"
+
+    color_map = {
+        "bg": "--footer-bg",
+        "bottom_bg": "--footer-bottom-bg",
+        "text": "--footer-text",
+        "muted": "--footer-muted",
+        "accent": "--footer-accent",
+        "border": "--footer-border",
+        "pill_bg": "--footer-pill-bg",
+    }
+    colors = footer.get("colors") if isinstance(footer.get("colors"), dict) else {}
+    style_vars = []
+    for key, css_var in color_map.items():
+        val = str(colors.get(key, "") or "").strip()
+        if re.match(r"^#[0-9a-fA-F]{3,8}$", val):
+            style_vars.append(f"{css_var}: {val}")
+    style_attr = f' style="{"; ".join(style_vars)};"' if style_vars else ""
+
+    brand_title = html.escape(str(footer.get("brand_title", "अबतक24.in (Aabtak24.in)")).strip(), quote=True)
+    brand_tagline = html.escape(str(footer.get("brand_tagline", "")).strip(), quote=True)
+    contact_label = html.escape(str(footer.get("contact_label", "संपादकीय संपर्क:")).strip(), quote=True)
+    contact_email = str(footer.get("contact_email", "")).strip()
+
+    show_logo = footer.get("show_logo", True)
+    logo_file = "logo.svg" if theme == "light" else "logo-light.svg"
+    if show_logo:
+        brand_head_html = (
+            f'<a href="{prefix}index.html" class="footer-logo notranslate" translate="no" aria-label="अबतक24.in होमपेज">\n'
+            f'                    <img src="{prefix}{logo_file}" alt="अबतक24.in" width="194" height="34" loading="lazy" decoding="async">\n'
+            f'                </a>'
+        )
+    else:
+        brand_head_html = f'<a href="{prefix}index.html" class="footer-brand-title notranslate" translate="no">{brand_title}</a>'
+
+    tagline_html = f'\n                <p class="footer-tagline">{brand_tagline}</p>' if brand_tagline else ""
+
+    contact_html = ""
+    if contact_email:
+        safe_email = html.escape(contact_email, quote=True)
+        label_prefix = f"<span>{contact_label}</span> " if contact_label else ""
+        contact_html = f'\n                <p class="footer-contact">{label_prefix}<a href="mailto:{safe_email}">{safe_email}</a></p>'
+
+    pills = []
+    for s_item in footer.get("social_links", []) or []:
+        if isinstance(s_item, dict):
+            pill = _build_footer_link(s_item, prefix=prefix, active_file=active_file, extra_class="footer-pill")
+            if pill:
+                pills.append(pill)
+    pills_html = (
+        '\n                <div class="footer-pills">\n                    '
+        + "\n                    ".join(pills)
+        + "\n                </div>"
+        if pills else ""
+    )
+
+    col_blocks = []
+    for col in footer.get("columns", []) or []:
+        if not isinstance(col, dict):
+            continue
+        col_title = str(col.get("title", "")).strip()
+        col_links = []
+        for link_item in col.get("links", []) or []:
+            if isinstance(link_item, dict):
+                anchor = _build_footer_link(link_item, prefix=prefix, active_file=active_file)
+                if anchor:
+                    col_links.append(f"<li>{anchor}</li>")
+        if not col_title and not col_links:
+            continue
+        title_html = f'<h2 class="footer-col-title">{html.escape(col_title, quote=True)}</h2>' if col_title else ""
+        links_ul = (
+            '<ul class="footer-links">\n                        '
+            + "\n                        ".join(col_links)
+            + "\n                    </ul>"
+            if col_links else ""
+        )
+        col_blocks.append(f'<div class="footer-col">\n                    {title_html}\n                    {links_ul}\n                </div>')
+
+    columns_html = ""
+    inner_cls = "footer-inner footer-single"
+    if col_blocks:
+        inner_cls = "footer-inner"
+        columns_html = '\n            <div class="footer-columns">\n                ' + "\n                ".join(col_blocks) + "\n            </div>"
+
+    year_str = str(datetime.now().year)
+    raw_copyright = str(footer.get("copyright_text", f"© {year_str} अबतक24.in (Aabtak24.in) • सर्वाधिकार सुरक्षित।")).strip()
+    copyright_text = html.escape(raw_copyright.replace("{year}", year_str), quote=True)
+    bottom_note = str(footer.get("bottom_note", "")).strip()
+    bottom_note_html = f'\n                <span class="footer-bottom-note">{html.escape(bottom_note, quote=True)}</span>' if bottom_note else ""
+
+    return f"""    <footer class="site-footer {theme_class}"{style_attr}>
+        <div class="{inner_cls}">
+            <div class="footer-brand">
+                {brand_head_html}{tagline_html}{contact_html}{pills_html}
+            </div>{columns_html}
+        </div>
+        <div class="footer-bottom">
+            <div class="footer-bottom-inner">
+                <p class="footer-copyright">{copyright_text}</p>{bottom_note_html}
+            </div>
+        </div>
+    </footer>"""
+
+
 def build_individual_article_page(art, today_str, config):
     """Creates a dedicated SEO-optimized HTML page for a single article inside /news/."""
     os.makedirs(NEWS_DIR, exist_ok=True)
@@ -369,6 +558,8 @@ def build_individual_article_page(art, today_str, config):
             </div>
         </article>
     </main>
+
+{get_footer_html(config, prefix="../")}
 </body>
 </html>"""
 
@@ -434,6 +625,8 @@ def build_category_pages(articles, today_str, config):
         </div>
         <div class="archive-grid">{cards_html}</div>
     </main>
+
+{get_footer_html(config, prefix="", active_file=cat_file)}
 </body>
 </html>"""
 
@@ -446,7 +639,7 @@ def build_category_pages(articles, today_str, config):
 
 
 def build_custom_pages(today_str, config):
-    """Wraps body fragments in pages/*.html with the live header and head tags so headers never drift."""
+    """Wraps body fragments in pages/*.html with the live header, footer, and head tags so navigation never drifts."""
     generated_files = []
     for page in config.get("custom_pages", []):
         output_file = os.path.basename(page.get("output_file", ""))
@@ -504,6 +697,8 @@ def build_custom_pages(today_str, config):
     <main class="container">
         {body_fragment}
     </main>
+
+{get_footer_html(config, prefix="", active_file=output_file)}
 </body>
 </html>"""
 
@@ -696,6 +891,8 @@ def build_website_html(articles, config=None):
         </div>
         {more_html}
     </main>
+
+{get_footer_html(config, prefix="", active_file="index.html")}
 </body>
 </html>"""
 

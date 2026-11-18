@@ -650,5 +650,214 @@ class TestImageOptimizationAndFallback(unittest.TestCase):
                 os.chdir(old_cwd)
 
 
+class TestHeaderCustomization(unittest.TestCase):
+    def test_load_site_config_backfills_missing_header_defaults(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            cfg_path = Path(tmpdir, "site_config.json")
+            cfg_path.write_text(
+                '{"categories": [], "header_menu": [], "header": {"theme": "dark", "hamburger_style": "boxed"}}',
+                encoding="utf-8",
+            )
+            old_cwd = os.getcwd()
+            os.chdir(tmpdir)
+            try:
+                loaded = news_bot.load_site_config()
+            finally:
+                os.chdir(old_cwd)
+
+        self.assertEqual(loaded["header"]["theme"], "dark")
+        self.assertEqual(loaded["header"]["hamburger_style"], "boxed")
+        self.assertEqual(loaded["header"]["mobile_menu_style"], "slide-right")
+        self.assertTrue(loaded["header"]["sticky"])
+        self.assertIn("action_links", loaded["header"])
+        self.assertIn("colors", loaded["header"])
+
+    def test_top_bar_customization_and_disable(self):
+        cfg = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+        cfg["header"].update(
+            {
+                "theme": "dark",
+                "top_bar_enabled": True,
+                "top_bar_show_date": False,
+                "top_bar_text": 'ब्रेकिंग: <b>लाइव</b>',
+                "edition_tag": "DELHI EDITION",
+                "colors": {"topbar_bg": "#111827", "topbar_text": "#F9FAFB", "accent": "not-a-hex"},
+            }
+        )
+        bar_html = news_bot.get_top_bar_html(cfg, "18 Nov 2026")
+        self.assertIn('class="top-bar top-bar-theme-dark"', bar_html)
+        self.assertIn("--topbar-bg: #111827; --topbar-text: #F9FAFB;", bar_html)
+        self.assertNotIn("not-a-hex", bar_html)
+        self.assertNotIn("18 Nov 2026", bar_html)
+        self.assertIn("&lt;b&gt;लाइव&lt;/b&gt;", bar_html)
+        self.assertIn("DELHI EDITION", bar_html)
+
+        cfg["header"]["top_bar_enabled"] = False
+        self.assertEqual(news_bot.get_top_bar_html(cfg, "18 Nov 2026"), "")
+
+        cfg["header"]["top_bar_enabled"] = True
+        cfg["header"]["enabled"] = False
+        self.assertEqual(news_bot.get_top_bar_html(cfg, "18 Nov 2026"), "")
+
+    def test_header_themes_logos_layouts_nav_styles_and_disable(self):
+        cfg = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+        cfg["header"].update(
+            {
+                "theme": "dark",
+                "layout": "centered",
+                "nav_style": "pills",
+                "sticky": False,
+                "show_logo": True,
+                "brand_tagline": "सटीक और निष्पक्ष खबरें",
+            }
+        )
+        dark_html = news_bot.get_header_html(cfg, prefix="../", active_file="technology.html")
+        self.assertIn("header-theme-dark", dark_html)
+        self.assertIn("header-layout-centered", dark_html)
+        self.assertIn("header-nav-pills", dark_html)
+        self.assertIn("header-static", dark_html)
+        self.assertIn('src="../logo-light.svg"', dark_html)
+        self.assertIn("header-tagline", dark_html)
+        self.assertIn("mobile-drawer-tagline", dark_html)
+        self.assertIn('class="active" aria-current="page"', dark_html)
+
+        cfg["header"].update(
+            {
+                "theme": "light",
+                "layout": "unknown-layout",
+                "nav_style": "unknown-nav",
+                "sticky": True,
+                "show_logo": False,
+                "brand_title": "मेरा पोर्टल",
+                "mobile_show_tagline": False,
+            }
+        )
+        text_brand_html = news_bot.get_header_html(cfg, prefix="")
+        self.assertIn("header-theme-light", text_brand_html)
+        self.assertIn("header-layout-inline", text_brand_html)
+        self.assertIn("header-nav-underline", text_brand_html)
+        self.assertIn("header-sticky", text_brand_html)
+        self.assertIn('<span class="header-brand-title">मेरा पोर्टल</span>', text_brand_html)
+        self.assertIn('<span class="mobile-drawer-title">मेरा पोर्टल</span>', text_brand_html)
+        self.assertNotIn("logo.svg", text_brand_html)
+        self.assertNotIn("mobile-drawer-tagline", text_brand_html)
+        self.assertNotIn("mobile-drawer-foot", text_brand_html)
+
+        cfg["header"]["enabled"] = False
+        self.assertEqual(news_bot.get_header_html(cfg), "")
+
+    def test_mobile_hamburger_styles_drawer_modes_and_independent_mobile_theme(self):
+        cfg = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+        cfg["header"].update(
+            {
+                "theme": "light",
+                "mobile_theme": "dark",
+                "mobile_menu_label": "नेविगेशन",
+                "colors": {"bg": "#FFF7ED", "drawer_bg": "#0F172A", "drawer_text": "#F8FAFC"},
+            }
+        )
+
+        for hb_style in ("staggered", "bars", "boxed", "pill"):
+            for drawer_style in ("slide-right", "slide-left", "fullscreen", "dropdown"):
+                cfg["header"]["hamburger_style"] = hb_style
+                cfg["header"]["mobile_menu_style"] = drawer_style
+                out = news_bot.get_header_html(cfg, prefix="")
+                self.assertIn(f"hamburger-style-{hb_style}", out)
+                self.assertIn(f"mobile-style-{drawer_style}", out)
+                self.assertIn("mobile-theme-dark", out)
+                # Header stays light with logo.svg, dark mobile drawer gets logo-light.svg
+                self.assertIn("header-theme-light", out)
+                self.assertIn('src="logo.svg"', out)
+                self.assertIn('src="logo-light.svg"', out)
+                # Drawer sits AFTER </header> so backdrop-filter does not trap position:fixed
+                self.assertLess(out.index("</header>"), out.index('id="site-mobile-shell"'))
+                if hb_style == "pill":
+                    self.assertIn('<span class="hamburger-label">नेविगेशन</span>', out)
+                else:
+                    self.assertNotIn("hamburger-label", out)
+
+        # Light drawer even when desktop header is dark
+        cfg["header"]["theme"] = "dark"
+        cfg["header"]["mobile_theme"] = "light"
+        mixed = news_bot.get_header_html(cfg)
+        self.assertIn("header-theme-dark", mixed)
+        self.assertIn("mobile-theme-light", mixed)
+        self.assertIn('src="logo-light.svg"', mixed)
+        self.assertIn('src="logo.svg"', mixed)
+
+    def test_action_links_xss_filtering_and_color_overrides(self):
+        cfg = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+        cfg["header"]["action_links"] = [
+            {"label": "E-Paper", "href": "https://aabtak24.in/epaper", "new_tab": True, "style": "accent"},
+            {"label": "संपर्क", "href": "contact.html", "style": "outline"},
+            {"label": "Bad Link", "href": "javascript:alert(1)", "style": "accent"},
+        ]
+        cfg["header"]["colors"] = {
+            "bg": "#1A202C",
+            "text": "#FFFFFF",
+            "accent": "#38BDF8",
+            "border": "#334155",
+            "drawer_bg": "expression(evil)",
+        }
+        out = news_bot.get_header_html(cfg, prefix="../")
+        self.assertIn("header-actions desktop-actions", out)
+        self.assertIn("mobile-drawer-actions", out)
+        self.assertIn("header-action-btn header-action-accent", out)
+        self.assertIn("header-action-btn header-action-outline", out)
+        self.assertIn('href="../contact.html"', out)
+        self.assertIn('target="_blank" rel="noopener noreferrer"', out)
+        self.assertNotIn("Bad Link", out)
+        self.assertNotIn("javascript:", out)
+        self.assertIn("--header-bg: #1A202C", out)
+        self.assertIn("--header-accent: #38BDF8", out)
+        self.assertNotIn("expression(evil)", out)
+
+    def test_build_website_html_propagates_custom_header_across_all_pages(self):
+        articles = [_make_article("hero-story", category="देश-विदेश")]
+        config = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+        config["header"].update(
+            {
+                "theme": "dark",
+                "layout": "compact",
+                "nav_style": "pills",
+                "hamburger_style": "boxed",
+                "mobile_menu_style": "slide-left",
+                "mobile_theme": "dark",
+                "top_bar_text": "24x7 हिंदी न्यूज़",
+                "action_links": [{"label": "संपर्क करें", "href": "contact.html", "style": "accent"}],
+            }
+        )
+
+        old_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chdir(tmpdir)
+            try:
+                Path(tmpdir, "pages").mkdir(parents=True, exist_ok=True)
+                Path(tmpdir, "pages", "about.html").write_text("<article class='article-box'><h1>About</h1></article>", encoding="utf-8")
+                news_bot.build_website_html(articles, config=config, skip_image_check=True)
+
+                for rel_path, expected_logo in [
+                    ("index.html", "logo-light.svg"),
+                    ("desh-videsh.html", "logo-light.svg"),
+                    ("about.html", "logo-light.svg"),
+                    ("news/hero-story.html", "../logo-light.svg"),
+                ]:
+                    content = Path(tmpdir, rel_path).read_text(encoding="utf-8")
+                    self.assertIn("top-bar-theme-dark", content)
+                    self.assertIn("24x7 हिंदी न्यूज़", content)
+                    self.assertIn("header-theme-dark header-layout-compact header-nav-pills", content)
+                    self.assertIn("hamburger-style-boxed", content)
+                    self.assertIn("mobile-style-slide-left mobile-theme-dark", content)
+                    self.assertIn(expected_logo, content)
+                    self.assertIn("site-mobile-shell", content)
+
+                news_html = Path(tmpdir, "news", "hero-story.html").read_text(encoding="utf-8")
+                self.assertIn('href="../contact.html"', news_html)
+                about_html = Path(tmpdir, "about.html").read_text(encoding="utf-8")
+                self.assertIn('<a href="about.html" class="active" aria-current="page">', about_html)
+            finally:
+                os.chdir(old_cwd)
+
+
 if __name__ == "__main__":
     unittest.main()

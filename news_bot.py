@@ -122,6 +122,27 @@ DEFAULT_SITE_CONFIG = {
             "changefreq": "monthly"
         }
     ],
+    "header": {
+        "enabled": True,
+        "theme": "light",
+        "layout": "inline",
+        "sticky": True,
+        "show_logo": True,
+        "brand_title": "अबतक24.in (Aabtak24.in)",
+        "brand_tagline": "",
+        "nav_style": "underline",
+        "top_bar_enabled": True,
+        "top_bar_show_date": True,
+        "top_bar_text": "",
+        "edition_tag": "डिजिटल संस्करण • INDIA",
+        "hamburger_style": "staggered",
+        "mobile_menu_style": "slide-right",
+        "mobile_theme": "auto",
+        "mobile_menu_label": "मेनू",
+        "mobile_show_tagline": True,
+        "action_links": [],
+        "colors": {}
+    },
     "header_menu": [
         {"label": "मुख्य खबरें", "href": "index.html"},
         {"label": "देश-विदेश", "href": "desh-videsh.html"},
@@ -208,6 +229,13 @@ def load_site_config():
                 data = json.load(f)
             if isinstance(data, dict) and "categories" in data and "header_menu" in data:
                 data.setdefault("custom_pages", [])
+                header_cfg = data.get("header")
+                if not isinstance(header_cfg, dict):
+                    data["header"] = copy.deepcopy(DEFAULT_SITE_CONFIG["header"])
+                else:
+                    for key, default_val in DEFAULT_SITE_CONFIG["header"].items():
+                        if key not in header_cfg:
+                            header_cfg[key] = copy.deepcopy(default_val)
                 footer_cfg = data.get("footer")
                 if not isinstance(footer_cfg, dict):
                     data["footer"] = copy.deepcopy(DEFAULT_SITE_CONFIG["footer"])
@@ -865,51 +893,10 @@ def get_rss_image(entry):
     return None
 
 
-def get_header_html(config, prefix="", active_file=""):
-    """Generates the header purely from header_menu in site_config.json."""
-    link_items = []
-    for item in config.get("header_menu", []):
-        label = item.get("label", "").strip()
-        raw_href = item.get("href", "index.html").strip()
-        if not label or not raw_href:
-            continue
-
-        is_external = raw_href.startswith(("http://", "https://", "mailto:", "tel:"))
-        if is_external:
-            target_attr = ' target="_blank" rel="noopener noreferrer"' if item.get("new_tab", True) else ""
-            link_items.append(f'<a href="{raw_href}"{target_attr}>{label}</a>')
-        else:
-            clean_href = raw_href.lstrip("./")
-            cls = ' class="active"' if active_file == clean_href else ""
-            link_items.append(f'<a href="{prefix}{clean_href}"{cls}>{label}</a>')
-
-    nav_links = "\n            ".join(link_items)
-
-    return f"""    <header>
-        <a href="{prefix}index.html" class="logo notranslate" translate="no" aria-label="अबतक24.in होमपेज">
-            <img src="{prefix}logo.svg" alt="अबतक24.in" width="206" height="36" decoding="sync">
-        </a>
-
-        <!-- Desktop Navigation -->
-        <nav class="nav-pills desktop-nav" aria-label="मुख्य नेविगेशन">
-            {nav_links}
-        </nav>
-
-        <!-- Mobile Dropdown Menu -->
-        <details class="mobile-nav">
-            <summary class="menu-toggle" aria-label="मेनू खोलें">
-                <span class="menu-label">श्रेणियाँ</span>
-                <span class="menu-icon" aria-hidden="true">☰</span>
-            </summary>
-            <nav class="mobile-dropdown" aria-label="मोबाइल नेविगेशन">
-                {nav_links}
-            </nav>
-        </details>
-    </header>"""
-
-
-def _build_footer_link(item, prefix="", active_file="", extra_class=""):
-    """Formats a single footer link safely with prefix handling and active state."""
+def _build_nav_link(item, prefix="", active_file="", extra_class=""):
+    """Formats a single navigation link safely with prefix handling and active state."""
+    if not isinstance(item, dict):
+        return ""
     label = str(item.get("label", "")).strip()
     raw_href = str(item.get("href", "")).strip()
     if not label or not raw_href:
@@ -924,7 +911,8 @@ def _build_footer_link(item, prefix="", active_file="", extra_class=""):
     if is_http or is_special:
         safe_href = html.escape(raw_href, quote=True)
         default_new_tab = is_http
-        target_attr = ' target="_blank" rel="noopener noreferrer"' if item.get("new_tab", default_new_tab) else ""
+        use_new_tab = item["new_tab"] if isinstance(item.get("new_tab"), bool) else default_new_tab
+        target_attr = ' target="_blank" rel="noopener noreferrer"' if use_new_tab else ""
         cls_attr = f' class="{extra_class}"' if extra_class else ""
         return f'<a href="{safe_href}"{cls_attr}{target_attr}>{safe_label}</a>'
 
@@ -935,6 +923,309 @@ def _build_footer_link(item, prefix="", active_file="", extra_class=""):
     cls_attr = f' class="{" ".join(classes)}"' if classes else ""
     aria_attr = ' aria-current="page"' if is_active else ""
     return f'<a href="{safe_href}"{cls_attr}{aria_attr}>{safe_label}</a>'
+
+
+def _format_inline_css_vars(colors, var_pairs):
+    """Formats validated hex color overrides into an inline CSS custom property style attribute."""
+    if not isinstance(colors, dict):
+        return ""
+    style_vars = []
+    for key, css_var in var_pairs:
+        val = str(colors.get(key, "") or "").strip()
+        if re.match(r"^#[0-9a-fA-F]{3,8}$", val):
+            style_vars.append(f"{css_var}: {val}")
+    return f' style="{"; ".join(style_vars)};"' if style_vars else ""
+
+
+def get_top_bar_html(config, today_str=""):
+    """Generates the customizable top utility bar above the site header."""
+    header = config.get("header") if isinstance(config.get("header"), dict) else {}
+    if not header.get("enabled", True) or not header.get("top_bar_enabled", True):
+        return ""
+
+    theme = str(header.get("theme", "light")).strip().lower()
+    theme_class = "top-bar-theme-dark" if theme == "dark" else "top-bar-theme-light"
+
+    show_date = header.get("top_bar_show_date", True)
+    top_bar_text = str(header.get("top_bar_text", "") or "").strip()
+    edition_tag = str(header.get("edition_tag", "डिजिटल संस्करण • INDIA") or "").strip()
+
+    left_parts = []
+    if show_date and today_str:
+        left_parts.append(f"<span>📅 {html.escape(str(today_str), quote=True)}</span>")
+    if top_bar_text:
+        left_parts.append(f'<span class="top-bar-note">{html.escape(top_bar_text, quote=True)}</span>')
+
+    if not left_parts and not edition_tag:
+        return ""
+
+    left_html = f'<div class="top-bar-left">{" ".join(left_parts)}</div>' if left_parts else ""
+    edition_html = f'<span class="edition-tag">{html.escape(edition_tag, quote=True)}</span>' if edition_tag else ""
+    style_attr = _format_inline_css_vars(
+        header.get("colors"),
+        [
+            ("topbar_bg", "--topbar-bg"),
+            ("topbar_text", "--topbar-text"),
+            ("accent", "--header-accent"),
+            ("border", "--header-border"),
+        ],
+    )
+
+    inner_parts = [p for p in (left_html, edition_html) if p]
+    inner_html = "\n        ".join(inner_parts)
+    return f"""    <div class="top-bar {theme_class}"{style_attr}>
+        {inner_html}
+    </div>"""
+
+
+def get_header_html(config, prefix="", active_file=""):
+    """Generates the customizable site-wide header, desktop nav, and mobile drawer/hamburger."""
+    header = config.get("header") if isinstance(config.get("header"), dict) else {}
+    if not header.get("enabled", True):
+        return ""
+
+    theme = "dark" if str(header.get("theme", "light")).strip().lower() == "dark" else "light"
+    theme_class = f"header-theme-{theme}"
+
+    layout = str(header.get("layout", "inline")).strip().lower()
+    if layout not in ("inline", "centered", "compact"):
+        layout = "inline"
+
+    nav_style = str(header.get("nav_style", "underline")).strip().lower()
+    if nav_style not in ("underline", "pills", "minimal"):
+        nav_style = "underline"
+
+    sticky = bool(header.get("sticky", True))
+    sticky_class = "header-sticky" if sticky else "header-static"
+
+    show_logo = header.get("show_logo", True)
+    raw_brand = str(header.get("brand_title", "अबतक24.in (Aabtak24.in)") or "").strip()
+    brand_title = html.escape(raw_brand or "अबतक24.in (Aabtak24.in)", quote=True)
+    brand_tagline = str(header.get("brand_tagline", "") or "").strip()
+    edition_tag = str(header.get("edition_tag", "डिजिटल संस्करण • INDIA") or "").strip()
+
+    hamburger_style = str(header.get("hamburger_style", "staggered")).strip().lower()
+    if hamburger_style not in ("staggered", "bars", "boxed", "pill"):
+        hamburger_style = "staggered"
+
+    mobile_menu_style = str(header.get("mobile_menu_style", "slide-right")).strip().lower()
+    if mobile_menu_style not in ("slide-right", "slide-left", "fullscreen", "dropdown"):
+        mobile_menu_style = "slide-right"
+
+    mobile_theme = str(header.get("mobile_theme", "auto")).strip().lower()
+    if mobile_theme not in ("auto", "light", "dark"):
+        mobile_theme = "auto"
+    resolved_mobile_theme = theme if mobile_theme == "auto" else mobile_theme
+
+    mobile_menu_label = str(header.get("mobile_menu_label", "मेनू") or "").strip() or "मेनू"
+    safe_menu_label = html.escape(mobile_menu_label, quote=True)
+    mobile_show_tagline = bool(header.get("mobile_show_tagline", True))
+
+    colors = header.get("colors") if isinstance(header.get("colors"), dict) else {}
+    header_style_attr = _format_inline_css_vars(
+        colors,
+        [
+            ("bg", "--header-bg"),
+            ("text", "--header-text"),
+            ("muted", "--header-muted"),
+            ("accent", "--header-accent"),
+            ("border", "--header-border"),
+            ("border", "--header-divider"),
+        ],
+    )
+
+    drawer_colors = {}
+    if mobile_theme == "auto":
+        if colors.get("bg"):
+            drawer_colors["drawer_bg"] = colors.get("bg")
+        if colors.get("text"):
+            drawer_colors["drawer_text"] = colors.get("text")
+        if colors.get("border"):
+            drawer_colors["drawer_border"] = colors.get("border")
+    if colors.get("drawer_bg"):
+        drawer_colors["drawer_bg"] = colors.get("drawer_bg")
+    if colors.get("drawer_text"):
+        drawer_colors["drawer_text"] = colors.get("drawer_text")
+    if colors.get("accent"):
+        drawer_colors["accent"] = colors.get("accent")
+
+    drawer_style_attr = _format_inline_css_vars(
+        drawer_colors,
+        [
+            ("drawer_bg", "--drawer-bg"),
+            ("drawer_text", "--drawer-text"),
+            ("drawer_border", "--drawer-border"),
+            ("accent", "--drawer-accent"),
+        ],
+    )
+
+    header_logo_file = "logo-light.svg" if theme == "dark" else "logo.svg"
+    drawer_logo_file = "logo-light.svg" if resolved_mobile_theme == "dark" else "logo.svg"
+
+    if show_logo:
+        header_brand_inner = f'<img src="{prefix}{header_logo_file}" alt="{brand_title}" width="206" height="36" decoding="sync">'
+        drawer_brand_inner = f'<img src="{prefix}{drawer_logo_file}" alt="{brand_title}" width="160" height="28" decoding="async">'
+    else:
+        header_brand_inner = f'<span class="header-brand-title">{brand_title}</span>'
+        drawer_brand_inner = f'<span class="mobile-drawer-title">{brand_title}</span>'
+
+    tagline_html = f'\n                <span class="header-tagline">{html.escape(brand_tagline, quote=True)}</span>' if brand_tagline else ""
+    drawer_tagline_html = (
+        f'\n            <p class="mobile-drawer-tagline">{html.escape(brand_tagline, quote=True)}</p>'
+        if (mobile_show_tagline and brand_tagline) else ""
+    )
+    drawer_foot_html = (
+        f'\n            <div class="mobile-drawer-foot"><span>{html.escape(edition_tag, quote=True)}</span></div>'
+        if (mobile_show_tagline and edition_tag) else ""
+    )
+
+    link_items = []
+    for item in config.get("header_menu", []) or []:
+        anchor = _build_nav_link(item, prefix=prefix, active_file=active_file)
+        if anchor:
+            link_items.append(anchor)
+
+    desktop_nav_links = "\n                ".join(link_items)
+    mobile_nav_links = "\n                ".join(link_items)
+
+    action_items = []
+    for act in header.get("action_links", []) or []:
+        if not isinstance(act, dict):
+            continue
+        btn_style = "outline" if str(act.get("style", "accent")).strip().lower() == "outline" else "accent"
+        anchor = _build_nav_link(
+            act,
+            prefix=prefix,
+            active_file=active_file,
+            extra_class=f"header-action-btn header-action-{btn_style}",
+        )
+        if anchor:
+            action_items.append(anchor)
+
+    desktop_actions_html = (
+        '\n            <div class="header-actions desktop-actions">\n                '
+        + "\n                ".join(action_items)
+        + "\n            </div>"
+        if action_items else ""
+    )
+    mobile_actions_html = (
+        '\n            <div class="mobile-drawer-actions">\n                '
+        + "\n                ".join(action_items)
+        + "\n            </div>"
+        if action_items else ""
+    )
+
+    pill_label_html = f'\n                    <span class="hamburger-label">{safe_menu_label}</span>' if hamburger_style == "pill" else ""
+
+    return f"""    <header class="site-header {theme_class} header-layout-{layout} header-nav-{nav_style} {sticky_class}"{header_style_attr}>
+        <div class="header-inner">
+            <div class="header-brand-wrap">
+                <a href="{prefix}index.html" class="logo notranslate" translate="no" aria-label="{brand_title} होमपेज">
+                    {header_brand_inner}
+                </a>{tagline_html}
+            </div>
+
+            <!-- Desktop Navigation -->
+            <div class="header-desktop-group">
+                <nav class="nav-pills desktop-nav" aria-label="मुख्य नेविगेशन">
+                    {desktop_nav_links}
+                </nav>{desktop_actions_html}
+            </div>
+
+            <!-- Mobile Hamburger Button -->
+            <div class="mobile-nav-controls">
+                <button type="button" class="hamburger-btn hamburger-style-{hamburger_style}" id="site-hamburger-btn" aria-label="{safe_menu_label} खोलें" aria-expanded="false" aria-controls="site-mobile-panel">
+                    <span class="hamburger-lines" aria-hidden="true"><span></span><span></span><span></span></span>{pill_label_html}
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Drawer / Overlay / Dropdown -->
+    <div class="mobile-nav-shell mobile-style-{mobile_menu_style} mobile-theme-{resolved_mobile_theme}" id="site-mobile-shell" aria-hidden="true"{drawer_style_attr}>
+        <div class="mobile-nav-backdrop" data-mobile-close aria-hidden="true"></div>
+        <div class="mobile-nav-panel" id="site-mobile-panel">
+            <div class="mobile-drawer-head">
+                <a href="{prefix}index.html" class="mobile-drawer-logo notranslate" translate="no" aria-label="{brand_title} होमपेज">
+                    {drawer_brand_inner}
+                </a>
+                <button type="button" class="mobile-close-btn" data-mobile-close aria-label="मेनू बंद करें">✕</button>
+            </div>{drawer_tagline_html}
+            <nav class="mobile-nav-links" aria-label="मोबाइल नेविगेशन">
+                {mobile_nav_links}
+            </nav>{mobile_actions_html}{drawer_foot_html}
+        </div>
+    </div>
+    <script>
+    (function () {{
+        var btn = document.getElementById('site-hamburger-btn');
+        var shell = document.getElementById('site-mobile-shell');
+        if (!btn || !shell) return;
+        var panel = document.getElementById('site-mobile-panel');
+        var header = document.querySelector('header.site-header');
+        var isDropdown = shell.classList.contains('mobile-style-dropdown');
+
+        function positionDropdown() {{
+            if (!isDropdown || !panel || !header) return;
+            var rect = header.getBoundingClientRect();
+            panel.style.top = Math.max(8, Math.round(rect.bottom + 8)) + 'px';
+        }}
+
+        function setOpen(open, fromKeyboard) {{
+            if (open && isDropdown) positionDropdown();
+            if (!open && shell.contains(document.activeElement)) {{
+                btn.focus();
+            }}
+            shell.classList.toggle('is-open', open);
+            btn.classList.toggle('is-open', open);
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            shell.setAttribute('aria-hidden', open ? 'false' : 'true');
+            if (!isDropdown) {{
+                document.body.classList.toggle('nav-drawer-open', open);
+            }}
+            if (open && !isDropdown && fromKeyboard) {{
+                var closeBtn = shell.querySelector('.mobile-close-btn');
+                if (closeBtn) closeBtn.focus();
+            }}
+        }}
+
+        btn.addEventListener('click', function (e) {{
+            setOpen(!shell.classList.contains('is-open'), e.detail === 0);
+        }});
+
+        shell.addEventListener('click', function (e) {{
+            if (e.target.closest('[data-mobile-close]') || e.target.closest('.mobile-nav-links a') || e.target.closest('.mobile-drawer-actions a')) {{
+                setOpen(false, false);
+            }}
+        }});
+
+        document.addEventListener('keydown', function (e) {{
+            if (e.key === 'Escape' && shell.classList.contains('is-open')) {{
+                setOpen(false, true);
+                btn.focus();
+            }}
+        }});
+
+        window.addEventListener('resize', function () {{
+            if (window.innerWidth > 900 && shell.classList.contains('is-open')) {{
+                setOpen(false, false);
+            }} else if (isDropdown && shell.classList.contains('is-open')) {{
+                positionDropdown();
+            }}
+        }});
+
+        window.addEventListener('scroll', function () {{
+            if (isDropdown && shell.classList.contains('is-open')) {{
+                positionDropdown();
+            }}
+        }}, {{ passive: true }});
+    }})();
+    </script>"""
+
+
+def _build_footer_link(item, prefix="", active_file="", extra_class=""):
+    """Formats a single footer link safely with prefix handling and active state."""
+    return _build_nav_link(item, prefix=prefix, active_file=active_file, extra_class=extra_class)
 
 
 def get_footer_html(config, prefix="", active_file=""):
@@ -1123,10 +1414,7 @@ def build_individual_article_page(art, today_str, config, image_resolver=None):
 {get_head_links(css_path="../style.css", preload_img=article_img_src)}
 </head>
 <body>
-    <div class="top-bar">
-        <span>📅 {today_str}</span>
-        <span class="edition-tag">डिजिटल संस्करण • INDIA</span>
-    </div>
+{get_top_bar_html(config, today_str)}
 
 {get_header_html(config, prefix="../")}
 
@@ -1207,10 +1495,7 @@ def build_category_pages(articles, today_str, config, image_resolver=None):
 {get_head_links(css_path="style.css")}
 </head>
 <body>
-    <div class="top-bar">
-        <span>📅 {today_str}</span>
-        <span class="edition-tag">डिजिटल संस्करण • INDIA</span>
-    </div>
+{get_top_bar_html(config, today_str)}
 
 {get_header_html(config, prefix="", active_file=cat_file)}
 
@@ -1283,10 +1568,7 @@ def build_custom_pages(today_str, config):
 {get_head_links(css_path="style.css")}
 </head>
 <body>
-    <div class="top-bar">
-        <span>📅 {today_str}</span>
-        <span class="edition-tag">डिजिटल संस्करण • INDIA</span>
-    </div>
+{get_top_bar_html(config, today_str)}
 
 {get_header_html(config, prefix="", active_file=output_file)}
 
@@ -1487,10 +1769,7 @@ def build_website_html(articles, config=None, skip_image_check=None, image_resol
 {get_head_links(css_path="style.css", preload_img=hero_img)}
 </head>
 <body>
-    <div class="top-bar">
-        <span>📅 {today_str}</span>
-        <span class="edition-tag">डिजिटल संस्करण • INDIA</span>
-    </div>
+{get_top_bar_html(config, today_str)}
 
 {get_header_html(config, prefix="", active_file="index.html")}
 

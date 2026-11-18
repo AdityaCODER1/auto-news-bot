@@ -97,6 +97,27 @@
       "changefreq": "yearly"
     }
   ],
+  "header": {
+    "enabled": true,
+    "theme": "light",
+    "layout": "inline",
+    "sticky": true,
+    "show_logo": true,
+    "brand_title": "Aabtak24.in",
+    "brand_tagline": "",
+    "nav_style": "underline",
+    "top_bar_enabled": true,
+    "top_bar_show_date": true,
+    "top_bar_text": "",
+    "edition_tag": "डिजिटल संस्करण • INDIA",
+    "hamburger_style": "staggered",
+    "mobile_menu_style": "slide-right",
+    "mobile_theme": "auto",
+    "mobile_menu_label": "मेनू",
+    "mobile_show_tagline": true,
+    "action_links": [],
+    "colors": {}
+  },
   "header_menu": [
     {
       "label": "मुख्य खबरें",

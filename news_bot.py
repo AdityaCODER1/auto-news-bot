@@ -1588,6 +1588,131 @@ def build_custom_pages(today_str, config):
     return generated_files
 
 
+def build_404_page(articles, today_str, config, image_resolver=None):
+    """Generates a branded, editorial custom 404.html page with root-relative paths for GitHub Pages."""
+    resolver = image_resolver or ImageResolver(skip_check=should_skip_image_check())
+
+    cat_pills = []
+    for cat in config.get("categories", []) or []:
+        if not isinstance(cat, dict):
+            continue
+        cat_name = str(cat.get("name", "") or "").strip()
+        cat_file = os.path.basename(str(cat.get("file", "") or "").strip())
+        if not cat_name or not cat_file:
+            continue
+        cat_pills.append(
+            f'<a href="/{html.escape(cat_file, quote=True)}" class="error-404-cat-pill">{html.escape(cat_name, quote=True)}</a>'
+        )
+
+    cats_html = ""
+    if cat_pills:
+        cats_html = f"""
+            <div class="error-404-cats">
+                <p class="error-404-cats-label">प्रमुख श्रेणियाँ चुनें / Browse Categories</p>
+                <div class="error-404-cat-list">
+                    {" ".join(cat_pills)}
+                </div>
+            </div>"""
+
+    recent_articles = list(articles[:6]) if articles else []
+    recent_section_html = ""
+    if recent_articles:
+        cards = ""
+        for art in recent_articles:
+            art_slug = clean_slug(art.get("slug", "news-story"))
+            art_link = f"/news/{art_slug}.html"
+            art_title = str(art.get("title", "") or "").strip()
+            art_cat = str(art.get("category", "समाचार") or "समाचार").strip()
+            art_date = str(art.get("date", "") or "").strip()
+            card_img, card_fallback = resolver.resolve(art.get("image_url", ""), width=480, local_prefix="/")
+            card_img_tag = build_img_tag(
+                card_img,
+                art_title,
+                width=400,
+                height=200,
+                fallback_src=card_fallback,
+                extra_attrs='loading="lazy" decoding="async"',
+            )
+            cards += f"""
+            <a href="{html.escape(art_link, quote=True)}" class="archive-card">
+                {card_img_tag}
+                <div class="archive-card-body">
+                    <span class="badge">{html.escape(art_cat, quote=True)}</span>
+                    <h3 class="side-title">{html.escape(art_title, quote=True)}</h3>
+                    <div class="meta">{html.escape(art_date, quote=True)}</div>
+                </div>
+            </a>"""
+        recent_section_html = f"""
+        <div class="section-rule">
+            <h2>प्रमुख ताज़ा खबरें / Latest Top Stories</h2>
+            <span>ताज़ा अपडेट्स</span>
+        </div>
+        <div class="archive-grid">{cards}</div>"""
+
+    page_html = f"""<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>पृष्ठ नहीं मिला (404) | अबतक24.in (Aabtak24.in)</title>
+    <meta name="description" content="क्षमा करें, आप जिस पृष्ठ को खोज रहे हैं वह उपलब्ध नहीं है या हटाया जा चुका है। अबतक24.in के मुख्य पृष्ठ पर जाएं और ताज़ा हिंदी खबरें पढ़ें।">
+    <meta name="robots" content="noindex, follow">
+{get_head_links(css_path="/style.css")}
+</head>
+<body>
+{get_top_bar_html(config, today_str)}
+
+{get_header_html(config, prefix="/")}
+
+    <main class="container">
+        <section class="error-404-box" aria-labelledby="error-404-heading">
+            <div class="error-404-code-wrap">
+                <span class="badge">त्रुटि 404 • Page Not Found</span>
+                <div class="error-404-number" aria-hidden="true">404</div>
+            </div>
+            <h1 class="error-404-title" id="error-404-heading">क्षमा करें, यह पृष्ठ या खबर उपलब्ध नहीं है</h1>
+            <p class="error-404-desc">हो सकता है कि यह लिंक पुराना हो गया हो, समाचार हटा दिया गया हो या वेब पता गलत टाइप हुआ हो। आप नीचे दिए गए विकल्पों से सीधे मुख्य पृष्ठ या अपनी पसंदीदा श्रेणी पर जा सकते हैं।</p>
+            <p class="error-404-path" id="error-404-path" hidden>अनुरोधित पता: <code id="error-404-path-code"></code></p>
+            <div class="error-404-actions">
+                <a href="/index.html" class="btn-404-primary">🏠 मुख्य पृष्ठ पर जाएं (Home)</a>
+                <a href="/index.html" class="btn-404-secondary" id="error-404-back-btn">← पिछले पृष्ठ पर लौटें</a>
+            </div>{cats_html}
+        </section>
+{recent_section_html}
+    </main>
+
+{get_footer_html(config, prefix="/")}
+    <script>
+    (function () {{
+        var pathWrap = document.getElementById('error-404-path');
+        var pathCode = document.getElementById('error-404-path-code');
+        if (pathWrap && pathCode && window.location && window.location.pathname) {{
+            var cleanPath = window.location.pathname;
+            if (cleanPath && cleanPath !== '/404.html') {{
+                pathCode.textContent = cleanPath;
+                pathWrap.hidden = false;
+            }}
+        }}
+        var backBtn = document.getElementById('error-404-back-btn');
+        if (backBtn) {{
+            backBtn.addEventListener('click', function (e) {{
+                if (window.history.length > 1 && document.referrer) {{
+                    e.preventDefault();
+                    window.history.back();
+                }}
+            }});
+        }}
+    }})();
+    </script>
+</body>
+</html>"""
+
+    with open("404.html", "w", encoding="utf-8") as f:
+        f.write(page_html)
+    print("✅ Generated custom 404.html page!")
+    return "404.html"
+
+
 def cleanup_retired_root_pages(current_generated_files):
     """Safely removes root .html files that were previously generated by config but later removed."""
     previous_files = set()
@@ -1599,7 +1724,7 @@ def cleanup_retired_root_pages(current_generated_files):
             previous_files = set()
 
     current_set = set(current_generated_files)
-    protected = {"index.html"}
+    protected = {"index.html", "404.html"}
 
     for obsolete in previous_files - current_set - protected:
         safe_name = os.path.basename(obsolete)
@@ -1803,6 +1928,7 @@ def build_website_html(articles, config=None, skip_image_check=None, image_resol
 
     cat_files = build_category_pages(articles, today_str, config, image_resolver=resolver)
     custom_files = build_custom_pages(today_str, config)
+    build_404_page(articles, today_str, config, image_resolver=resolver)
     cleanup_retired_root_pages(cat_files + custom_files)
     build_seo_files(articles, config)
     print("✅ Live multi-page SEO & PageSpeed-optimized website generated!")

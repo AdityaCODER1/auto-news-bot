@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>पृष्ठ नहीं मिला (404) | अबतक24.in (Aabtak24.in)</title>
+    <meta name="description" content="क्षमा करें, आप जिस पृष्ठ को खोज रहे हैं वह उपलब्ध नहीं है या हटाया जा चुका है। अबतक24.in के मुख्य पृष्ठ पर जाएं और ताज़ा हिंदी खबरें पढ़ें।">
+    <meta name="robots" content="noindex, follow">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2216%22 fill=%22%23141210%22/><text x=%2250%%22 y=%2254%%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 fill=%22%23FF4C00%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22>अ</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://wsrv.nl" crossorigin>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Mukta:wght@700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Mukta:wght@700;800&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
+</head>
+<body>
+    <div class="top-bar top-bar-theme-dark">
+        <div class="top-bar-left"><span>📅 18 November 2026</span></div>
+        <span class="edition-tag">डिजिटल संस्करण • INDIA</span>
+    </div>
+
+    <header class="site-header header-theme-dark header-layout-compact header-nav-underline header-sticky">
+        <div class="header-inner">
+            <div class="header-brand-wrap">
+                <a href="/index.html" class="logo notranslate" translate="no" aria-label="Aabtak24.in होमपेज">
+                    <img src="/logo-light.svg" alt="Aabtak24.in" width="206" height="36" decoding="sync">
+                </a>
+            </div>
+
+            <!-- Desktop Navigation -->
+            <div class="header-desktop-group">
+                <nav class="nav-pills desktop-nav" aria-label="मुख्य नेविगेशन">
+                    <a href="/index.html">मुख्य खबरें</a>
+                <a href="/desh-videsh.html">देश-विदेश</a>
+                <a href="/technology.html">टेक्नोलॉजी</a>
+                <a href="/economy.html">अर्थव्यवस्था</a>
+                <a href="/entertainment.html">मनोरंजन</a>
+                <a href="/politics.html">राजनीति</a>
+                <a href="/about.html">हमारे बारे में</a>
+                </nav>
+            </div>
+
+            <!-- Mobile Hamburger Button -->
+            <div class="mobile-nav-controls">
+                <button type="button" class="hamburger-btn hamburger-style-staggered" id="site-hamburger-btn" aria-label="मेनू खोलें" aria-expanded="false" aria-controls="site-mobile-panel">
+                    <span class="hamburger-lines" aria-hidden="true"><span></span><span></span><span></span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Navigation Drawer / Overlay / Dropdown -->
+    <div class="mobile-nav-shell mobile-style-slide-right mobile-theme-dark" id="site-mobile-shell" aria-hidden="true">
+        <div class="mobile-nav-backdrop" data-mobile-close aria-hidden="true"></div>
+        <div class="mobile-nav-panel" id="site-mobile-panel">
+            <div class="mobile-drawer-head">
+                <a href="/index.html" class="mobile-drawer-logo notranslate" translate="no" aria-label="Aabtak24.in होमपेज">
+                    <img src="/logo-light.svg" alt="Aabtak24.in" width="160" height="28" decoding="async">
+                </a>
+                <button type="button" class="mobile-close-btn" data-mobile-close aria-label="मेनू बंद करें">✕</button>
+            </div>
+            <nav class="mobile-nav-links" aria-label="मोबाइल नेविगेशन">
+                <a href="/index.html">मुख्य खबरें</a>
+                <a href="/desh-videsh.html">देश-विदेश</a>
+                <a href="/technology.html">टेक्नोलॉजी</a>
+                <a href="/economy.html">अर्थव्यवस्था</a>
+                <a href="/entertainment.html">मनोरंजन</a>
+                <a href="/politics.html">राजनीति</a>
+                <a href="/about.html">हमारे बारे में</a>
+            </nav>
+            <div class="mobile-drawer-foot"><span>डिजिटल संस्करण • INDIA</span></div>
+        </div>
+    </div>
+    <script>
+    (function () {
+        var btn = document.getElementById('site-hamburger-btn');
+        var shell = document.getElementById('site-mobile-shell');
+        if (!btn || !shell) return;
+        var panel = document.getElementById('site-mobile-panel');
+        var header = document.querySelector('header.site-header');
+        var isDropdown = shell.classList.contains('mobile-style-dropdown');
+
+        function positionDropdown() {
+            if (!isDropdown || !panel || !header) return;
+            var rect = header.getBoundingClientRect();
+            panel.style.top = Math.max(8, Math.round(rect.bottom + 8)) + 'px';
+        }
+
+        function setOpen(open, fromKeyboard) {
+            if (open && isDropdown) positionDropdown();
+            if (!open && shell.contains(document.activeElement)) {
+                btn.focus();
+            }
+            shell.classList.toggle('is-open', open);
+            btn.classList.toggle('is-open', open);
+            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+            shell.setAttribute('aria-hidden', open ? 'false' : 'true');
+            if (!isDropdown) {
+                document.body.classList.toggle('nav-drawer-open', open);
+            }
+            if (open && !isDropdown && fromKeyboard) {
+                var closeBtn = shell.querySelector('.mobile-close-btn');
+                if (closeBtn) closeBtn.focus();
+            }
+        }
+
+        btn.addEventListener('click', function (e) {
+            setOpen(!shell.classList.contains('is-open'), e.detail === 0);
+        });
+
+        shell.addEventListener('click', function (e) {
+            if (e.target.closest('[data-mobile-close]') || e.target.closest('.mobile-nav-links a') || e.target.closest('.mobile-drawer-actions a')) {
+                setOpen(false, false);
+            }
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && shell.classList.contains('is-open')) {
+                setOpen(false, true);
+                btn.focus();
+            }
+        });
+
+        window.addEventListener('resize', function () {
+            if (window.innerWidth > 900 && shell.classList.contains('is-open')) {
+                setOpen(false, false);
+            } else if (isDropdown && shell.classList.contains('is-open')) {
+                positionDropdown();
+            }
+        });
+
+        window.addEventListener('scroll', function () {
+            if (isDropdown && shell.classList.contains('is-open')) {
+                positionDropdown();
+            }
+        }, { passive: true });
+    })();
+    </script>
+
+    <main class="container">
+        <section class="error-404-box" aria-labelledby="error-404-heading">
+            <div class="error-404-code-wrap">
+                <span class="badge">त्रुटि 404 • Page Not Found</span>
+                <div class="error-404-number" aria-hidden="true">404</div>
+            </div>
+            <h1 class="error-404-title" id="error-404-heading">क्षमा करें, यह पृष्ठ या खबर उपलब्ध नहीं है</h1>
+            <p class="error-404-desc">हो सकता है कि यह लिंक पुराना हो गया हो, समाचार हटा दिया गया हो या वेब पता गलत टाइप हुआ हो। आप नीचे दिए गए विकल्पों से सीधे मुख्य पृष्ठ या अपनी पसंदीदा श्रेणी पर जा सकते हैं।</p>
+            <p class="error-404-path" id="error-404-path" hidden>अनुरोधित पता: <code id="error-404-path-code"></code></p>
+            <div class="error-404-actions">
+                <a href="/index.html" class="btn-404-primary">🏠 मुख्य पृष्ठ पर जाएं (Home)</a>
+                <a href="/index.html" class="btn-404-secondary" id="error-404-back-btn">← पिछले पृष्ठ पर लौटें</a>
+            </div>
+            <div class="error-404-cats">
+                <p class="error-404-cats-label">प्रमुख श्रेणियाँ चुनें / Browse Categories</p>
+                <div class="error-404-cat-list">
+                    <a href="/desh-videsh.html" class="error-404-cat-pill">देश-विदेश</a> <a href="/technology.html" class="error-404-cat-pill">टेक्नोलॉजी</a> <a href="/economy.html" class="error-404-cat-pill">अर्थव्यवस्था</a> <a href="/politics.html" class="error-404-cat-pill">राजनीति</a> <a href="/entertainment.html" class="error-404-cat-pill">मनोरंजन</a>
+                </div>
+            </div>
+        </section>
+
+        <div class="section-rule">
+            <h2>प्रमुख ताज़ा खबरें / Latest Top Stories</h2>
+            <span>ताज़ा अपडेट्स</span>
+        </div>
+        <div class="archive-grid">
+            <a href="/news/indian-ai-startups-solving-challenges.html" class="archive-card">
+                <img src="https://wsrv.nl/?url=https%3A%2F%2Fichef.bbci.co.uk%2Face%2Fstandard%2F976%2Fcpsprodpb%2F886f%2Flive%2Fa4a715f0-c892-11f1-b0a4-81e564f1cfaa.jpg&amp;w=480&amp;output=webp&amp;q=80" alt="स्वदेशी AI का कमाल: भारतीय स्टार्टअप्स बदल रहे देश की तस्वीर, टूटी सड़कों से लेकर भूमि रिकॉर्ड तक का हो रहा सटीक समाधान" width="400" height="200" data-fallback-src="https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/886f/live/a4a715f0-c892-11f1-b0a4-81e564f1cfaa.jpg" onerror="this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}" loading="lazy" decoding="async">
+                <div class="archive-card-body">
+                    <span class="badge">टेक्नोलॉजी</span>
+                    <h3 class="side-title">स्वदेशी AI का कमाल: भारतीय स्टार्टअप्स बदल रहे देश की तस्वीर, टूटी सड़कों से लेकर भूमि रिकॉर्ड तक का हो रहा सटीक समाधान</h3>
+                    <div class="meta">18 Nov 2026, 11:02 AM</div>
+                </div>
+            </a>
+            <a href="/news/pm-modi-asean-india-quad-summit.html" class="archive-card">
+                <img src="https://wsrv.nl/?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1504711434969-e33886168f5c%3Fauto%3Dformat%26fit%3Dcrop%26w%3D1200%26q%3D80&amp;w=480&amp;output=webp&amp;q=80" alt="आसियान और क्वॉड सम्मेलन: वैश्विक मंच पर भारत की धाक, प्रधानमंत्री मोदी करेंगे ट्रंप, ताकाइची और अल्बानीज से महत्वपूर्ण बैठक" width="400" height="200" data-fallback-src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&amp;fit=crop&amp;w=1200&amp;q=80" onerror="this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}" loading="lazy" decoding="async">
+                <div class="archive-card-body">
+                    <span class="badge">देश-विदेश</span>
+                    <h3 class="side-title">आसियान और क्वॉड सम्मेलन: वैश्विक मंच पर भारत की धाक, प्रधानमंत्री मोदी करेंगे ट्रंप, ताकाइची और अल्बानीज से महत्वपूर्ण बैठक</h3>
+                    <div class="meta">17 Nov 2026, 06:19 AM</div>
+                </div>
+            </a>
+            <a href="/news/india-aircraft-shortage-piyush-goyal.html" class="archive-card">
+                <img src="https://wsrv.nl/?url=https%3A%2F%2Fc.ndtvimg.com%2F2026-10%2Fnki9f58_piyush-goyals-work-hours-remark-draws-criticism-from-karnataka-it-employees-union_625x300_28_October_26.jpg%3Fim%3DFeatureCrop%2Calgorithm%3Ddnn%2Cwidth%3D1280%2Cheight%3D720&amp;w=480&amp;output=webp&amp;q=80" alt="भारतीय उड्डयन क्षेत्र की नई उड़ान: देश में विमानों की बढ़ती मांग को पूरा करने के लिए नए विमानों का ऑर्डर देगा भारत, केंद्रीय मंत्री पीयूष गोयल का बड़ा बयान" width="400" height="200" data-fallback-src="https://c.ndtvimg.com/2026-10/nki9f58_piyush-goyals-work-hours-remark-draws-criticism-from-karnataka-it-employees-union_625x300_28_October_26.jpg?im=FeatureCrop,algorithm=dnn,width=1280,height=720" onerror="this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}" loading="lazy" decoding="async">
+                <div class="archive-card-body">
+                    <span class="badge">अर्थव्यवस्था</span>
+                    <h3 class="side-title">भारतीय उड्डयन क्षेत्र की नई उड़ान: देश में विमानों की बढ़ती मांग को पूरा करने के लिए नए विमानों का ऑर्डर देगा भारत, केंद्रीय मंत्री पीयूष गोयल का बड़ा बयान</h3>
+                    <div class="meta">16 Nov 2026, 09:35 PM</div>
+                </div>
+            </a>
+            <a href="/news/india-military-recruitment-scheme-updates.html" class="archive-card">
+                <img src="https://wsrv.nl/?url=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2F7%2F7a%2FIndian_Military_Academy%252C_Dehradun%252C_Uttrakhand%252C_India.jpg&amp;w=480&amp;output=webp&amp;q=80" alt="भारतीय सेना में युवाओं के लिए बड़ा कदम: सैन्य भर्ती योजना में सुधार, जवानों को मिलेगा लंबा कार्यकाल और स्थायी सेवा का अवसर" width="400" height="200" data-fallback-src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Indian_Military_Academy%2C_Dehradun%2C_Uttrakhand%2C_India.jpg" onerror="this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}" loading="lazy" decoding="async">
+                <div class="archive-card-body">
+                    <span class="badge">देश-विदेश</span>
+                    <h3 class="side-title">भारतीय सेना में युवाओं के लिए बड़ा कदम: सैन्य भर्ती योजना में सुधार, जवानों को मिलेगा लंबा कार्यकाल और स्थायी सेवा का अवसर</h3>
+                    <div class="meta">16 Nov 2026, 10:35 AM</div>
+                </div>
+            </a>
+            <a href="/news/india-rice-economy-export-strategy.html" class="archive-card">
+                <img src="https://wsrv.nl/?url=https%3A%2F%2Flive.staticflickr.com%2F619%2F22957442174_b6bec2a51e_b.jpg&amp;w=480&amp;output=webp&amp;q=80" alt="वैश्विक चावल बाजार में भारत का दबदबा: अब &#x27;वॉल्यूम से वैल्यू&#x27; और टिकाऊ विकास की ओर बढ़ेगा देश" width="400" height="200" data-fallback-src="https://live.staticflickr.com/619/22957442174_b6bec2a51e_b.jpg" onerror="this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}" loading="lazy" decoding="async">
+                <div class="archive-card-body">
+                    <span class="badge">अर्थव्यवस्था</span>
+                    <h3 class="side-title">वैश्विक चावल बाजार में भारत का दबदबा: अब &#x27;वॉल्यूम से वैल्यू&#x27; और टिकाऊ विकास की ओर बढ़ेगा देश</h3>
+                    <div class="meta">16 Nov 2026, 12:41 AM</div>
+                </div>
+            </a>
+            <a href="/news/vaibhav-sooryavanshi-youngest-t20-captain-record.html" class="archive-card">
+                <img src="https://wsrv.nl/?url=https%3A%2F%2Fichef.bbci.co.uk%2Face%2Fstandard%2F976%2Fcpsprodpb%2F9ea6%2Flive%2F8d0137e0-e00d-11f1-b441-2b33b063138f.jpg&amp;w=480&amp;output=webp&amp;q=80" alt="वैश्विक खेल मंच पर भारत की युवा शक्ति का परचम: वैभव सूर्यवंशी बने पुरुष T20 क्रिकेट इतिहास के सबसे युवा कप्तान" width="400" height="200" data-fallback-src="https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/9ea6/live/8d0137e0-e00d-11f1-b441-2b33b063138f.jpg" onerror="this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}" loading="lazy" decoding="async">
+                <div class="archive-card-body">
+                    <span class="badge">देश-विदेश</span>
+                    <h3 class="side-title">वैश्विक खेल मंच पर भारत की युवा शक्ति का परचम: वैभव सूर्यवंशी बने पुरुष T20 क्रिकेट इतिहास के सबसे युवा कप्तान</h3>
+                    <div class="meta">15 Nov 2026, 08:06 PM</div>
+                </div>
+            </a></div>
+    </main>
+
+    <footer class="site-footer footer-theme-dark">
+        <div class="footer-inner">
+            <div class="footer-brand">
+                <a href="/index.html" class="footer-logo notranslate" translate="no" aria-label="अबतक24.in होमपेज">
+                    <img src="/logo-light.svg" alt="अबतक24.in" width="194" height="34" loading="lazy" decoding="async">
+                </a>
+                <p class="footer-tagline">भारत का आधुनिक डिजिटल हिंदी समाचार पोर्टल। देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था, राजनीति और मनोरंजन की सटीक एवं तथ्यपूर्ण खबरें।</p>
+                <p class="footer-contact"><span>संपादकीय संपर्क:</span> <a href="mailto:contact@aabtak24.in">contact@aabtak24.in</a></p>
+                <div class="footer-pills">
+                    <a href="https://aabtak24.in" class="footer-pill" target="_blank" rel="noopener noreferrer">🌐 वेबसाइट</a>
+                    <a href="mailto:contact@aabtak24.in" class="footer-pill">✉️ ईमेल संपर्क</a>
+                </div>
+            </div>
+            <div class="footer-columns">
+                <div class="footer-col">
+                    <h2 class="footer-col-title">प्रमुख श्रेणियाँ</h2>
+                    <ul class="footer-links">
+                        <li><a href="/index.html">मुख्य खबरें</a></li>
+                        <li><a href="/desh-videsh.html">देश-विदेश</a></li>
+                        <li><a href="/technology.html">टेक्नोलॉजी</a></li>
+                        <li><a href="/economy.html">अर्थव्यवस्था</a></li>
+                        <li><a href="/politics.html">राजनीति</a></li>
+                        <li><a href="/entertainment.html">मनोरंजन</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h2 class="footer-col-title">संस्थान एवं नीतियाँ</h2>
+                    <ul class="footer-links">
+                        <li><a href="/about.html">हमारे बारे में (About Us)</a></li>
+                        <li><a href="/contact.html">संपर्क करें (Contact Us)</a></li>
+                        <li><a href="/editorial-policy.html">संपादकीय नीति (Editorial Policy)</a></li>
+                        <li><a href="/privacy-policy.html">गोपनीयता नीति (Privacy Policy)</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="footer-bottom-inner">
+                <p class="footer-copyright">© 2026 Aabtak24.in • सर्वाधिकार सुरक्षित।</p>
+                <span class="footer-bottom-note">डिजिटल संस्करण • INDIA</span>
+            </div>
+        </div>
+    </footer>
+    <script>
+    (function () {
+        var pathWrap = document.getElementById('error-404-path');
+        var pathCode = document.getElementById('error-404-path-code');
+        if (pathWrap && pathCode && window.location && window.location.pathname) {
+            var cleanPath = window.location.pathname;
+            if (cleanPath && cleanPath !== '/404.html') {
+                pathCode.textContent = cleanPath;
+                pathWrap.hidden = false;
+            }
+        }
+        var backBtn = document.getElementById('error-404-back-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', function (e) {
+                if (window.history.length > 1 && document.referrer) {
+                    e.preventDefault();
+                    window.history.back();
+                }
+            });
+        }
+    })();
+    </script>
+</body>
+</html>

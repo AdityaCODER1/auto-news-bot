@@ -131,7 +131,7 @@
     "enabled": true,
     "theme": "dark",
     "show_logo": true,
-    "brand_title": "अबतक24.in (Aabtak24.in)",
+    "brand_title": "Aabtak24.in",
     "brand_tagline": "भारत का आधुनिक डिजिटल हिंदी समाचार पोर्टल। देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था, राजनीति और मनोरंजन की सटीक एवं तथ्यपूर्ण खबरें।",
     "contact_label": "संपादकीय संपर्क:",
     "contact_email": "contact@aabtak24.in",
@@ -201,7 +201,7 @@
         "new_tab": false
       }
     ],
-    "copyright_text": "© {year} अबतक24.in (Aabtak24.in) • सर्वाधिकार सुरक्षित।",
+    "copyright_text": "© {year} Aabtak24.in • सर्वाधिकार सुरक्षित।",
     "bottom_note": "डिजिटल संस्करण • INDIA",
     "colors": {}
   }

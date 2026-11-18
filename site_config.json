@@ -99,8 +99,8 @@
   ],
   "header": {
     "enabled": true,
-    "theme": "light",
-    "layout": "inline",
+    "theme": "dark",
+    "layout": "compact",
     "sticky": true,
     "show_logo": true,
     "brand_title": "Aabtak24.in",

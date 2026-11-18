@@ -1241,3 +1241,174 @@ body.nav-drawer-open {
     }
 }
 
+/* ==========================================================================
+   4. CUSTOM 404 ERROR PAGE
+   ========================================================================== */
+.error-404-box {
+    max-width: 860px;
+    margin: 12px auto 48px;
+    background: var(--card);
+    padding: 44px 48px 40px;
+    border-radius: var(--card-radius);
+    border: 1px solid var(--border);
+    border-top: 5px solid var(--accent);
+    box-shadow: 0 12px 32px -12px rgba(20, 18, 16, 0.08);
+    text-align: center;
+}
+.error-404-code-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+.error-404-box .badge {
+    margin-bottom: 0;
+}
+.error-404-number {
+    font-family: var(--font-heading);
+    font-size: clamp(72px, 14vw, 118px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -2px;
+    color: var(--text-main);
+    display: inline-block;
+}
+.error-404-number::after {
+    content: '';
+    display: block;
+    width: 68px;
+    height: 4px;
+    background: var(--accent);
+    margin: 12px auto 0;
+    border-radius: 2px;
+}
+.error-404-title {
+    font-family: var(--font-heading);
+    font-size: clamp(24px, 4vw, 34px);
+    font-weight: 800;
+    line-height: 1.28;
+    color: var(--text-main);
+    margin: 10px 0 12px;
+}
+.error-404-desc {
+    max-width: 600px;
+    margin: 0 auto 20px;
+    font-size: 16.5px;
+    line-height: 1.75;
+    color: var(--text-muted);
+}
+.error-404-path {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 0 auto 24px;
+    padding: 6px 14px;
+    background: var(--card-subtle);
+    border: 1px solid var(--border);
+    border-radius: var(--card-radius);
+    font-size: 13px;
+    color: var(--text-muted);
+}
+.error-404-path[hidden] {
+    display: none;
+}
+.error-404-path code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    color: var(--accent-dark);
+    font-weight: 700;
+    word-break: break-all;
+}
+.error-404-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 30px;
+}
+.btn-404-primary,
+.btn-404-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 11px 22px;
+    border-radius: var(--card-radius);
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.btn-404-primary {
+    background: var(--accent);
+    color: #FFFFFF;
+    border: 1px solid var(--accent);
+}
+.btn-404-primary:hover {
+    background: var(--accent-dark);
+    border-color: var(--accent-dark);
+    transform: translateY(-1px);
+}
+.btn-404-secondary {
+    background: var(--card-subtle);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--border-heavy);
+}
+.btn-404-secondary:hover {
+    border-color: var(--accent);
+    color: var(--accent-dark);
+    transform: translateY(-1px);
+}
+.error-404-cats {
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+}
+.error-404-cats-label {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+}
+.error-404-cat-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+.error-404-cat-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 15px;
+    border-radius: var(--card-radius);
+    background: var(--card-subtle);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    font-size: 14px;
+    font-weight: 700;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.error-404-cat-pill:hover {
+    background: var(--accent-tint);
+    border-color: var(--accent);
+    color: var(--accent-dark);
+    transform: translateY(-1px);
+}
+@media (max-width: 640px) {
+    .error-404-box {
+        padding: 30px 20px 28px;
+    }
+    .error-404-actions {
+        flex-direction: column;
+    }
+    .btn-404-primary,
+    .btn-404-secondary {
+        width: 100%;
+    }
+}

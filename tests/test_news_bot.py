@@ -859,5 +859,70 @@ class TestHeaderCustomization(unittest.TestCase):
                 os.chdir(old_cwd)
 
 
+class TestCustom404Page(unittest.TestCase):
+    def test_build_website_html_generates_root_relative_404_with_latest_six_stories(self):
+        articles = [
+            _make_article(f"story-{i}", title=f"ताज़ा खबर {i}", category="देश-विदेश", image_url="uploads/editor_photo.png" if i == 0 else "https://cdn.example.com/ok.jpg")
+            for i in range(8)
+        ]
+        config = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+        config["custom_pages"] = []
+        config["header"]["theme"] = "dark"
+
+        old_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chdir(tmpdir)
+            try:
+                news_bot.build_website_html(articles, config=config, skip_image_check=True)
+                page_path = Path(tmpdir, "404.html")
+                self.assertTrue(page_path.exists())
+                html_404 = page_path.read_text(encoding="utf-8")
+
+                # SEO & root-relative asset/navigation paths for nested missing URLs
+                self.assertIn('<meta name="robots" content="noindex, follow">', html_404)
+                self.assertIn('href="/style.css"', html_404)
+                self.assertIn('src="/logo-light.svg"', html_404)
+                self.assertIn('href="/index.html"', html_404)
+                self.assertIn('src="/uploads/editor_photo.png"', html_404)
+
+                # Category quick-links
+                for cat in config["categories"]:
+                    self.assertIn(f'href="/{cat["file"]}"', html_404)
+
+                # Shows at most 6 latest news articles with root-relative /news/ URLs
+                for i in range(6):
+                    self.assertIn(f'href="/news/story-{i}.html"', html_404)
+                self.assertNotIn('/news/story-6.html', html_404)
+                self.assertNotIn('/news/story-7.html', html_404)
+
+                # Excluded from sitemap.xml
+                sitemap = Path(tmpdir, "sitemap.xml").read_text(encoding="utf-8")
+                self.assertNotIn("404.html", sitemap)
+            finally:
+                os.chdir(old_cwd)
+
+    def test_build_404_page_handles_empty_articles_and_cleanup_protection(self):
+        config = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+        old_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chdir(tmpdir)
+            try:
+                news_bot.build_404_page([], "18 November 2026", config)
+                html_404 = Path(tmpdir, "404.html").read_text(encoding="utf-8")
+                self.assertIn("error-404-box", html_404)
+                self.assertIn('href="/index.html"', html_404)
+                self.assertNotIn('class="archive-grid"', html_404)
+
+                # Simulate stale manifest trying to clean up 404.html
+                Path(tmpdir, news_bot.GENERATED_MANIFEST).write_text('["404.html", "old-cat.html"]', encoding="utf-8")
+                Path(tmpdir, "old-cat.html").write_text("old", encoding="utf-8")
+                news_bot.cleanup_retired_root_pages(["desh-videsh.html"])
+                self.assertTrue(Path(tmpdir, "404.html").exists())
+                self.assertFalse(Path(tmpdir, "old-cat.html").exists())
+            finally:
+                os.chdir(old_cwd)
+
+
 if __name__ == "__main__":
     unittest.main()
+

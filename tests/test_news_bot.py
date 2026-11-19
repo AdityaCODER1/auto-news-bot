@@ -1029,13 +1029,17 @@ class TestHomepageCustomizationAndThemeToggle(unittest.TestCase):
                 self.assertIn('data-manual-post="true"', left_html)
                 self.assertEqual(len(re.findall(r'class="desk-pick-card"', left_html)), 2)
 
-                # Center column ("राजनीति") has the Politics article in the shaded lead box with <h1>
+                # Center column ("राजनीति") has the Politics article in the shaded lead box with <h1> and "Aabtak24" author label
                 center_match = re.search(r'<div class="desk-col desk-col-center">(.*?)</div>\s*<div class="desk-col desk-col-right">', desk_html, flags=re.S)
                 self.assertIsNotNone(center_match)
                 center_html = center_match.group(1)
                 self.assertIn("news/pol-lead.html", center_html)
                 self.assertIn('<h1 class="desk-lead-title">', center_html)
                 self.assertIn("संसद सत्र और राजनीति की बड़ी खबर", center_html)
+                self.assertIn(">Aabtak24</span>", center_html)
+                self.assertIn(">Aabtak24</span>", left_html)
+                self.assertNotIn("The Hindu", desk_html)
+                self.assertNotIn("BBC News", desk_html)
 
                 # Right column ("ताज़ा खबरें") has the 6 latest remaining posts and does not duplicate left/center
                 right_match = re.search(r'<div class="desk-col desk-col-right">(.*)', desk_html, flags=re.S)

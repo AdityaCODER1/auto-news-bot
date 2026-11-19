@@ -2549,7 +2549,6 @@ def _render_homepage_section(section, sec_articles, matched_cat, resolver, is_fi
             )
             art_cat = html.escape(str(art.get("category", "संपादकीय") or "संपादकीय"), quote=True)
             art_title = html.escape(str(art.get("title", "")), quote=True)
-            art_source = html.escape(str(art.get("source_name", "") or "अबतक24 न्यूज़ डेस्क"), quote=True)
             read_mins = _estimate_read_minutes(art.get("content_html", ""))
             is_manual_badge = ' data-manual-post="true"' if _is_manual_article(art) else ""
             left_cards_html += f"""
@@ -2559,7 +2558,7 @@ def _render_homepage_section(section, sec_articles, matched_cat, resolver, is_fi
                             <span class="desk-kicker">{art_cat}</span>
                             <h3 class="desk-pick-title">{art_title}</h3>
                             <div class="desk-meta-row">
-                                <span class="desk-meta-author">{art_source}</span>
+                                <span class="desk-meta-author notranslate" translate="no">Aabtak24</span>
                                 <span class="desk-meta-time">{read_mins} मिनट पठन</span>
                             </div>
                         </div>
@@ -2592,7 +2591,6 @@ def _render_homepage_section(section, sec_articles, matched_cat, resolver, is_fi
         center_h_tag = "h1" if is_first_section else "h2"
         center_cat = html.escape(str(center_art.get("category", "राजनीति") or "राजनीति"), quote=True)
         center_title = html.escape(str(center_art.get("title", "")), quote=True)
-        center_source = html.escape(str(center_art.get("source_name", "") or "अबतक24 न्यूज़ डेस्क"), quote=True)
         center_date = html.escape(str(center_art.get("date", "")), quote=True)
         center_read_mins = _estimate_read_minutes(center_art.get("content_html", ""))
         center_excerpt = html.escape(_extract_article_excerpt(center_art.get("content_html", ""), max_chars=170), quote=True)
@@ -2604,7 +2602,7 @@ def _render_homepage_section(section, sec_articles, matched_cat, resolver, is_fi
                         <span class="desk-kicker">{center_cat}</span>
                         <{center_h_tag} class="desk-lead-title">{center_title}</{center_h_tag}>
                         <div class="desk-meta-row">
-                            <span class="desk-meta-author">{center_source}</span>
+                            <span class="desk-meta-author notranslate" translate="no">Aabtak24</span>
                             <span class="desk-meta-time">{center_read_mins} मिनट पठन • {center_date}</span>
                         </div>
                     </div>

@@ -1,6 +1,7 @@
 import copy
 import html as html_lib
 import html.parser
+import json
 import os
 import re
 import sys
@@ -923,6 +924,268 @@ class TestCustom404Page(unittest.TestCase):
                 os.chdir(old_cwd)
 
 
+class TestHomepageCustomizationAndThemeToggle(unittest.TestCase):
+    def test_load_site_config_backfills_homepage_and_theme_defaults(self):
+        old_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chdir(tmpdir)
+            try:
+                # Legacy site_config.json without homepage or theme toggle fields
+                Path(tmpdir, "site_config.json").write_text(
+                    json.dumps(
+                        {
+                            "categories": news_bot.DEFAULT_SITE_CONFIG["categories"],
+                            "header": {"theme": "light"},
+                        },
+                        ensure_ascii=False,
+                    ),
+                    encoding="utf-8",
+                )
+                cfg = news_bot.load_site_config()
+                self.assertIn("homepage", cfg)
+                self.assertEqual(cfg["homepage"]["preset"], "classic-bento")
+                self.assertTrue(cfg["homepage"]["deduplicate_across_sections"])
+                self.assertEqual(len(cfg["homepage"]["sections"]), 2)
+                self.assertTrue(cfg["header"]["theme_toggle_enabled"])
+                self.assertEqual(cfg["header"]["default_color_mode"], "light")
+
+                # Invalid homepage values are safely normalized & clamped
+                norm = news_bot.normalize_homepage_config(
+                    {
+                        "preset": "unknown-preset",
+                        "deduplicate_across_sections": False,
+                        "sections": [
+                            {"id": "s1", "title": "Clamp High", "layout": "invalid", "max_articles": 999, "category": "all"},
+                            {"id": "s2", "title": "Clamp Low", "layout": "strip", "max_articles": 0, "category": "technology"},
+                        ],
+                    }
+                )
+                self.assertEqual(norm["preset"], "custom")
+                self.assertFalse(norm["deduplicate_across_sections"])
+                self.assertEqual(norm["sections"][0]["layout"], "grid")
+                self.assertEqual(norm["sections"][0]["max_articles"], 50)
+                self.assertEqual(norm["sections"][1]["layout"], "strip")
+                self.assertEqual(norm["sections"][1]["max_articles"], 1)
+                self.assertTrue(norm["sections"][1]["show_view_all"])
+            finally:
+                os.chdir(old_cwd)
+
+    def test_all_five_homepage_layouts_and_article_limits(self):
+        articles = [
+            _make_article(f"art-{i:02d}", title=f"ताज़ा खबर संख्या {i}", category="देश-विदेश")
+            for i in range(1, 25)
+        ]
+        config = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+        config["custom_pages"] = []
+        config["homepage"] = {
+            "preset": "custom",
+            "deduplicate_across_sections": True,
+            "sections": [
+                {"id": "sec-bento", "title": "बेंटो", "subtitle": "टॉप", "category": "all", "layout": "bento", "max_articles": 3, "show_view_all": False, "enabled": True},
+                {"id": "sec-mag", "title": "मैगज़ीन", "subtitle": "फ़ीचर", "category": "all", "layout": "magazine", "max_articles": 4, "show_view_all": False, "enabled": True},
+                {"id": "sec-strip", "title": "स्ट्रिप", "subtitle": "हाइलाइट्स", "category": "all", "layout": "strip", "max_articles": 4, "show_view_all": False, "enabled": True},
+                {"id": "sec-compact", "title": "कॉम्पैक्ट", "subtitle": "वायर", "category": "all", "layout": "compact-list", "max_articles": 4, "show_view_all": False, "enabled": True},
+                {"id": "sec-grid", "title": "ग्रिड", "subtitle": "अन्य", "category": "all", "layout": "grid", "max_articles": 3, "show_view_all": False, "enabled": True},
+            ],
+        }
+
+        old_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chdir(tmpdir)
+            try:
+                news_bot.build_website_html(articles, config=config, skip_image_check=True)
+                index_html = Path(tmpdir, "index.html").read_text(encoding="utf-8")
+
+                # Exactly one semantic <h1> across the entire homepage
+                self.assertEqual(len(re.findall(r"<h1\b", index_html)), 1)
+
+                # Verify each layout container and strict per-section article limit
+                sec_blocks = dict(
+                    re.findall(
+                        r'<section class="homepage-section [^"]+" data-section-id="([^"]+)"[^>]*>(.*?)</section>',
+                        index_html,
+                        flags=re.S,
+                    )
+                )
+                self.assertEqual(set(sec_blocks.keys()), {"sec-bento", "sec-mag", "sec-strip", "sec-compact", "sec-grid"})
+
+                self.assertIn('class="bento-grid"', sec_blocks["sec-bento"])
+                self.assertEqual(len(re.findall(r'href="news/art-\d+\.html"', sec_blocks["sec-bento"])), 3)
+
+                self.assertIn('class="magazine-grid"', sec_blocks["sec-mag"])
+                self.assertIn('class="magazine-excerpt"', sec_blocks["sec-mag"])
+                self.assertEqual(len(re.findall(r'href="news/art-\d+\.html"', sec_blocks["sec-mag"])), 4)
+
+                self.assertIn('class="strip-grid"', sec_blocks["sec-strip"])
+                self.assertEqual(len(re.findall(r'href="news/art-\d+\.html"', sec_blocks["sec-strip"])), 4)
+
+                self.assertIn('class="compact-list-grid"', sec_blocks["sec-compact"])
+                self.assertEqual(len(re.findall(r'href="news/art-\d+\.html"', sec_blocks["sec-compact"])), 4)
+
+                self.assertIn('class="archive-grid"', sec_blocks["sec-grid"])
+                self.assertEqual(len(re.findall(r'href="news/art-\d+\.html"', sec_blocks["sec-grid"])), 3)
+
+                # Total unique articles shown = 3 + 4 + 4 + 4 + 3 = 18; art-19..24 must not appear
+                self.assertIn("news/art-18.html", index_html)
+                self.assertNotIn("news/art-19.html", index_html)
+
+                # Single-article edge cases for bento & magazine add single-column modifier classes
+                config["homepage"]["sections"] = [
+                    {"id": "solo-bento", "title": "सोलो बेंटो", "category": "all", "layout": "bento", "max_articles": 1, "enabled": True},
+                    {"id": "solo-mag", "title": "सोलो मैगज़ीन", "category": "all", "layout": "magazine", "max_articles": 1, "enabled": True},
+                ]
+                news_bot.build_website_html(articles, config=config, skip_image_check=True)
+                solo_html = Path(tmpdir, "index.html").read_text(encoding="utf-8")
+                self.assertIn('class="bento-grid bento-single"', solo_html)
+                self.assertIn('class="magazine-grid magazine-single"', solo_html)
+            finally:
+                os.chdir(old_cwd)
+
+    def test_category_filtering_aliases_view_all_and_deduplication(self):
+        articles = [
+            _make_article("tech-1", title="एआई खबर 1", category="टेक्नोलॉजी"),
+            _make_article("tech-2", title="विज्ञान खबर 2", category="विज्ञान"),  # alias of technology
+            _make_article("tech-3", title="एआई खबर 3", category="AI"),          # alias of technology
+            _make_article("pol-1", title="राजनीति खबर 1", category="राजनीति"),
+            _make_article("pol-2", title="चुनाव खबर 2", category="चुनाव"),      # alias of politics
+        ]
+        config = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+        config["custom_pages"] = []
+        config["homepage"] = {
+            "preset": "custom",
+            "deduplicate_across_sections": True,
+            "sections": [
+                {"id": "top", "title": "शीर्ष", "category": "all", "layout": "strip", "max_articles": 2, "show_view_all": False, "enabled": True},
+                {"id": "tech", "title": "टेक्नोलॉजी डेस्क", "category": "technology", "layout": "grid", "max_articles": 5, "show_view_all": True, "enabled": True},
+                {"id": "pol", "title": "राजनीति डेस्क", "category": "राजनीति", "layout": "compact-list", "max_articles": 2, "show_view_all": True, "enabled": True},
+            ],
+        }
+
+        old_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chdir(tmpdir)
+            try:
+                news_bot.build_website_html(articles, config=config, skip_image_check=True)
+                dedup_html = Path(tmpdir, "index.html").read_text(encoding="utf-8")
+                sec_blocks = dict(
+                    re.findall(
+                        r'<section class="homepage-section [^"]+" data-section-id="([^"]+)"[^>]*>(.*?)</section>',
+                        dedup_html,
+                        flags=re.S,
+                    )
+                )
+                # Top took tech-1 & tech-2; with deduplicate=True, tech section gets only tech-3 (via alias "AI")
+                self.assertIn("news/tech-1.html", sec_blocks["top"])
+                self.assertIn("news/tech-2.html", sec_blocks["top"])
+                self.assertNotIn("news/tech-1.html", sec_blocks["tech"])
+                self.assertIn("news/tech-3.html", sec_blocks["tech"])
+                self.assertIn('href="technology.html" class="section-view-all"', sec_blocks["tech"])
+                self.assertNotIn("section-view-all", sec_blocks["top"])
+                self.assertIn("news/pol-1.html", sec_blocks["pol"])
+                self.assertIn("news/pol-2.html", sec_blocks["pol"])
+                self.assertIn('href="politics.html" class="section-view-all"', sec_blocks["pol"])
+
+                # With deduplicate=False, tech section gets all 3 technology + alias articles
+                config["homepage"]["deduplicate_across_sections"] = False
+                news_bot.build_website_html(articles, config=config, skip_image_check=True)
+                nodedup_html = Path(tmpdir, "index.html").read_text(encoding="utf-8")
+                sec_blocks2 = dict(
+                    re.findall(
+                        r'<section class="homepage-section [^"]+" data-section-id="([^"]+)"[^>]*>(.*?)</section>',
+                        nodedup_html,
+                        flags=re.S,
+                    )
+                )
+                self.assertEqual(len(re.findall(r'href="news/tech-\d+\.html"', sec_blocks2["tech"])), 3)
+            finally:
+                os.chdir(old_cwd)
+
+    def test_all_four_ready_made_presets_and_empty_sections_fallback(self):
+        cats = ["देश-विदेश", "टेक्नोलॉजी", "अर्थव्यवस्था", "राजनीति", "मनोरंजन"]
+        articles = [
+            _make_article(f"p-{i:02d}", title=f"प्रीसेट लेख {i}", category=cats[i % len(cats)])
+            for i in range(25)
+        ]
+
+        old_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chdir(tmpdir)
+            try:
+                for preset_name, preset_cfg in news_bot.HOMEPAGE_PRESETS.items():
+                    config = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+                    config["custom_pages"] = []
+                    config["homepage"] = copy.deepcopy(preset_cfg)
+                    news_bot.build_website_html(articles, config=config, skip_image_check=True)
+                    out = Path(tmpdir, "index.html").read_text(encoding="utf-8")
+                    self.assertIn('class="homepage-section', out, msg=f"Preset {preset_name} failed to render sections")
+                    self.assertEqual(len(re.findall(r"<h1\b", out)), 1, msg=f"Preset {preset_name} must render exactly one <h1>")
+                    self.assertIn('<link rel="preload" as="image"', out, msg=f"Preset {preset_name} missing LCP preload")
+
+                # Safety net: if all configured sections are disabled, fallback to default classic layout
+                config = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+                config["custom_pages"] = []
+                config["homepage"] = {
+                    "preset": "custom",
+                    "deduplicate_across_sections": True,
+                    "sections": [
+                        {"id": "hidden", "title": "बंद", "category": "all", "layout": "grid", "max_articles": 5, "enabled": False}
+                    ],
+                }
+                news_bot.build_website_html(articles, config=config, skip_image_check=True)
+                fallback_html = Path(tmpdir, "index.html").read_text(encoding="utf-8")
+                self.assertIn('data-section-id="top-stories"', fallback_html)
+                self.assertIn('class="bento-grid"', fallback_html)
+            finally:
+                os.chdir(old_cwd)
+
+    def test_reader_theme_toggle_desktop_header_mobile_drawer_and_all_pages(self):
+        articles = [_make_article("theme-story", title="थीम परीक्षण खबर", category="देश-विदेश")]
+        config = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+        config["header"]["theme"] = "light"
+        config["header"]["theme_toggle_enabled"] = True
+        config["header"]["default_color_mode"] = "system"
+
+        old_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chdir(tmpdir)
+            try:
+                Path(tmpdir, "pages").mkdir(parents=True, exist_ok=True)
+                Path(tmpdir, "pages", "about.html").write_text("<article class='article-box'><h1>About</h1></article>", encoding="utf-8")
+                config["custom_pages"] = [config["custom_pages"][0]]
+                news_bot.build_website_html(articles, config=config, skip_image_check=True)
+
+                for rel_path in ["index.html", "desh-videsh.html", "about.html", "404.html", "news/theme-story.html"]:
+                    page_html = Path(tmpdir, rel_path).read_text(encoding="utf-8")
+                    # Anti-FOUC head script initializes data-theme before paint
+                    self.assertIn("localStorage.getItem('aabtak-theme')", page_html, msg=rel_path)
+                    self.assertIn("data-default-theme", page_html, msg=rel_path)
+                    self.assertIn("var d='system';var e=true;", page_html, msg=rel_path)
+                    # Desktop toggle lives inside .header-desktop-group; mobile toggle inside #site-mobile-panel
+                    desktop_group = re.search(r'<div class="header-desktop-group">(.*?)</div>\s*(?:<!--[^>]*-->\s*)?<div class="mobile-nav-controls">', page_html, flags=re.S)
+                    self.assertIsNotNone(desktop_group, msg=rel_path)
+                    self.assertIn("desktop-theme-toggle", desktop_group.group(1), msg=rel_path)
+                    self.assertNotIn("mobile-theme-toggle", desktop_group.group(1), msg=rel_path)
+                    mobile_panel = re.search(r'<div class="mobile-nav-panel" id="site-mobile-panel">(.*?)</div>\s*</div>\s*<script>', page_html, flags=re.S)
+                    self.assertIsNotNone(mobile_panel, msg=rel_path)
+                    self.assertIn("mobile-theme-toggle", mobile_panel.group(1), msg=rel_path)
+                    self.assertNotIn("desktop-theme-toggle", mobile_panel.group(1), msg=rel_path)
+                    # Adaptive logo swapping enabled on light-surface header/drawer
+                    self.assertIn('data-adaptive-logo="true"', page_html, msg=rel_path)
+
+                # When theme_toggle_enabled is False, toggle buttons are omitted from header & mobile drawer
+                config["header"]["theme_toggle_enabled"] = False
+                config["header"]["default_color_mode"] = "dark"
+                header_disabled_toggle = news_bot.get_header_html(config)
+                self.assertNotIn("desktop-theme-toggle", header_disabled_toggle)
+                self.assertNotIn("mobile-theme-toggle", header_disabled_toggle)
+                head_html = news_bot.get_head_links(config=config)
+                self.assertIn("var d='dark';var e=false;", head_html)
+                self.assertIn("'data-theme-toggle-enabled','false'", head_html)
+            finally:
+                os.chdir(old_cwd)
+
+
 if __name__ == "__main__":
     unittest.main()
+
 

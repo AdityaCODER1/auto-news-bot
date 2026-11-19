@@ -229,28 +229,58 @@
     "colors": {}
   },
   "homepage": {
-    "preset": "classic-bento",
+    "preset": "category-showcase",
     "deduplicate_across_sections": true,
     "sections": [
       {
         "id": "top-stories",
-        "enabled": true,
         "title": "प्रमुख सुर्खियां / Top Stories",
-        "subtitle": "ताज़ा अपडेट्स",
+        "subtitle": "बड़ी खबरें",
         "category": "all",
         "layout": "bento",
         "max_articles": 5,
-        "show_view_all": false
+        "show_view_all": false,
+        "enabled": true
       },
       {
-        "id": "more-news",
-        "enabled": true,
-        "title": "अन्य खबरें / More News",
-        "subtitle": "सभी समाचार",
-        "category": "all",
+        "id": "cat-desh-videsh",
+        "title": "देश-विदेश",
+        "subtitle": "ताज़ा हाइलाइट्स",
+        "category": "desh-videsh",
+        "layout": "strip",
+        "max_articles": 4,
+        "show_view_all": true,
+        "enabled": true
+      },
+      {
+        "id": "cat-technology",
+        "title": "टेक्नोलॉजी",
+        "subtitle": "विशेष कवरेज",
+        "category": "technology",
         "layout": "grid",
-        "max_articles": 12,
-        "show_view_all": false
+        "max_articles": 6,
+        "show_view_all": true,
+        "enabled": true
+      },
+      {
+        "id": "cat-economy",
+        "title": "अर्थव्यवस्था",
+        "subtitle": "संक्षिप्त समाचार",
+        "category": "economy",
+        "layout": "compact-list",
+        "max_articles": 6,
+        "show_view_all": true,
+        "enabled": true
+      },
+      {
+        "id": "cat-politics",
+        "title": "राजनीति",
+        "subtitle": "प्रमुख रिपोर्ट्स",
+        "category": "politics",
+        "layout": "grid",
+        "max_articles": 6,
+        "show_view_all": true,
+        "enabled": true
       }
     ]
   }

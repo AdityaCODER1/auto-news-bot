@@ -216,6 +216,54 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', syncThemeUI);
         }
+
+        var topBar = document.querySelector('.top-bar');
+        if (topBar) {
+            var scrolledPastTopBar = false;
+            var descendTimer = null;
+
+            function updateTopBarDescent() {
+                var y = window.scrollY || window.pageYOffset || 0;
+                var barHeight = topBar.offsetHeight || 40;
+                var primeThreshold = Math.max(80, barHeight + 40);
+                var revealThreshold = Math.max(12, barHeight);
+
+                if (y > primeThreshold) {
+                    if (!scrolledPastTopBar) {
+                        scrolledPastTopBar = true;
+                        if (descendTimer) {
+                            clearTimeout(descendTimer);
+                            descendTimer = null;
+                        }
+                        topBar.classList.remove('top-bar-descending');
+                        topBar.classList.add('top-bar-primed');
+                    }
+                } else if (scrolledPastTopBar && y <= revealThreshold) {
+                    scrolledPastTopBar = false;
+                    void topBar.offsetHeight;
+                    topBar.classList.add('top-bar-descending');
+                    topBar.classList.remove('top-bar-primed');
+                    if (descendTimer) clearTimeout(descendTimer);
+                    descendTimer = setTimeout(function () {
+                        topBar.classList.remove('top-bar-descending');
+                        descendTimer = null;
+                    }, 620);
+                }
+            }
+
+            topBar.addEventListener('transitionend', function (e) {
+                if (e.target === topBar && e.propertyName === 'transform' && topBar.classList.contains('top-bar-descending')) {
+                    topBar.classList.remove('top-bar-descending');
+                    if (descendTimer) {
+                        clearTimeout(descendTimer);
+                        descendTimer = null;
+                    }
+                }
+            });
+
+            window.addEventListener('scroll', updateTopBarDescent, { passive: true });
+            updateTopBarDescent();
+        }
     })();
     </script>
 

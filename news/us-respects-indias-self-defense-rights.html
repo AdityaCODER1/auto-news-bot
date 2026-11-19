@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>भारत एक वैश्विक शक्ति: अमेरिका ने माना भारत के पास आत्मरक्षा का पूरा अधिकार, आतंकवाद पर जीरो टॉलरेंस का समर्थन | अबतक24.in</title>
+    <title>भारत एक वैश्विक शक्ति: अमेरिका ने माना भारत के पास आत्मरक्षा का पूरा अधिकार, आतंकवाद पर जीरो टॉलरेंस का समर्थन | Aabtak24.in</title>
     <meta name="description" content="वैश्विक मंच पर भारत की रणनीतिक जीत: अमेरिका ने भारत को बताया 'ग्लोबल फोर्स' वैश्विक कूटनीति के पटल पर भारत के बढ़ते दबदबे और राष्ट्रीय सुरक्षा के प्रति उसक...">
     <link rel="canonical" href="https://aabtak24.in/news/us-respects-indias-self-defense-rights.html">
     
@@ -13,7 +13,7 @@
     <meta property="og:description" content="वैश्विक मंच पर भारत की रणनीतिक जीत: अमेरिका ने भारत को बताया 'ग्लोबल फोर्स' वैश्विक कूटनीति के पटल पर भारत के बढ़ते दबदबे और राष्ट्रीय सुरक्षा के प्रति उसक...">
     <meta property="og:image" content="https://th-i.thgim.com/public/incoming/cep8nc/article71703989.ece/alternates/LANDSCAPE_1200/AP12_14_2024_000449B.jpg">
     <meta property="og:url" content="https://aabtak24.in/news/us-respects-indias-self-defense-rights.html">
-    <meta property="og:site_name" content="अबतक24.in">
+    <meta property="og:site_name" content="Aabtak24.in">
     <meta name="twitter:card" content="summary_large_image">
 
     <!-- Google News JSON-LD Schema -->
@@ -230,6 +230,54 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', syncThemeUI);
         }
+
+        var topBar = document.querySelector('.top-bar');
+        if (topBar) {
+            var scrolledPastTopBar = false;
+            var descendTimer = null;
+
+            function updateTopBarDescent() {
+                var y = window.scrollY || window.pageYOffset || 0;
+                var barHeight = topBar.offsetHeight || 40;
+                var primeThreshold = Math.max(80, barHeight + 40);
+                var revealThreshold = Math.max(12, barHeight);
+
+                if (y > primeThreshold) {
+                    if (!scrolledPastTopBar) {
+                        scrolledPastTopBar = true;
+                        if (descendTimer) {
+                            clearTimeout(descendTimer);
+                            descendTimer = null;
+                        }
+                        topBar.classList.remove('top-bar-descending');
+                        topBar.classList.add('top-bar-primed');
+                    }
+                } else if (scrolledPastTopBar && y <= revealThreshold) {
+                    scrolledPastTopBar = false;
+                    void topBar.offsetHeight;
+                    topBar.classList.add('top-bar-descending');
+                    topBar.classList.remove('top-bar-primed');
+                    if (descendTimer) clearTimeout(descendTimer);
+                    descendTimer = setTimeout(function () {
+                        topBar.classList.remove('top-bar-descending');
+                        descendTimer = null;
+                    }, 620);
+                }
+            }
+
+            topBar.addEventListener('transitionend', function (e) {
+                if (e.target === topBar && e.propertyName === 'transform' && topBar.classList.contains('top-bar-descending')) {
+                    topBar.classList.remove('top-bar-descending');
+                    if (descendTimer) {
+                        clearTimeout(descendTimer);
+                        descendTimer = null;
+                    }
+                }
+            });
+
+            window.addEventListener('scroll', updateTopBarDescent, { passive: true });
+            updateTopBarDescent();
+        }
     })();
     </script>
 
@@ -238,7 +286,7 @@
             <a href="../index.html" class="back-btn">← मुख्य पृष्ठ पर वापस जाएं</a>
             <div><span class="badge">देश-विदेश</span></div>
             <h1 class="single-title">भारत एक वैश्विक शक्ति: अमेरिका ने माना भारत के पास आत्मरक्षा का पूरा अधिकार, आतंकवाद पर जीरो टॉलरेंस का समर्थन</h1>
-            <div class="meta single-meta">प्रकाशित: 15 Nov 2026, 04:35 AM <span class="meta-dot"></span> अबतक24 न्यूज़ डेस्क</div>
+            <div class="meta single-meta">प्रकाशित: 15 Nov 2026, 04:35 AM <span class="meta-dot"></span> <span class="notranslate" translate="no">अबतक24</span> न्यूज़ डेस्क</div>
             <figure class="single-figure">
                 <img src="https://wsrv.nl/?url=https%3A%2F%2Fth-i.thgim.com%2Fpublic%2Fincoming%2Fcep8nc%2Farticle71703989.ece%2Falternates%2FLANDSCAPE_1200%2FAP12_14_2024_000449B.jpg&amp;w=900&amp;output=webp&amp;q=80" alt="भारत एक वैश्विक शक्ति: अमेरिका ने माना भारत के पास आत्मरक्षा का पूरा अधिकार, आतंकवाद पर जीरो टॉलरेंस का समर्थन" width="800" height="450" data-fallback-src="https://th-i.thgim.com/public/incoming/cep8nc/article71703989.ece/alternates/LANDSCAPE_1200/AP12_14_2024_000449B.jpg" onerror="this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}" fetchpriority="high" decoding="sync" />
                 <figcaption class="image-credit">फोटो साभार: The Hindu (RSS फ़ीड के माध्यम से)</figcaption>

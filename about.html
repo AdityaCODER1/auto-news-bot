@@ -216,6 +216,54 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', syncThemeUI);
         }
+
+        var topBar = document.querySelector('.top-bar');
+        if (topBar) {
+            var scrolledPastTopBar = false;
+            var descendTimer = null;
+
+            function updateTopBarDescent() {
+                var y = window.scrollY || window.pageYOffset || 0;
+                var barHeight = topBar.offsetHeight || 40;
+                var primeThreshold = Math.max(80, barHeight + 40);
+                var revealThreshold = Math.max(12, barHeight);
+
+                if (y > primeThreshold) {
+                    if (!scrolledPastTopBar) {
+                        scrolledPastTopBar = true;
+                        if (descendTimer) {
+                            clearTimeout(descendTimer);
+                            descendTimer = null;
+                        }
+                        topBar.classList.remove('top-bar-descending');
+                        topBar.classList.add('top-bar-primed');
+                    }
+                } else if (scrolledPastTopBar && y <= revealThreshold) {
+                    scrolledPastTopBar = false;
+                    void topBar.offsetHeight;
+                    topBar.classList.add('top-bar-descending');
+                    topBar.classList.remove('top-bar-primed');
+                    if (descendTimer) clearTimeout(descendTimer);
+                    descendTimer = setTimeout(function () {
+                        topBar.classList.remove('top-bar-descending');
+                        descendTimer = null;
+                    }, 620);
+                }
+            }
+
+            topBar.addEventListener('transitionend', function (e) {
+                if (e.target === topBar && e.propertyName === 'transform' && topBar.classList.contains('top-bar-descending')) {
+                    topBar.classList.remove('top-bar-descending');
+                    if (descendTimer) {
+                        clearTimeout(descendTimer);
+                        descendTimer = null;
+                    }
+                }
+            });
+
+            window.addEventListener('scroll', updateTopBarDescent, { passive: true });
+            updateTopBarDescent();
+        }
     })();
     </script>
 
@@ -223,10 +271,10 @@
         <article class="article-box">
     <a href="index.html" class="back-btn">← मुख्य पृष्ठ पर वापस जाएं</a>
     <div><span class="badge">हमारे बारे में / About Us</span></div>
-    <h1 class="single-title">अबतक24.in (Aabtak24.in) — सटीक और निष्पक्ष डिजिटल हिंदी पत्रकारिता</h1>
+    <h1 class="single-title"><span class="notranslate" translate="no">अबतक24.in</span> (<span class="notranslate" translate="no">Aabtak24.in</span>) — सटीक और निष्पक्ष डिजिटल हिंदी पत्रकारिता</h1>
     <div class="article-content">
         <p>
-        </p><p><strong>अबतक24.in (Aabtak24.in)</strong> भारत का एक आधुनिक डिजिटल हिंदी समाचार पोर्टल है। हमारा उद्देश्य देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था, राजनीति और मनोरंजन की प्रमुख खबरों को सरल, स्पष्ट और तथ्यपूर्ण हिंदी भाषा में पाठकों तक पहुँचाना है।</p><p>
+        </p><p><strong class="notranslate" translate="no">अबतक24.in (Aabtak24.in)</strong> भारत का एक आधुनिक डिजिटल हिंदी समाचार पोर्टल है। हमारा उद्देश्य देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था, राजनीति और मनोरंजन की प्रमुख खबरों को सरल, स्पष्ट और तथ्यपूर्ण हिंदी भाषा में पाठकों तक पहुँचाना है।</p><p>
         </p><h2>हमारा संपादकीय मानक (Editorial Policy)</h2><p>
         </p><p>हम विश्वसनीय राष्ट्रीय और अंतरराष्ट्रीय समाचार स्रोतों से तथ्यों का संकलन कर उन्हें पाठकों के लिए सहज और प्रवाहपूर्ण पत्रकारिता शैली में प्रस्तुत करते हैं तथा प्रत्येक रिपोर्ट के साथ उचित फोटो और स्रोत साभार (Attribution) प्रदान करते हैं।</p><p>
         </p><h2>संपर्क करें (Contact Us)</h2><p>

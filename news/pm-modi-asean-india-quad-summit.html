@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>आसियान और क्वॉड सम्मेलन: वैश्विक मंच पर भारत की धाक, प्रधानमंत्री मोदी करेंगे ट्रंप, ताकाइची और अल्बानीज से महत्वपूर्ण बैठक | अबतक24.in</title>
+    <title>आसियान और क्वॉड सम्मेलन: वैश्विक मंच पर भारत की धाक, प्रधानमंत्री मोदी करेंगे ट्रंप, ताकाइची और अल्बानीज से महत्वपूर्ण बैठक | Aabtak24.in</title>
     <meta name="description" content="वैश्विक कूटनीति में भारत की मजबूत धमक विश्व मंच पर भारत की बढ़ती सामरिक ताकत और निर्णायक नेतृत्व का परचम एक बार फिर लहराने जा रहा है। प्रधानमंत्री नरेंद्र ...">
     <link rel="canonical" href="https://aabtak24.in/news/pm-modi-asean-india-quad-summit.html">
     
@@ -13,7 +13,7 @@
     <meta property="og:description" content="वैश्विक कूटनीति में भारत की मजबूत धमक विश्व मंच पर भारत की बढ़ती सामरिक ताकत और निर्णायक नेतृत्व का परचम एक बार फिर लहराने जा रहा है। प्रधानमंत्री नरेंद्र ...">
     <meta property="og:image" content="https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=80">
     <meta property="og:url" content="https://aabtak24.in/news/pm-modi-asean-india-quad-summit.html">
-    <meta property="og:site_name" content="अबतक24.in">
+    <meta property="og:site_name" content="Aabtak24.in">
     <meta name="twitter:card" content="summary_large_image">
 
     <!-- Google News JSON-LD Schema -->
@@ -230,6 +230,54 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', syncThemeUI);
         }
+
+        var topBar = document.querySelector('.top-bar');
+        if (topBar) {
+            var scrolledPastTopBar = false;
+            var descendTimer = null;
+
+            function updateTopBarDescent() {
+                var y = window.scrollY || window.pageYOffset || 0;
+                var barHeight = topBar.offsetHeight || 40;
+                var primeThreshold = Math.max(80, barHeight + 40);
+                var revealThreshold = Math.max(12, barHeight);
+
+                if (y > primeThreshold) {
+                    if (!scrolledPastTopBar) {
+                        scrolledPastTopBar = true;
+                        if (descendTimer) {
+                            clearTimeout(descendTimer);
+                            descendTimer = null;
+                        }
+                        topBar.classList.remove('top-bar-descending');
+                        topBar.classList.add('top-bar-primed');
+                    }
+                } else if (scrolledPastTopBar && y <= revealThreshold) {
+                    scrolledPastTopBar = false;
+                    void topBar.offsetHeight;
+                    topBar.classList.add('top-bar-descending');
+                    topBar.classList.remove('top-bar-primed');
+                    if (descendTimer) clearTimeout(descendTimer);
+                    descendTimer = setTimeout(function () {
+                        topBar.classList.remove('top-bar-descending');
+                        descendTimer = null;
+                    }, 620);
+                }
+            }
+
+            topBar.addEventListener('transitionend', function (e) {
+                if (e.target === topBar && e.propertyName === 'transform' && topBar.classList.contains('top-bar-descending')) {
+                    topBar.classList.remove('top-bar-descending');
+                    if (descendTimer) {
+                        clearTimeout(descendTimer);
+                        descendTimer = null;
+                    }
+                }
+            });
+
+            window.addEventListener('scroll', updateTopBarDescent, { passive: true });
+            updateTopBarDescent();
+        }
     })();
     </script>
 
@@ -238,7 +286,7 @@
             <a href="../index.html" class="back-btn">← मुख्य पृष्ठ पर वापस जाएं</a>
             <div><span class="badge">देश-विदेश</span></div>
             <h1 class="single-title">आसियान और क्वॉड सम्मेलन: वैश्विक मंच पर भारत की धाक, प्रधानमंत्री मोदी करेंगे ट्रंप, ताकाइची और अल्बानीज से महत्वपूर्ण बैठक</h1>
-            <div class="meta single-meta">प्रकाशित: 17 Nov 2026, 06:19 AM <span class="meta-dot"></span> अबतक24 न्यूज़ डेस्क</div>
+            <div class="meta single-meta">प्रकाशित: 17 Nov 2026, 06:19 AM <span class="meta-dot"></span> <span class="notranslate" translate="no">अबतक24</span> न्यूज़ डेस्क</div>
             <figure class="single-figure">
                 <img src="https://wsrv.nl/?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1504711434969-e33886168f5c%3Fauto%3Dformat%26fit%3Dcrop%26w%3D1200%26q%3D80&amp;w=900&amp;output=webp&amp;q=80" alt="आसियान और क्वॉड सम्मेलन: वैश्विक मंच पर भारत की धाक, प्रधानमंत्री मोदी करेंगे ट्रंप, ताकाइची और अल्बानीज से महत्वपूर्ण बैठक" width="800" height="450" data-fallback-src="https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&amp;fit=crop&amp;w=1200&amp;q=80" onerror="this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}" fetchpriority="high" decoding="sync" />
                 <figcaption class="image-credit">फोटो साभार: Unsplash (प्रतीकात्मक तस्वीर)</figcaption>

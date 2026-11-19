@@ -114,7 +114,7 @@ DEFAULT_SITE_CONFIG = {
     "custom_pages": [
         {
             "id": "about",
-            "title": "हमारे बारे में (About Us) | अबतक24.in",
+            "title": "हमारे बारे में (About Us) | Aabtak24.in",
             "meta_description": "अबतक24.in (Aabtak24.in) — भारत का आधुनिक डिजिटल हिंदी समाचार पोर्टल। जानें हमारे संपादकीय मानक और संपर्क सूत्र।",
             "source_fragment": "pages/about.html",
             "output_file": "about.html",
@@ -1335,6 +1335,69 @@ def _format_inline_css_vars(colors, var_pairs):
     return f' style="{"; ".join(style_vars)};"' if style_vars else ""
 
 
+_HINDI_BRAND_RE = re.compile(r"अबतक\s*24(?:\.in)?", re.IGNORECASE)
+_VOID_HTML_TAGS = frozenset({"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"})
+
+
+def _protect_hindi_brand_text(escaped_text):
+    """Wraps Hindi Aabtak24(.in) brand mentions in escaped plain text with translate='no' so browsers never translate it to 'So far 24'."""
+    if not escaped_text or "अबतक" not in escaped_text:
+        return escaped_text
+    return _HINDI_BRAND_RE.sub(lambda m: f'<span class="notranslate" translate="no">{m.group(0)}</span>', escaped_text)
+
+
+def _protect_hindi_brand_html(html_fragment):
+    """Wraps unprotected Hindi Aabtak24(.in) mentions in HTML text nodes with translate='no' without mutating tags, attributes, or already-protected spans."""
+    if not html_fragment or "अबतक" not in html_fragment:
+        return html_fragment
+
+    tokens = re.split(r"(<[^>]+>)", html_fragment)
+    out = []
+    # Stack holds tuples of (tag_name, is_protected, is_raw_text)
+    stack = []
+    for tok in tokens:
+        if not tok:
+            continue
+        if tok.startswith("<") and tok.endswith(">"):
+            out.append(tok)
+            if tok.startswith("<!--") or tok.startswith("<!") or tok.startswith("<?"):
+                continue
+            close_m = re.match(r"^<\s*/\s*([a-zA-Z0-9:-]+)", tok)
+            if close_m:
+                tag_name = close_m.group(1).lower()
+                for idx in range(len(stack) - 1, -1, -1):
+                    if stack[idx][0] == tag_name:
+                        del stack[idx:]
+                        break
+                continue
+            open_m = re.match(r"^<\s*([a-zA-Z0-9:-]+)", tok)
+            if open_m:
+                tag_name = open_m.group(1).lower()
+                is_self_closing = tok.rstrip().endswith("/>") or tag_name in _VOID_HTML_TAGS
+                if not is_self_closing:
+                    has_notranslate = bool(
+                        re.search(r'\btranslate\s*=\s*["\']?no\b', tok, re.IGNORECASE)
+                        or re.search(r'\bclass\s*=\s*["\'][^"\']*\bnotranslate\b', tok, re.IGNORECASE)
+                    )
+                    is_raw = tag_name in ("script", "style", "title", "textarea")
+                    stack.append((tag_name, has_notranslate, is_raw))
+        else:
+            in_protected = any(item[1] or item[2] for item in stack)
+            if not in_protected and "अबतक" in tok:
+                tok = _HINDI_BRAND_RE.sub(lambda m: f'<span class="notranslate" translate="no">{m.group(0)}</span>', tok)
+            out.append(tok)
+    return "".join(out)
+
+
+def _sanitize_title_brand(title_text):
+    """Replaces Hindi Aabtak24(.in) in <title> with English Aabtak24(.in) since <title> is RCDATA and cannot contain <span translate='no'>."""
+    text = str(title_text or "")
+    text = re.sub(r"अबतक\s*24\.in\s*\(\s*Aabtak24\.in\s*\)", "Aabtak24.in", text, flags=re.IGNORECASE)
+    text = re.sub(r"अबतक\s*24\.in", "Aabtak24.in", text, flags=re.IGNORECASE)
+    text = re.sub(r"अबतक\s*24", "Aabtak24", text, flags=re.IGNORECASE)
+    return text
+
+
 def get_top_bar_html(config, today_str=""):
     """Generates the customizable top utility bar above the site header."""
     header = config.get("header") if isinstance(config.get("header"), dict) else {}
@@ -1352,13 +1415,13 @@ def get_top_bar_html(config, today_str=""):
     if show_date and today_str:
         left_parts.append(f"<span>📅 {html.escape(str(today_str), quote=True)}</span>")
     if top_bar_text:
-        left_parts.append(f'<span class="top-bar-note">{html.escape(top_bar_text, quote=True)}</span>')
+        left_parts.append(f'<span class="top-bar-note">{_protect_hindi_brand_text(html.escape(top_bar_text, quote=True))}</span>')
 
     if not left_parts and not edition_tag:
         return ""
 
     left_html = f'<div class="top-bar-left">{" ".join(left_parts)}</div>' if left_parts else ""
-    edition_html = f'<span class="edition-tag">{html.escape(edition_tag, quote=True)}</span>' if edition_tag else ""
+    edition_html = f'<span class="edition-tag">{_protect_hindi_brand_text(html.escape(edition_tag, quote=True))}</span>' if edition_tag else ""
     style_attr = _format_inline_css_vars(
         header.get("colors"),
         [
@@ -1475,13 +1538,13 @@ def get_header_html(config, prefix="", active_file=""):
         header_brand_inner = f'<span class="header-brand-title">{brand_title}</span>'
         drawer_brand_inner = f'<span class="mobile-drawer-title">{brand_title}</span>'
 
-    tagline_html = f'\n                <span class="header-tagline">{html.escape(brand_tagline, quote=True)}</span>' if brand_tagline else ""
+    tagline_html = f'\n                <span class="header-tagline">{_protect_hindi_brand_text(html.escape(brand_tagline, quote=True))}</span>' if brand_tagline else ""
     drawer_tagline_html = (
-        f'\n            <p class="mobile-drawer-tagline">{html.escape(brand_tagline, quote=True)}</p>'
+        f'\n            <p class="mobile-drawer-tagline">{_protect_hindi_brand_text(html.escape(brand_tagline, quote=True))}</p>'
         if (mobile_show_tagline and brand_tagline) else ""
     )
     drawer_foot_html = (
-        f'\n            <div class="mobile-drawer-foot"><span>{html.escape(edition_tag, quote=True)}</span></div>'
+        f'\n            <div class="mobile-drawer-foot"><span>{_protect_hindi_brand_text(html.escape(edition_tag, quote=True))}</span></div>'
         if (mobile_show_tagline and edition_tag) else ""
     )
 
@@ -1719,6 +1782,54 @@ def get_header_html(config, prefix="", active_file=""):
         if (document.readyState === 'loading') {{
             document.addEventListener('DOMContentLoaded', syncThemeUI);
         }}
+
+        var topBar = document.querySelector('.top-bar');
+        if (topBar) {{
+            var scrolledPastTopBar = false;
+            var descendTimer = null;
+
+            function updateTopBarDescent() {{
+                var y = window.scrollY || window.pageYOffset || 0;
+                var barHeight = topBar.offsetHeight || 40;
+                var primeThreshold = Math.max(80, barHeight + 40);
+                var revealThreshold = Math.max(12, barHeight);
+
+                if (y > primeThreshold) {{
+                    if (!scrolledPastTopBar) {{
+                        scrolledPastTopBar = true;
+                        if (descendTimer) {{
+                            clearTimeout(descendTimer);
+                            descendTimer = null;
+                        }}
+                        topBar.classList.remove('top-bar-descending');
+                        topBar.classList.add('top-bar-primed');
+                    }}
+                }} else if (scrolledPastTopBar && y <= revealThreshold) {{
+                    scrolledPastTopBar = false;
+                    void topBar.offsetHeight;
+                    topBar.classList.add('top-bar-descending');
+                    topBar.classList.remove('top-bar-primed');
+                    if (descendTimer) clearTimeout(descendTimer);
+                    descendTimer = setTimeout(function () {{
+                        topBar.classList.remove('top-bar-descending');
+                        descendTimer = null;
+                    }}, 620);
+                }}
+            }}
+
+            topBar.addEventListener('transitionend', function (e) {{
+                if (e.target === topBar && e.propertyName === 'transform' && topBar.classList.contains('top-bar-descending')) {{
+                    topBar.classList.remove('top-bar-descending');
+                    if (descendTimer) {{
+                        clearTimeout(descendTimer);
+                        descendTimer = null;
+                    }}
+                }}
+            }});
+
+            window.addEventListener('scroll', updateTopBarDescent, {{ passive: true }});
+            updateTopBarDescent();
+        }}
     }})();
     </script>"""
 
@@ -1774,7 +1885,7 @@ def get_footer_html(config, prefix="", active_file=""):
     else:
         brand_head_html = f'<a href="{prefix}index.html" class="footer-brand-title notranslate" translate="no">{brand_title}</a>'
 
-    tagline_html = f'\n                <p class="footer-tagline">{brand_tagline}</p>' if brand_tagline else ""
+    tagline_html = f'\n                <p class="footer-tagline">{_protect_hindi_brand_text(brand_tagline)}</p>' if brand_tagline else ""
 
     contact_html = ""
     if contact_email:
@@ -1825,9 +1936,9 @@ def get_footer_html(config, prefix="", active_file=""):
 
     year_str = str(datetime.now().year)
     raw_copyright = str(footer.get("copyright_text", f"© {year_str} अबतक24.in (Aabtak24.in) • सर्वाधिकार सुरक्षित।")).strip()
-    copyright_text = html.escape(raw_copyright.replace("{year}", year_str), quote=True)
+    copyright_text = _protect_hindi_brand_text(html.escape(raw_copyright.replace("{year}", year_str), quote=True))
     bottom_note = str(footer.get("bottom_note", "")).strip()
-    bottom_note_html = f'\n                <span class="footer-bottom-note">{html.escape(bottom_note, quote=True)}</span>' if bottom_note else ""
+    bottom_note_html = f'\n                <span class="footer-bottom-note">{_protect_hindi_brand_text(html.escape(bottom_note, quote=True))}</span>' if bottom_note else ""
 
     return f"""    <footer class="site-footer {theme_class}"{style_attr}>
         <div class="{inner_cls}">
@@ -1899,7 +2010,7 @@ def build_individual_article_page(art, today_str, config, image_resolver=None):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{art['title']} | अबतक24.in</title>
+    <title>{_sanitize_title_brand(art['title'])} | Aabtak24.in</title>
     <meta name="description" content="{meta_desc}">
     <link rel="canonical" href="{canonical_url}">
     
@@ -1909,7 +2020,7 @@ def build_individual_article_page(art, today_str, config, image_resolver=None):
     <meta property="og:description" content="{meta_desc}">
     <meta property="og:image" content="{og_img_url}">
     <meta property="og:url" content="{canonical_url}">
-    <meta property="og:site_name" content="अबतक24.in">
+    <meta property="og:site_name" content="Aabtak24.in">
     <meta name="twitter:card" content="summary_large_image">
 
     <!-- Google News JSON-LD Schema -->
@@ -1926,14 +2037,14 @@ def build_individual_article_page(art, today_str, config, image_resolver=None):
         <article class="article-box">
             <a href="../index.html" class="back-btn">← मुख्य पृष्ठ पर वापस जाएं</a>
             <div><span class="badge">{art.get('category', 'ताज़ा खबर')}</span></div>
-            <h1 class="single-title">{art['title']}</h1>
-            <div class="meta single-meta">प्रकाशित: {art['date']} <span class="meta-dot"></span> अबतक24 न्यूज़ डेस्क</div>
+            <h1 class="single-title">{_protect_hindi_brand_html(art['title'])}</h1>
+            <div class="meta single-meta">प्रकाशित: {art['date']} <span class="meta-dot"></span> <span class="notranslate" translate="no">अबतक24</span> न्यूज़ डेस्क</div>
             <figure class="single-figure">
                 {article_img_tag}
-                <figcaption class="image-credit">{art['image_courtesy']}</figcaption>
+                <figcaption class="image-credit">{_protect_hindi_brand_html(str(art.get('image_courtesy', '')))}</figcaption>
             </figure>
             <div class="article-content">
-                {body_html}
+                {_protect_hindi_brand_html(body_html)}
             </div>
         </article>
     </main>
@@ -1993,8 +2104,8 @@ def build_category_pages(articles, today_str, config, image_resolver=None):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{cat_name} समाचार | अबतक24.in (Aabtak24.in)</title>
-    <meta name="description" content="अबतक24.in पर पढ़ें {cat_name} से जुड़ी ताज़ा और प्रमुख हिंदी खबरें।">
+    <title>{cat_name} समाचार | Aabtak24.in</title>
+    <meta name="description" content="Aabtak24.in पर पढ़ें {cat_name} से जुड़ी ताज़ा और प्रमुख हिंदी खबरें।">
     <link rel="canonical" href="{SITE_URL}/{cat_file}">
 {get_head_links(css_path="style.css", config=config)}
 </head>
@@ -2008,7 +2119,7 @@ def build_category_pages(articles, today_str, config, image_resolver=None):
             <h1>{cat_name} / Category News</h1>
             <span>कुल {len(filtered)} समाचार</span>
         </div>
-        <div class="archive-grid">{cards_html}</div>
+        <div class="archive-grid">{_protect_hindi_brand_html(cards_html)}</div>
     </main>
 
 {get_footer_html(config, prefix="", active_file=cat_file)}
@@ -2056,10 +2167,10 @@ def build_custom_pages(today_str, config):
             print(f"📝 Created initial fragment {fragment_path}")
 
         with open(fragment_path, "r", encoding="utf-8") as f:
-            body_fragment = f.read().strip()
+            body_fragment = _protect_hindi_brand_html(f.read().strip())
 
-        page_title = page.get("title", f"{output_file} | अबतक24.in")
-        meta_desc = page.get("meta_description", "अबतक24.in (Aabtak24.in) — डिजिटल हिंदी समाचार पोर्टल।").replace('"', "'")
+        page_title = _sanitize_title_brand(page.get("title", f"{output_file} | Aabtak24.in"))
+        meta_desc = page.get("meta_description", "Aabtak24.in — डिजिटल हिंदी समाचार पोर्टल।").replace('"', "'")
 
         full_html = f"""<!DOCTYPE html>
 <html lang="hi">
@@ -2158,8 +2269,8 @@ def build_404_page(articles, today_str, config, image_resolver=None):
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>पृष्ठ नहीं मिला (404) | अबतक24.in (Aabtak24.in)</title>
-    <meta name="description" content="क्षमा करें, आप जिस पृष्ठ को खोज रहे हैं वह उपलब्ध नहीं है या हटाया जा चुका है। अबतक24.in के मुख्य पृष्ठ पर जाएं और ताज़ा हिंदी खबरें पढ़ें।">
+    <title>पृष्ठ नहीं मिला (404) | Aabtak24.in</title>
+    <meta name="description" content="क्षमा करें, आप जिस पृष्ठ को खोज रहे हैं वह उपलब्ध नहीं है या हटाया जा चुका है। Aabtak24.in के मुख्य पृष्ठ पर जाएं और ताज़ा हिंदी खबरें पढ़ें।">
     <meta name="robots" content="noindex, follow">
 {get_head_links(css_path="/style.css", config=config)}
 </head>
@@ -2182,7 +2293,7 @@ def build_404_page(articles, today_str, config, image_resolver=None):
                 <a href="/index.html" class="btn-404-secondary" id="error-404-back-btn">← पिछले पृष्ठ पर लौटें</a>
             </div>{cats_html}
         </section>
-{recent_section_html}
+{_protect_hindi_brand_html(recent_section_html)}
     </main>
 
 {get_footer_html(config, prefix="/")}
@@ -2936,18 +3047,18 @@ def build_website_html(articles, config=None, skip_image_check=None, image_resol
         # Safety net: never leave homepage empty if all custom sections were disabled or matched 0 articles
         section_blocks, lcp_img = _render_sections_list(DEFAULT_SITE_CONFIG["homepage"]["sections"])
 
-    main_sections_html = "\n\n".join(section_blocks)
+    main_sections_html = _protect_hindi_brand_html("\n\n".join(section_blocks))
 
     html_template = f"""<!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>अबतक24.in (Aabtak24.in) | ताज़ा हिंदी समाचार और देश-दुनिया की खबरें</title>
-    <meta name="description" content="अबतक24.in (Aabtak24.in) पर पढ़ें देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था, राजनीति और मनोरंजन की ताज़ा हिंदी खबरें।">
+    <title>Aabtak24.in | ताज़ा हिंदी समाचार और देश-दुनिया की खबरें</title>
+    <meta name="description" content="Aabtak24.in पर पढ़ें देश-विदेश, टेक्नोलॉजी, अर्थव्यवस्था, राजनीति और मनोरंजन की ताज़ा हिंदी खबरें।">
     <link rel="canonical" href="{SITE_URL}/">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="अबतक24.in | हिंदी न्यूज़ पोर्टल">
+    <meta property="og:title" content="Aabtak24.in | हिंदी न्यूज़ पोर्टल">
     <meta property="og:url" content="{SITE_URL}/">
 {get_head_links(css_path="style.css", preload_img=lcp_img, config=config)}
 </head>

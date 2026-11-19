@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>भारतीय उड्डयन क्षेत्र की नई उड़ान: देश में विमानों की बढ़ती मांग को पूरा करने के लिए नए विमानों का ऑर्डर देगा भारत, केंद्रीय मंत्री पीयूष गोयल का बड़ा बयान | अबतक24.in</title>
+    <title>भारतीय उड्डयन क्षेत्र की नई उड़ान: देश में विमानों की बढ़ती मांग को पूरा करने के लिए नए विमानों का ऑर्डर देगा भारत, केंद्रीय मंत्री पीयूष गोयल का बड़ा बयान | Aabtak24.in</title>
     <meta name="description" content="भारत की तेजी से बढ़ती अर्थव्यवस्था और वैश्विक पटल पर मजबूत होती स्थिति के बीच देश के नागरिक उड्डयन क्षेत्र ने अभूतपूर्व प्रगति दर्ज की है। आम नागरिकों के ब...">
     <link rel="canonical" href="https://aabtak24.in/news/india-aircraft-shortage-piyush-goyal.html">
     
@@ -13,7 +13,7 @@
     <meta property="og:description" content="भारत की तेजी से बढ़ती अर्थव्यवस्था और वैश्विक पटल पर मजबूत होती स्थिति के बीच देश के नागरिक उड्डयन क्षेत्र ने अभूतपूर्व प्रगति दर्ज की है। आम नागरिकों के ब...">
     <meta property="og:image" content="https://c.ndtvimg.com/2026-10/nki9f58_piyush-goyals-work-hours-remark-draws-criticism-from-karnataka-it-employees-union_625x300_28_October_26.jpg?im=FeatureCrop,algorithm=dnn,width=1280,height=720">
     <meta property="og:url" content="https://aabtak24.in/news/india-aircraft-shortage-piyush-goyal.html">
-    <meta property="og:site_name" content="अबतक24.in">
+    <meta property="og:site_name" content="Aabtak24.in">
     <meta name="twitter:card" content="summary_large_image">
 
     <!-- Google News JSON-LD Schema -->
@@ -230,6 +230,54 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', syncThemeUI);
         }
+
+        var topBar = document.querySelector('.top-bar');
+        if (topBar) {
+            var scrolledPastTopBar = false;
+            var descendTimer = null;
+
+            function updateTopBarDescent() {
+                var y = window.scrollY || window.pageYOffset || 0;
+                var barHeight = topBar.offsetHeight || 40;
+                var primeThreshold = Math.max(80, barHeight + 40);
+                var revealThreshold = Math.max(12, barHeight);
+
+                if (y > primeThreshold) {
+                    if (!scrolledPastTopBar) {
+                        scrolledPastTopBar = true;
+                        if (descendTimer) {
+                            clearTimeout(descendTimer);
+                            descendTimer = null;
+                        }
+                        topBar.classList.remove('top-bar-descending');
+                        topBar.classList.add('top-bar-primed');
+                    }
+                } else if (scrolledPastTopBar && y <= revealThreshold) {
+                    scrolledPastTopBar = false;
+                    void topBar.offsetHeight;
+                    topBar.classList.add('top-bar-descending');
+                    topBar.classList.remove('top-bar-primed');
+                    if (descendTimer) clearTimeout(descendTimer);
+                    descendTimer = setTimeout(function () {
+                        topBar.classList.remove('top-bar-descending');
+                        descendTimer = null;
+                    }, 620);
+                }
+            }
+
+            topBar.addEventListener('transitionend', function (e) {
+                if (e.target === topBar && e.propertyName === 'transform' && topBar.classList.contains('top-bar-descending')) {
+                    topBar.classList.remove('top-bar-descending');
+                    if (descendTimer) {
+                        clearTimeout(descendTimer);
+                        descendTimer = null;
+                    }
+                }
+            });
+
+            window.addEventListener('scroll', updateTopBarDescent, { passive: true });
+            updateTopBarDescent();
+        }
     })();
     </script>
 
@@ -238,7 +286,7 @@
             <a href="../index.html" class="back-btn">← मुख्य पृष्ठ पर वापस जाएं</a>
             <div><span class="badge">अर्थव्यवस्था</span></div>
             <h1 class="single-title">भारतीय उड्डयन क्षेत्र की नई उड़ान: देश में विमानों की बढ़ती मांग को पूरा करने के लिए नए विमानों का ऑर्डर देगा भारत, केंद्रीय मंत्री पीयूष गोयल का बड़ा बयान</h1>
-            <div class="meta single-meta">प्रकाशित: 16 Nov 2026, 09:35 PM <span class="meta-dot"></span> अबतक24 न्यूज़ डेस्क</div>
+            <div class="meta single-meta">प्रकाशित: 16 Nov 2026, 09:35 PM <span class="meta-dot"></span> <span class="notranslate" translate="no">अबतक24</span> न्यूज़ डेस्क</div>
             <figure class="single-figure">
                 <img src="https://wsrv.nl/?url=https%3A%2F%2Fc.ndtvimg.com%2F2026-10%2Fnki9f58_piyush-goyals-work-hours-remark-draws-criticism-from-karnataka-it-employees-union_625x300_28_October_26.jpg%3Fim%3DFeatureCrop%2Calgorithm%3Ddnn%2Cwidth%3D1280%2Cheight%3D720&amp;w=900&amp;output=webp&amp;q=80" alt="भारतीय उड्डयन क्षेत्र की नई उड़ान: देश में विमानों की बढ़ती मांग को पूरा करने के लिए नए विमानों का ऑर्डर देगा भारत, केंद्रीय मंत्री पीयूष गोयल का बड़ा बयान" width="800" height="450" data-fallback-src="https://c.ndtvimg.com/2026-10/nki9f58_piyush-goyals-work-hours-remark-draws-criticism-from-karnataka-it-employees-union_625x300_28_October_26.jpg?im=FeatureCrop,algorithm=dnn,width=1280,height=720" onerror="this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}" fetchpriority="high" decoding="sync" />
                 <figcaption class="image-credit">फोटो साभार: NDTV (RSS फ़ीड के माध्यम से)</figcaption>

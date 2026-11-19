@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>भारत की तकनीकी महाशक्ति का डंका: बेंगलुरु बना देश की AI और स्टार्टअप राजधानी, हासिल किया 47% वेंचर फंड | अबतक24.in</title>
+    <title>भारत की तकनीकी महाशक्ति का डंका: बेंगलुरु बना देश की AI और स्टार्टअप राजधानी, हासिल किया 47% वेंचर फंड | Aabtak24.in</title>
     <meta name="description" content="प्रधानमंत्री नरेंद्र मोदी के नेतृत्व में नए भारत की तकनीकी और आर्थिक ताकत लगातार नए आयाम गढ़ रही है। इसी कड़ी में एक ताजा रिपोर्ट ने देश की डिजिटल और स्टार...">
     <link rel="canonical" href="https://aabtak24.in/news/bengaluru-indias-ai-startup-capital.html">
     
@@ -13,7 +13,7 @@
     <meta property="og:description" content="प्रधानमंत्री नरेंद्र मोदी के नेतृत्व में नए भारत की तकनीकी और आर्थिक ताकत लगातार नए आयाम गढ़ रही है। इसी कड़ी में एक ताजा रिपोर्ट ने देश की डिजिटल और स्टार...">
     <meta property="og:image" content="https://live.staticflickr.com/2516/3816299069_debb267685_b.jpg">
     <meta property="og:url" content="https://aabtak24.in/news/bengaluru-indias-ai-startup-capital.html">
-    <meta property="og:site_name" content="अबतक24.in">
+    <meta property="og:site_name" content="Aabtak24.in">
     <meta name="twitter:card" content="summary_large_image">
 
     <!-- Google News JSON-LD Schema -->
@@ -230,6 +230,54 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', syncThemeUI);
         }
+
+        var topBar = document.querySelector('.top-bar');
+        if (topBar) {
+            var scrolledPastTopBar = false;
+            var descendTimer = null;
+
+            function updateTopBarDescent() {
+                var y = window.scrollY || window.pageYOffset || 0;
+                var barHeight = topBar.offsetHeight || 40;
+                var primeThreshold = Math.max(80, barHeight + 40);
+                var revealThreshold = Math.max(12, barHeight);
+
+                if (y > primeThreshold) {
+                    if (!scrolledPastTopBar) {
+                        scrolledPastTopBar = true;
+                        if (descendTimer) {
+                            clearTimeout(descendTimer);
+                            descendTimer = null;
+                        }
+                        topBar.classList.remove('top-bar-descending');
+                        topBar.classList.add('top-bar-primed');
+                    }
+                } else if (scrolledPastTopBar && y <= revealThreshold) {
+                    scrolledPastTopBar = false;
+                    void topBar.offsetHeight;
+                    topBar.classList.add('top-bar-descending');
+                    topBar.classList.remove('top-bar-primed');
+                    if (descendTimer) clearTimeout(descendTimer);
+                    descendTimer = setTimeout(function () {
+                        topBar.classList.remove('top-bar-descending');
+                        descendTimer = null;
+                    }, 620);
+                }
+            }
+
+            topBar.addEventListener('transitionend', function (e) {
+                if (e.target === topBar && e.propertyName === 'transform' && topBar.classList.contains('top-bar-descending')) {
+                    topBar.classList.remove('top-bar-descending');
+                    if (descendTimer) {
+                        clearTimeout(descendTimer);
+                        descendTimer = null;
+                    }
+                }
+            });
+
+            window.addEventListener('scroll', updateTopBarDescent, { passive: true });
+            updateTopBarDescent();
+        }
     })();
     </script>
 
@@ -238,7 +286,7 @@
             <a href="../index.html" class="back-btn">← मुख्य पृष्ठ पर वापस जाएं</a>
             <div><span class="badge">टेक्नोलॉजी</span></div>
             <h1 class="single-title">भारत की तकनीकी महाशक्ति का डंका: बेंगलुरु बना देश की AI और स्टार्टअप राजधानी, हासिल किया 47% वेंचर फंड</h1>
-            <div class="meta single-meta">प्रकाशित: 18 Nov 2026, 07:55 PM <span class="meta-dot"></span> अबतक24 न्यूज़ डेस्क</div>
+            <div class="meta single-meta">प्रकाशित: 18 Nov 2026, 07:55 PM <span class="meta-dot"></span> <span class="notranslate" translate="no">अबतक24</span> न्यूज़ डेस्क</div>
             <figure class="single-figure">
                 <img src="https://wsrv.nl/?url=https%3A%2F%2Flive.staticflickr.com%2F2516%2F3816299069_debb267685_b.jpg&amp;w=900&amp;output=webp&amp;q=80" alt="भारत की तकनीकी महाशक्ति का डंका: बेंगलुरु बना देश की AI और स्टार्टअप राजधानी, हासिल किया 47% वेंचर फंड" width="800" height="450" data-fallback-src="https://live.staticflickr.com/2516/3816299069_debb267685_b.jpg" onerror="this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}" fetchpriority="high" decoding="sync" />
                 <figcaption class="image-credit">फोटो साभार: markhillary / Flickr (प्रतीकात्मक तस्वीर)</figcaption>

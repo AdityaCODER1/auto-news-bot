@@ -1270,8 +1270,129 @@ class TestHomepageCustomizationAndThemeToggle(unittest.TestCase):
             finally:
                 os.chdir(old_cwd)
 
+    def test_hindi_brand_notranslate_titles_and_uppercase_nav_links(self):
+        art = _make_article("brand-check", title="अबतक24.in की विशेष रिपोर्ट", category="देश-विदेश")
+        art["image_courtesy"] = "फोटो साभार: अबतक24 न्यूज़ डेस्क"
+        art["content_html"] = "<p>अबतक24.in पर पढ़ें विशेष समाचार।</p>"
+
+        config = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+        config["footer"]["copyright_text"] = "© {year} अबतक24.in • सर्वाधिकार सुरक्षित।"
+
+        old_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chdir(tmpdir)
+            try:
+                Path(tmpdir, "pages").mkdir(parents=True, exist_ok=True)
+                Path(tmpdir, "pages", "about.html").write_text(
+                    '<article class="article-box"><h1>अबतक24.in परिचय</h1><p><strong>अबतक24.in</strong> पोर्टल।</p></article>',
+                    encoding="utf-8",
+                )
+                config["custom_pages"] = [
+                    {
+                        "id": "about",
+                        "title": "हमारे बारे में | अबतक24.in",
+                        "meta_description": "परिचय",
+                        "source_fragment": "pages/about.html",
+                        "output_file": "about.html",
+                        "include_in_sitemap": True,
+                        "changefreq": "monthly",
+                    }
+                ]
+                news_bot.build_website_html([art], config=config, skip_image_check=True)
+
+                for rel_path in ["index.html", "desh-videsh.html", "about.html", "404.html", "news/brand-check.html"]:
+                    page_html = Path(tmpdir, rel_path).read_text(encoding="utf-8")
+                    # 1. No <title> should contain Hindi अबतक24 (would translate to "So far 24")
+                    title_m = re.search(r"<title>(.*?)</title>", page_html, flags=re.S)
+                    self.assertIsNotNone(title_m, msg=rel_path)
+                    self.assertNotIn("अबतक", title_m.group(1), msg=f"Hindi brand leaked into <title> of {rel_path}")
+                    self.assertIn("Aabtak24.in", title_m.group(1), msg=rel_path)
+
+                    # 2. Every visible body occurrence of अबतक24(.in) must be inside translate="no"
+                    from html.parser import HTMLParser
+                    body_m = re.search(r"<body[^>]*>(.*)</body>", page_html, flags=re.S)
+                    self.assertIsNotNone(body_m, msg=rel_path)
+
+                    class _NotranslateAuditor(HTMLParser):
+                        def __init__(self):
+                            super().__init__()
+                            self.stack = []
+                            self.unprotected = []
+
+                        def handle_starttag(self, tag, attrs):
+                            t = tag.lower()
+                            if t in news_bot._VOID_HTML_TAGS:
+                                return
+                            attr_dict = dict(attrs)
+                            is_no_tr = str(attr_dict.get("translate", "")).lower() == "no"
+                            self.stack.append((t, is_no_tr, t in ("script", "style")))
+
+                        def handle_endtag(self, tag):
+                            t = tag.lower()
+                            for idx in range(len(self.stack) - 1, -1, -1):
+                                if self.stack[idx][0] == t:
+                                    del self.stack[idx:]
+                                    break
+
+                        def handle_data(self, data):
+                            if "अबतक" in data:
+                                if any(item[2] for item in self.stack):
+                                    return
+                                if not any(item[1] for item in self.stack):
+                                    self.unprotected.append(data)
+
+                    auditor = _NotranslateAuditor()
+                    auditor.feed(body_m.group(1))
+                    self.assertEqual(
+                        auditor.unprotected,
+                        [],
+                        msg=f"Unprotected Hindi brand mentions in {rel_path}: {auditor.unprotected}",
+                    )
+            finally:
+                os.chdir(old_cwd)
+
+        # 3. Verify style.css forces uppercase on header & footer navigation links
+        css_text = (Path(__file__).resolve().parent.parent / "style.css").read_text(encoding="utf-8")
+        for selector in [r"^\.nav-pills a\s*\{", r"^\.header-action-btn\s*\{", r"^\.mobile-nav-links a\s*\{", r"^\.footer-links a\s*\{", r"^\.footer-pill\s*\{"]:
+            m = re.search(selector + r"([^}]+)\}", css_text, flags=re.M)
+            self.assertIsNotNone(m, msg=f"Missing selector {selector}")
+            self.assertIn("text-transform: uppercase", m.group(1), msg=f"Selector {selector} missing text-transform: uppercase")
+
+    def test_top_bar_soft_descent_on_scroll_to_top_without_affecting_sticky_header(self):
+        config = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+        header_html = news_bot.get_header_html(config)
+
+        # Inline script wires passive scroll-to-top descent exclusively for .top-bar
+        self.assertIn("document.querySelector('.top-bar')", header_html)
+        self.assertIn("top-bar-primed", header_html)
+        self.assertIn("top-bar-descending", header_html)
+        self.assertIn("updateTopBarDescent", header_html)
+        self.assertIn("header-sticky", header_html)
+        # Sticky header is never hidden or transformed by the top-bar descent script
+        self.assertNotIn("header.classList.add('top-bar", header_html)
+
+        css_text = (Path(__file__).resolve().parent.parent / "style.css").read_text(encoding="utf-8")
+        primed_m = re.search(r"^\.top-bar\.top-bar-primed\s*\{([^}]+)\}", css_text, flags=re.M)
+        self.assertIsNotNone(primed_m)
+        self.assertIn("translateY(-100%)", primed_m.group(1))
+        self.assertIn("opacity: 0", primed_m.group(1))
+
+        desc_m = re.search(r"^\.top-bar\.top-bar-descending\s*\{([^}]+)\}", css_text, flags=re.M)
+        self.assertIsNotNone(desc_m)
+        self.assertIn("translateY(0)", desc_m.group(1))
+        self.assertIn("opacity: 1", desc_m.group(1))
+        self.assertIn("transition:", desc_m.group(1))
+
+        # Sticky header rules remain intact
+        sticky_m = re.search(r"^\.site-header\.header-sticky\s*\{([^}]+)\}", css_text, flags=re.M)
+        self.assertIsNotNone(sticky_m)
+        self.assertIn("position: sticky", sticky_m.group(1))
+        self.assertIn("top: 0", sticky_m.group(1))
+        self.assertIn("prefers-reduced-motion: reduce", css_text)
+
 
 if __name__ == "__main__":
     unittest.main()
+
 
 

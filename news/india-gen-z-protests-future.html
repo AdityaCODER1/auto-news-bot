@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>सड़कों से सोशल मीडिया तक: गर्मियों के आक्रोश के बाद अब भारतीय 'जेन-जी' के सामने अनिश्चित भविष्य की चुनौती | अबतक24.in</title>
+    <title>सड़कों से सोशल मीडिया तक: गर्मियों के आक्रोश के बाद अब भारतीय 'जेन-जी' के सामने अनिश्चित भविष्य की चुनौती | Aabtak24.in</title>
     <meta name="description" content="बीती गर्मियों में भारत ने युवाओं के असंतोष की एक अभूतपूर्व लहर देखी। यह विरोध प्रदर्शन पारंपरिक आंदोलनों से काफी जुदा था, जिसमें बेरोजगारी, संस्थागत विसंगत...">
     <link rel="canonical" href="https://aabtak24.in/news/india-gen-z-protests-future.html">
     
@@ -13,7 +13,7 @@
     <meta property="og:description" content="बीती गर्मियों में भारत ने युवाओं के असंतोष की एक अभूतपूर्व लहर देखी। यह विरोध प्रदर्शन पारंपरिक आंदोलनों से काफी जुदा था, जिसमें बेरोजगारी, संस्थागत विसंगत...">
     <meta property="og:image" content="https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/9ca7/live/511b1870-df1a-11f1-8440-dbadd0414f54.jpg">
     <meta property="og:url" content="https://aabtak24.in/news/india-gen-z-protests-future.html">
-    <meta property="og:site_name" content="अबतक24.in">
+    <meta property="og:site_name" content="Aabtak24.in">
     <meta name="twitter:card" content="summary_large_image">
 
     <!-- Google News JSON-LD Schema -->
@@ -230,6 +230,54 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', syncThemeUI);
         }
+
+        var topBar = document.querySelector('.top-bar');
+        if (topBar) {
+            var scrolledPastTopBar = false;
+            var descendTimer = null;
+
+            function updateTopBarDescent() {
+                var y = window.scrollY || window.pageYOffset || 0;
+                var barHeight = topBar.offsetHeight || 40;
+                var primeThreshold = Math.max(80, barHeight + 40);
+                var revealThreshold = Math.max(12, barHeight);
+
+                if (y > primeThreshold) {
+                    if (!scrolledPastTopBar) {
+                        scrolledPastTopBar = true;
+                        if (descendTimer) {
+                            clearTimeout(descendTimer);
+                            descendTimer = null;
+                        }
+                        topBar.classList.remove('top-bar-descending');
+                        topBar.classList.add('top-bar-primed');
+                    }
+                } else if (scrolledPastTopBar && y <= revealThreshold) {
+                    scrolledPastTopBar = false;
+                    void topBar.offsetHeight;
+                    topBar.classList.add('top-bar-descending');
+                    topBar.classList.remove('top-bar-primed');
+                    if (descendTimer) clearTimeout(descendTimer);
+                    descendTimer = setTimeout(function () {
+                        topBar.classList.remove('top-bar-descending');
+                        descendTimer = null;
+                    }, 620);
+                }
+            }
+
+            topBar.addEventListener('transitionend', function (e) {
+                if (e.target === topBar && e.propertyName === 'transform' && topBar.classList.contains('top-bar-descending')) {
+                    topBar.classList.remove('top-bar-descending');
+                    if (descendTimer) {
+                        clearTimeout(descendTimer);
+                        descendTimer = null;
+                    }
+                }
+            });
+
+            window.addEventListener('scroll', updateTopBarDescent, { passive: true });
+            updateTopBarDescent();
+        }
     })();
     </script>
 
@@ -238,7 +286,7 @@
             <a href="../index.html" class="back-btn">← मुख्य पृष्ठ पर वापस जाएं</a>
             <div><span class="badge">राजनीति</span></div>
             <h1 class="single-title">सड़कों से सोशल मीडिया तक: गर्मियों के आक्रोश के बाद अब भारतीय 'जेन-जी' के सामने अनिश्चित भविष्य की चुनौती</h1>
-            <div class="meta single-meta">प्रकाशित: 14 Nov 2026, 01:19 AM <span class="meta-dot"></span> अबतक24 न्यूज़ डेस्क</div>
+            <div class="meta single-meta">प्रकाशित: 14 Nov 2026, 01:19 AM <span class="meta-dot"></span> <span class="notranslate" translate="no">अबतक24</span> न्यूज़ डेस्क</div>
             <figure class="single-figure">
                 <img src="https://wsrv.nl/?url=https%3A%2F%2Fichef.bbci.co.uk%2Face%2Fstandard%2F976%2Fcpsprodpb%2F9ca7%2Flive%2F511b1870-df1a-11f1-8440-dbadd0414f54.jpg&amp;w=900&amp;output=webp&amp;q=80" alt="सड़कों से सोशल मीडिया तक: गर्मियों के आक्रोश के बाद अब भारतीय &#x27;जेन-जी&#x27; के सामने अनिश्चित भविष्य की चुनौती" width="800" height="450" data-fallback-src="https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/9ca7/live/511b1870-df1a-11f1-8440-dbadd0414f54.jpg" onerror="this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}" fetchpriority="high" decoding="sync" />
                 <figcaption class="image-credit">फोटो साभार: BBC News (RSS फ़ीड के माध्यम से)</figcaption>

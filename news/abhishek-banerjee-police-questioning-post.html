@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>विवादित सोशल मीडिया पोस्ट मामला: पूछताछ के लिए पुलिस थाने पहुंचे TMC सांसद अभिषेक बनर्जी | अबतक24.in</title>
+    <title>विवादित सोशल मीडिया पोस्ट मामला: पूछताछ के लिए पुलिस थाने पहुंचे TMC सांसद अभिषेक बनर्जी | Aabtak24.in</title>
     <meta name="description" content="तृणमूल कांग्रेस (TMC) के वरिष्ठ नेता और सांसद अभिषेक बनर्जी अपने एक पुराने और विवादित सोशल मीडिया पोस्ट के सिलसिले में पूछताछ के लिए पुलिस स्टेशन पहुंचे है...">
     <link rel="canonical" href="https://aabtak24.in/news/abhishek-banerjee-police-questioning-post.html">
     
@@ -13,7 +13,7 @@
     <meta property="og:description" content="तृणमूल कांग्रेस (TMC) के वरिष्ठ नेता और सांसद अभिषेक बनर्जी अपने एक पुराने और विवादित सोशल मीडिया पोस्ट के सिलसिले में पूछताछ के लिए पुलिस स्टेशन पहुंचे है...">
     <meta property="og:image" content="https://th-i.thgim.com/public/incoming/r4jjb0/article71701202.ece/alternates/LANDSCAPE_1200/20261105505L.jpg">
     <meta property="og:url" content="https://aabtak24.in/news/abhishek-banerjee-police-questioning-post.html">
-    <meta property="og:site_name" content="अबतक24.in">
+    <meta property="og:site_name" content="Aabtak24.in">
     <meta name="twitter:card" content="summary_large_image">
 
     <!-- Google News JSON-LD Schema -->
@@ -230,6 +230,54 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', syncThemeUI);
         }
+
+        var topBar = document.querySelector('.top-bar');
+        if (topBar) {
+            var scrolledPastTopBar = false;
+            var descendTimer = null;
+
+            function updateTopBarDescent() {
+                var y = window.scrollY || window.pageYOffset || 0;
+                var barHeight = topBar.offsetHeight || 40;
+                var primeThreshold = Math.max(80, barHeight + 40);
+                var revealThreshold = Math.max(12, barHeight);
+
+                if (y > primeThreshold) {
+                    if (!scrolledPastTopBar) {
+                        scrolledPastTopBar = true;
+                        if (descendTimer) {
+                            clearTimeout(descendTimer);
+                            descendTimer = null;
+                        }
+                        topBar.classList.remove('top-bar-descending');
+                        topBar.classList.add('top-bar-primed');
+                    }
+                } else if (scrolledPastTopBar && y <= revealThreshold) {
+                    scrolledPastTopBar = false;
+                    void topBar.offsetHeight;
+                    topBar.classList.add('top-bar-descending');
+                    topBar.classList.remove('top-bar-primed');
+                    if (descendTimer) clearTimeout(descendTimer);
+                    descendTimer = setTimeout(function () {
+                        topBar.classList.remove('top-bar-descending');
+                        descendTimer = null;
+                    }, 620);
+                }
+            }
+
+            topBar.addEventListener('transitionend', function (e) {
+                if (e.target === topBar && e.propertyName === 'transform' && topBar.classList.contains('top-bar-descending')) {
+                    topBar.classList.remove('top-bar-descending');
+                    if (descendTimer) {
+                        clearTimeout(descendTimer);
+                        descendTimer = null;
+                    }
+                }
+            });
+
+            window.addEventListener('scroll', updateTopBarDescent, { passive: true });
+            updateTopBarDescent();
+        }
     })();
     </script>
 
@@ -238,7 +286,7 @@
             <a href="../index.html" class="back-btn">← मुख्य पृष्ठ पर वापस जाएं</a>
             <div><span class="badge">राजनीति</span></div>
             <h1 class="single-title">विवादित सोशल मीडिया पोस्ट मामला: पूछताछ के लिए पुलिस थाने पहुंचे TMC सांसद अभिषेक बनर्जी</h1>
-            <div class="meta single-meta">प्रकाशित: 14 Nov 2026, 08:03 AM <span class="meta-dot"></span> अबतक24 न्यूज़ डेस्क</div>
+            <div class="meta single-meta">प्रकाशित: 14 Nov 2026, 08:03 AM <span class="meta-dot"></span> <span class="notranslate" translate="no">अबतक24</span> न्यूज़ डेस्क</div>
             <figure class="single-figure">
                 <img src="https://wsrv.nl/?url=https%3A%2F%2Fth-i.thgim.com%2Fpublic%2Fincoming%2Fr4jjb0%2Farticle71701202.ece%2Falternates%2FLANDSCAPE_1200%2F20261105505L.jpg&amp;w=900&amp;output=webp&amp;q=80" alt="विवादित सोशल मीडिया पोस्ट मामला: पूछताछ के लिए पुलिस थाने पहुंचे TMC सांसद अभिषेक बनर्जी" width="800" height="450" data-fallback-src="https://th-i.thgim.com/public/incoming/r4jjb0/article71701202.ece/alternates/LANDSCAPE_1200/20261105505L.jpg" onerror="this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}" fetchpriority="high" decoding="sync" />
                 <figcaption class="image-credit">फोटो साभार: The Hindu (RSS फ़ीड के माध्यम से)</figcaption>

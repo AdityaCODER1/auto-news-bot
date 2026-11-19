@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>दिल्ली प्रदूषण: क्या दीवाली पर जारी आंकड़े भ्रामक थे? बीबीसी की जांच में हुआ बड़ा खुलासा | अबतक24.in</title>
+    <title>दिल्ली प्रदूषण: क्या दीवाली पर जारी आंकड़े भ्रामक थे? बीबीसी की जांच में हुआ बड़ा खुलासा | Aabtak24.in</title>
     <meta name="description" content="दीवाली के दौरान दिल्ली की हवा: सरकारी आंकड़ों पर उठे सवाल देश की राजधानी दिल्ली में हर साल दीवाली के आसपास वायु प्रदूषण का स्तर बेहद खतरनाक मोड़ पर पहुंच ज...">
     <link rel="canonical" href="https://aabtak24.in/news/delhi-diwali-pollution-data-misleading.html">
     
@@ -13,7 +13,7 @@
     <meta property="og:description" content="दीवाली के दौरान दिल्ली की हवा: सरकारी आंकड़ों पर उठे सवाल देश की राजधानी दिल्ली में हर साल दीवाली के आसपास वायु प्रदूषण का स्तर बेहद खतरनाक मोड़ पर पहुंच ज...">
     <meta property="og:image" content="https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/330d/live/345eef50-ddfc-11f1-93e1-3b657b665bcf.jpg">
     <meta property="og:url" content="https://aabtak24.in/news/delhi-diwali-pollution-data-misleading.html">
-    <meta property="og:site_name" content="अबतक24.in">
+    <meta property="og:site_name" content="Aabtak24.in">
     <meta name="twitter:card" content="summary_large_image">
 
     <!-- Google News JSON-LD Schema -->
@@ -230,6 +230,54 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', syncThemeUI);
         }
+
+        var topBar = document.querySelector('.top-bar');
+        if (topBar) {
+            var scrolledPastTopBar = false;
+            var descendTimer = null;
+
+            function updateTopBarDescent() {
+                var y = window.scrollY || window.pageYOffset || 0;
+                var barHeight = topBar.offsetHeight || 40;
+                var primeThreshold = Math.max(80, barHeight + 40);
+                var revealThreshold = Math.max(12, barHeight);
+
+                if (y > primeThreshold) {
+                    if (!scrolledPastTopBar) {
+                        scrolledPastTopBar = true;
+                        if (descendTimer) {
+                            clearTimeout(descendTimer);
+                            descendTimer = null;
+                        }
+                        topBar.classList.remove('top-bar-descending');
+                        topBar.classList.add('top-bar-primed');
+                    }
+                } else if (scrolledPastTopBar && y <= revealThreshold) {
+                    scrolledPastTopBar = false;
+                    void topBar.offsetHeight;
+                    topBar.classList.add('top-bar-descending');
+                    topBar.classList.remove('top-bar-primed');
+                    if (descendTimer) clearTimeout(descendTimer);
+                    descendTimer = setTimeout(function () {
+                        topBar.classList.remove('top-bar-descending');
+                        descendTimer = null;
+                    }, 620);
+                }
+            }
+
+            topBar.addEventListener('transitionend', function (e) {
+                if (e.target === topBar && e.propertyName === 'transform' && topBar.classList.contains('top-bar-descending')) {
+                    topBar.classList.remove('top-bar-descending');
+                    if (descendTimer) {
+                        clearTimeout(descendTimer);
+                        descendTimer = null;
+                    }
+                }
+            });
+
+            window.addEventListener('scroll', updateTopBarDescent, { passive: true });
+            updateTopBarDescent();
+        }
     })();
     </script>
 
@@ -238,7 +286,7 @@
             <a href="../index.html" class="back-btn">← मुख्य पृष्ठ पर वापस जाएं</a>
             <div><span class="badge">देश-विदेश</span></div>
             <h1 class="single-title">दिल्ली प्रदूषण: क्या दीवाली पर जारी आंकड़े भ्रामक थे? बीबीसी की जांच में हुआ बड़ा खुलासा</h1>
-            <div class="meta single-meta">प्रकाशित: 12 Nov 2026, 10:36 AM <span class="meta-dot"></span> अबतक24 न्यूज़ डेस्क</div>
+            <div class="meta single-meta">प्रकाशित: 12 Nov 2026, 10:36 AM <span class="meta-dot"></span> <span class="notranslate" translate="no">अबतक24</span> न्यूज़ डेस्क</div>
             <figure class="single-figure">
                 <img src="https://wsrv.nl/?url=https%3A%2F%2Fichef.bbci.co.uk%2Face%2Fstandard%2F976%2Fcpsprodpb%2F330d%2Flive%2F345eef50-ddfc-11f1-93e1-3b657b665bcf.jpg&amp;w=900&amp;output=webp&amp;q=80" alt="दिल्ली प्रदूषण: क्या दीवाली पर जारी आंकड़े भ्रामक थे? बीबीसी की जांच में हुआ बड़ा खुलासा" width="800" height="450" data-fallback-src="https://ichef.bbci.co.uk/ace/standard/976/cpsprodpb/330d/live/345eef50-ddfc-11f1-93e1-3b657b665bcf.jpg" onerror="this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}" fetchpriority="high" decoding="sync" />
                 <figcaption class="image-credit">फोटो साभार: BBC News (RSS फ़ीड के माध्यम से)</figcaption>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI को स्मार्ट बनाने के लिए अपने काम की वीडियो शूट कर रहे भारतीय कामगार, जानिए क्या है नया टेक ट्रेंड | अबतक24.in</title>
+    <title>AI को स्मार्ट बनाने के लिए अपने काम की वीडियो शूट कर रहे भारतीय कामगार, जानिए क्या है नया टेक ट्रेंड | Aabtak24.in</title>
     <meta name="description" content="आर्टिफिशियल इंटेलिजेंस (AI) को अधिक सटीक और इंसानी व्यवहार के करीब बनाने के लिए टेक कंपनियां अब एक अनोखा तरीका अपना रही हैं। भारत में बड़ी संख्या में कामगा...">
     <link rel="canonical" href="https://aabtak24.in/news/indian-workers-filming-work-train-ai.html">
     
@@ -13,7 +13,7 @@
     <meta property="og:description" content="आर्टिफिशियल इंटेलिजेंस (AI) को अधिक सटीक और इंसानी व्यवहार के करीब बनाने के लिए टेक कंपनियां अब एक अनोखा तरीका अपना रही हैं। भारत में बड़ी संख्या में कामगा...">
     <meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/9/9b/Trends_in_AI_training_FLOP_over_time_%282010-2025%29.svg">
     <meta property="og:url" content="https://aabtak24.in/news/indian-workers-filming-work-train-ai.html">
-    <meta property="og:site_name" content="अबतक24.in">
+    <meta property="og:site_name" content="Aabtak24.in">
     <meta name="twitter:card" content="summary_large_image">
 
     <!-- Google News JSON-LD Schema -->
@@ -230,6 +230,54 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', syncThemeUI);
         }
+
+        var topBar = document.querySelector('.top-bar');
+        if (topBar) {
+            var scrolledPastTopBar = false;
+            var descendTimer = null;
+
+            function updateTopBarDescent() {
+                var y = window.scrollY || window.pageYOffset || 0;
+                var barHeight = topBar.offsetHeight || 40;
+                var primeThreshold = Math.max(80, barHeight + 40);
+                var revealThreshold = Math.max(12, barHeight);
+
+                if (y > primeThreshold) {
+                    if (!scrolledPastTopBar) {
+                        scrolledPastTopBar = true;
+                        if (descendTimer) {
+                            clearTimeout(descendTimer);
+                            descendTimer = null;
+                        }
+                        topBar.classList.remove('top-bar-descending');
+                        topBar.classList.add('top-bar-primed');
+                    }
+                } else if (scrolledPastTopBar && y <= revealThreshold) {
+                    scrolledPastTopBar = false;
+                    void topBar.offsetHeight;
+                    topBar.classList.add('top-bar-descending');
+                    topBar.classList.remove('top-bar-primed');
+                    if (descendTimer) clearTimeout(descendTimer);
+                    descendTimer = setTimeout(function () {
+                        topBar.classList.remove('top-bar-descending');
+                        descendTimer = null;
+                    }, 620);
+                }
+            }
+
+            topBar.addEventListener('transitionend', function (e) {
+                if (e.target === topBar && e.propertyName === 'transform' && topBar.classList.contains('top-bar-descending')) {
+                    topBar.classList.remove('top-bar-descending');
+                    if (descendTimer) {
+                        clearTimeout(descendTimer);
+                        descendTimer = null;
+                    }
+                }
+            });
+
+            window.addEventListener('scroll', updateTopBarDescent, { passive: true });
+            updateTopBarDescent();
+        }
     })();
     </script>
 
@@ -238,7 +286,7 @@
             <a href="../index.html" class="back-btn">← मुख्य पृष्ठ पर वापस जाएं</a>
             <div><span class="badge">टेक्नोलॉजी</span></div>
             <h1 class="single-title">AI को स्मार्ट बनाने के लिए अपने काम की वीडियो शूट कर रहे भारतीय कामगार, जानिए क्या है नया टेक ट्रेंड</h1>
-            <div class="meta single-meta">प्रकाशित: 09 Nov 2026, 07:28 AM <span class="meta-dot"></span> अबतक24 न्यूज़ डेस्क</div>
+            <div class="meta single-meta">प्रकाशित: 09 Nov 2026, 07:28 AM <span class="meta-dot"></span> <span class="notranslate" translate="no">अबतक24</span> न्यूज़ डेस्क</div>
             <figure class="single-figure">
                 <img src="https://wsrv.nl/?url=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2F9%2F9b%2FTrends_in_AI_training_FLOP_over_time_%25282010-2025%2529.svg&amp;w=900&amp;output=webp&amp;q=80" alt="AI को स्मार्ट बनाने के लिए अपने काम की वीडियो शूट कर रहे भारतीय कामगार, जानिए क्या है नया टेक ट्रेंड" width="800" height="450" data-fallback-src="https://upload.wikimedia.org/wikipedia/commons/9/9b/Trends_in_AI_training_FLOP_over_time_%282010-2025%29.svg" onerror="this.onerror=null;if(this.dataset.fallbackSrc){this.src=this.dataset.fallbackSrc;}" fetchpriority="high" decoding="sync" />
                 <figcaption class="image-credit">फोटो साभार: Epoch AI / Wikimedia (प्रतीकात्मक तस्वीर)</figcaption>

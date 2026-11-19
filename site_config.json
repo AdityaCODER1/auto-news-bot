@@ -116,7 +116,7 @@
     "mobile_menu_label": "मेनू",
     "mobile_show_tagline": true,
     "theme_toggle_enabled": true,
-    "default_color_mode": "light",
+    "default_color_mode": "dark",
     "action_links": [],
     "colors": {}
   },
@@ -229,17 +229,18 @@
     "colors": {}
   },
   "homepage": {
-    "preset": "category-showcase",
+    "preset": "wire-editorial",
     "deduplicate_across_sections": true,
     "sections": [
       {
-        "id": "top-stories",
-        "title": "प्रमुख सुर्खियां / Top Stories",
-        "subtitle": "बड़ी खबरें",
+        "id": "editorial-frontpage",
+        "title": "मुख्य पृष्ठ / Frontpage Desk",
+        "subtitle": "संपादक की पसंद • राजनीति • ताज़ा खबरें",
         "category": "all",
-        "layout": "bento",
-        "max_articles": 5,
+        "layout": "editorial-desk",
+        "max_articles": 9,
         "show_view_all": false,
+        "bg_theme": "sand",
         "enabled": true
       },
       {
@@ -250,6 +251,7 @@
         "layout": "strip",
         "max_articles": 4,
         "show_view_all": true,
+        "bg_theme": "crimson",
         "enabled": true
       },
       {
@@ -260,6 +262,7 @@
         "layout": "grid",
         "max_articles": 6,
         "show_view_all": true,
+        "bg_theme": "slate",
         "enabled": true
       },
       {
@@ -270,6 +273,7 @@
         "layout": "compact-list",
         "max_articles": 6,
         "show_view_all": true,
+        "bg_theme": "sage",
         "enabled": true
       },
       {
@@ -280,6 +284,7 @@
         "layout": "grid",
         "max_articles": 6,
         "show_view_all": true,
+        "bg_theme": "amber",
         "enabled": true
       }
     ]

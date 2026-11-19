@@ -53,6 +53,14 @@
     --archive-min-col: 320px;          /* Try '260px' for 4 columns, or '380px' for 2 columns */
     --card-radius: 4px;                /* Try '12px' for a modern rounded app look, or '0px' for sharp print look */
     --hero-img-height: 410px;
+
+    /* --- 3-COLUMN EDITORIAL DESK ("The Wire" Inspired Tokens) --- */
+    --desk-kicker: #C1272D;
+    --desk-pick-title: #B52328;
+    --desk-center-bg: #E8DEC9;
+    --desk-center-border: #D5C7AD;
+    --desk-wire-divider: #DED4C3;
+    --just-in-dot: #D9232A;
 }
 
 /* --- READER DARK MODE (Warm Carbon & Saffron-Orange Editorial) --- */
@@ -86,6 +94,12 @@ html[data-theme="dark"] {
     --drawer-hover-bg: rgba(255, 90, 31, 0.16);
     --drawer-hover-text: #FF8A5C;
     --drawer-pill-bg: rgba(255, 255, 255, 0.08);
+    --desk-kicker: #FF6B4A;
+    --desk-pick-title: #FF9472;
+    --desk-center-bg: #261E18;
+    --desk-center-border: #3D3127;
+    --desk-wire-divider: #302923;
+    --just-in-dot: #FF4438;
 }
 
 /* ==========================================================================
@@ -934,18 +948,363 @@ html[data-theme="dark"] .mobile-nav-shell.mobile-style-dropdown .mobile-nav-pane
 .container {
     width: 100%;
     max-width: var(--site-max-width);
-    margin: 36px auto 60px;
+    margin: 30px auto 60px;
     padding: 0 20px;
     flex: 1 0 auto;
 }
 .homepage-section {
-    margin-bottom: 48px;
+    margin-bottom: 36px;
+    padding: 26px 26px 30px;
+    border-radius: calc(var(--card-radius) + 4px);
+    border: 1px solid var(--section-border, var(--border));
+    background-color: var(--section-bg, transparent);
+    transition: background-color 0.22s ease, border-color 0.22s ease;
 }
 .homepage-section:last-child {
     margin-bottom: 0;
 }
 .homepage-section .bento-grid {
     margin-bottom: 0;
+}
+
+/* --- PER-SECTION BACKGROUND COLOR PALETTES (Light & Dark Modes) --- */
+.homepage-section.section-bg-default {
+    --section-bg: var(--card-subtle);
+    --section-border: var(--border);
+}
+/* 1. Warm Sandstone ("The Wire" Frontpage Parchment) */
+.homepage-section.section-bg-sand {
+    --section-bg: #F3ECE0;
+    --section-border: #DFD4C2;
+    --card: #FCF9F4;
+    --card-subtle: #EAE0CF;
+    --border: #DDD1BE;
+}
+html[data-theme="dark"] .homepage-section.section-bg-sand {
+    --section-bg: #181410;
+    --section-border: #2E261F;
+    --card: #211B16;
+    --card-subtle: #2A221C;
+    --border: #332A22;
+}
+/* 2. Editorial Crimson Tint (Inspired by The Wire's Red Banner & Kicker) */
+.homepage-section.section-bg-crimson {
+    --section-bg: #F8ECEA;
+    --section-border: #E8CFCB;
+    --card: #FFFDFC;
+    --card-subtle: #F2DFDC;
+    --border: #E6CECA;
+}
+html[data-theme="dark"] .homepage-section.section-bg-crimson {
+    --section-bg: #1E1313;
+    --section-border: #382222;
+    --card: #271919;
+    --card-subtle: #311F1F;
+    --border: #3C2525;
+}
+/* 3. Press Slate (Cool Analytic Contrast for Tech & Science) */
+.homepage-section.section-bg-slate {
+    --section-bg: #EBF0F5;
+    --section-border: #D2DCE7;
+    --card: #FAFBFD;
+    --card-subtle: #DFE7F0;
+    --border: #CFD9E5;
+}
+html[data-theme="dark"] .homepage-section.section-bg-slate {
+    --section-bg: #131820;
+    --section-border: #242E3D;
+    --card: #1A212B;
+    --card-subtle: #222B38;
+    --border: #2A3546;
+}
+/* 4. Newsprint Sage (Financial / Economy Editorial Tone) */
+.homepage-section.section-bg-sage {
+    --section-bg: #EBF1EC;
+    --section-border: #CFDDD2;
+    --card: #FAFDFB;
+    --card-subtle: #DFEAE1;
+    --border: #CCDAD0;
+}
+html[data-theme="dark"] .homepage-section.section-bg-sage {
+    --section-bg: #131B16;
+    --section-border: #233329;
+    --card: #19241D;
+    --card-subtle: #212F26;
+    --border: #28392E;
+}
+/* 5. Golden Amber Ochre (Politics & Culture Feature Band) */
+.homepage-section.section-bg-amber {
+    --section-bg: #F5ECD7;
+    --section-border: #E2D1AD;
+    --card: #FFFDF8;
+    --card-subtle: #ECE0C4;
+    --border: #DFCEA8;
+}
+html[data-theme="dark"] .homepage-section.section-bg-amber {
+    --section-bg: #1D1810;
+    --section-border: #362C1D;
+    --card: #261F15;
+    --card-subtle: #30271B;
+    --border: #3B3021;
+}
+
+/* --- 3-COLUMN EDITORIAL DESK ("THE WIRE" FRONTPAGE SETUP) --- */
+.editorial-desk-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.85fr 1fr;
+    gap: 26px;
+    align-items: start;
+}
+.editorial-desk-grid.editorial-desk-single {
+    grid-template-columns: 1fr;
+}
+.editorial-desk-grid.editorial-desk-two-col {
+    grid-template-columns: 1fr 1.6fr;
+}
+.desk-col {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.desk-col-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    margin-bottom: 16px;
+    border-bottom: 1.5px solid var(--border);
+}
+.desk-col-title {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    color: var(--text-main);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.2;
+}
+.just-in-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--just-in-dot);
+    display: inline-block;
+    flex-shrink: 0;
+    box-shadow: 0 0 0 3px rgba(217, 35, 42, 0.18);
+}
+.just-in-arrow {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+.desk-just-in-header:hover .just-in-arrow {
+    color: var(--desk-kicker);
+    transform: translateX(3px);
+}
+.desk-kicker {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 11.5px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.3px;
+    color: var(--desk-kicker);
+    line-height: 1.25;
+    margin-bottom: 5px;
+}
+.desk-meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+.desk-meta-author {
+    color: var(--text-body);
+    font-weight: 700;
+}
+.desk-meta-time {
+    color: var(--text-muted);
+    margin-left: auto;
+}
+
+/* Left Column: संपादक की पसंद (Manual / Editor's Pick Stacked Cards) */
+.desk-pick-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+.desk-pick-card {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--desk-wire-divider);
+    transition: transform 0.2s ease;
+}
+.desk-pick-card:last-child {
+    padding-bottom: 0;
+    border-bottom: none;
+}
+.desk-pick-img {
+    overflow: hidden;
+    border-radius: calc(var(--card-radius) / 2);
+    background: #201D1A;
+    margin-bottom: 12px;
+}
+.desk-pick-img img {
+    width: 100%;
+    height: 174px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.desk-pick-card:hover .desk-pick-img img {
+    transform: scale(1.03);
+}
+.desk-pick-title {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.32;
+    color: var(--desk-pick-title);
+    margin-bottom: 10px;
+    transition: color 0.2s ease;
+}
+.desk-pick-card:hover .desk-pick-title {
+    color: var(--text-main);
+}
+
+/* Center Column: Shaded Politics Feature Box */
+.desk-lead-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--desk-center-bg);
+    border: 1px solid var(--desk-center-border);
+    border-radius: var(--card-radius);
+    overflow: hidden;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.desk-lead-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 34px -10px rgba(20, 18, 16, 0.16);
+}
+html[data-theme="dark"] .desk-lead-card:hover {
+    box-shadow: 0 18px 38px -10px rgba(0, 0, 0, 0.6);
+}
+.desk-lead-top {
+    padding: 20px 24px 16px;
+}
+.desk-lead-title {
+    font-family: var(--font-heading);
+    font-size: clamp(24px, 2.5vw, 31px);
+    font-weight: 800;
+    line-height: 1.24;
+    color: var(--text-main);
+    margin: 6px 0 14px;
+    transition: color 0.2s ease;
+}
+.desk-lead-card:hover .desk-lead-title {
+    color: var(--desk-kicker);
+}
+.desk-lead-img {
+    overflow: hidden;
+    background: #201D1A;
+}
+.desk-lead-img img {
+    width: 100%;
+    height: 390px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.desk-lead-card:hover .desk-lead-img img {
+    transform: scale(1.025);
+}
+.desk-lead-bottom {
+    padding: 16px 24px 20px;
+    border-top: 1px solid var(--desk-center-border);
+}
+.desk-lead-excerpt {
+    font-size: 15px;
+    line-height: 1.68;
+    color: var(--text-body);
+}
+
+/* Right Column: ● ताज़ा खबरें (Just In Wire Feed) */
+.desk-wire-list {
+    display: flex;
+    flex-direction: column;
+}
+.desk-wire-item {
+    display: block;
+    padding: 13px 0;
+    border-bottom: 1px solid var(--desk-wire-divider);
+    transition: transform 0.18s ease;
+}
+.desk-wire-item:first-child {
+    padding-top: 2px;
+}
+.desk-wire-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+.desk-wire-item:hover {
+    transform: translateX(3px);
+}
+.desk-wire-title {
+    font-family: var(--font-heading);
+    font-size: 16.5px;
+    font-weight: 700;
+    line-height: 1.34;
+    color: var(--text-main);
+    transition: color 0.18s ease;
+}
+.desk-wire-item:hover .desk-wire-title {
+    color: var(--desk-kicker);
+}
+.desk-wire-meta {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    font-weight: 500;
+}
+
+@media (max-width: 1060px) {
+    .editorial-desk-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .desk-col-center {
+        grid-column: 1 / -1;
+        order: -1;
+    }
+}
+@media (max-width: 680px) {
+    .homepage-section {
+        padding: 18px 15px 22px;
+        margin-bottom: 24px;
+    }
+    .editorial-desk-grid,
+    .editorial-desk-grid.editorial-desk-two-col {
+        grid-template-columns: 1fr;
+        gap: 22px;
+    }
+    .desk-lead-top {
+        padding: 16px 16px 14px;
+    }
+    .desk-lead-img img {
+        height: 245px;
+    }
+    .desk-lead-bottom {
+        padding: 14px 16px 16px;
+    }
 }
 
 .section-rule {

@@ -141,7 +141,7 @@ DEFAULT_SITE_CONFIG = {
         "mobile_menu_label": "मेनू",
         "mobile_show_tagline": True,
         "theme_toggle_enabled": True,
-        "default_color_mode": "light",
+        "default_color_mode": "dark",
         "action_links": [],
         "colors": {}
     },
@@ -206,7 +206,8 @@ DEFAULT_SITE_CONFIG = {
                 "category": "all",
                 "layout": "bento",
                 "max_articles": 5,
-                "show_view_all": False
+                "show_view_all": False,
+                "bg_theme": "auto"
             },
             {
                 "id": "more-news",
@@ -216,13 +217,16 @@ DEFAULT_SITE_CONFIG = {
                 "category": "all",
                 "layout": "grid",
                 "max_articles": 12,
-                "show_view_all": False
+                "show_view_all": False,
+                "bg_theme": "auto"
             }
         ]
     }
 }
 
-HOMEPAGE_LAYOUTS = ("bento", "grid", "magazine", "compact-list", "strip")
+HOMEPAGE_LAYOUTS = ("editorial-desk", "bento", "grid", "magazine", "compact-list", "strip")
+SECTION_BG_THEMES = ("auto", "default", "sand", "crimson", "sage", "slate", "amber")
+AUTO_SECTION_BG_CYCLE = ("sand", "crimson", "slate", "sage", "amber")
 VALID_COLOR_MODES = ("light", "dark", "system")
 
 HOMEPAGE_PRESETS = {
@@ -439,6 +443,67 @@ HOMEPAGE_PRESETS = {
                 "show_view_all": True
             }
         ]
+    },
+    "wire-editorial": {
+        "name": "द वायर 3-कॉलम डेस्क (The Wire 3-Column Desk)",
+        "deduplicate_across_sections": True,
+        "sections": [
+            {
+                "id": "editorial-frontpage",
+                "enabled": True,
+                "title": "मुख्य पृष्ठ / Frontpage Desk",
+                "subtitle": "संपादक की पसंद • राजनीति • ताज़ा खबरें",
+                "category": "all",
+                "layout": "editorial-desk",
+                "max_articles": 9,
+                "show_view_all": False,
+                "bg_theme": "sand"
+            },
+            {
+                "id": "cat-desh-videsh",
+                "enabled": True,
+                "title": "देश-विदेश",
+                "subtitle": "ताज़ा हाइलाइट्स",
+                "category": "desh-videsh",
+                "layout": "strip",
+                "max_articles": 4,
+                "show_view_all": True,
+                "bg_theme": "crimson"
+            },
+            {
+                "id": "cat-technology",
+                "enabled": True,
+                "title": "टेक्नोलॉजी",
+                "subtitle": "विशेष कवरेज",
+                "category": "technology",
+                "layout": "grid",
+                "max_articles": 6,
+                "show_view_all": True,
+                "bg_theme": "slate"
+            },
+            {
+                "id": "cat-economy",
+                "enabled": True,
+                "title": "अर्थव्यवस्था",
+                "subtitle": "संक्षिप्त समाचार",
+                "category": "economy",
+                "layout": "compact-list",
+                "max_articles": 6,
+                "show_view_all": True,
+                "bg_theme": "sage"
+            },
+            {
+                "id": "cat-politics",
+                "enabled": True,
+                "title": "राजनीति",
+                "subtitle": "प्रमुख रिपोर्ट्स",
+                "category": "politics",
+                "layout": "grid",
+                "max_articles": 6,
+                "show_view_all": True,
+                "bg_theme": "amber"
+            }
+        ]
     }
 }
 
@@ -500,14 +565,19 @@ def normalize_homepage_config(raw_homepage):
         if layout not in HOMEPAGE_LAYOUTS:
             layout = "grid"
 
-        raw_limit = sec.get("max_articles", 5 if layout == "bento" else 6)
+        default_limit = 9 if layout == "editorial-desk" else (5 if layout == "bento" else 6)
+        raw_limit = sec.get("max_articles", default_limit)
         try:
             max_articles = int(raw_limit)
         except (TypeError, ValueError):
-            max_articles = 5 if layout == "bento" else 6
+            max_articles = default_limit
         max_articles = max(1, min(50, max_articles))
 
         show_view_all = bool(sec.get("show_view_all", category.lower() != "all"))
+        bg_theme = str(sec.get("bg_theme", "auto") or "auto").strip().lower()
+        if bg_theme not in SECTION_BG_THEMES:
+            bg_theme = "auto"
+
         normalized_sections.append({
             "id": sec_id,
             "enabled": enabled,
@@ -517,6 +587,7 @@ def normalize_homepage_config(raw_homepage):
             "layout": layout,
             "max_articles": max_articles,
             "show_view_all": show_view_all,
+            "bg_theme": bg_theme,
         })
 
     if not normalized_sections:
@@ -544,8 +615,8 @@ def load_site_config():
                     for key, default_val in DEFAULT_SITE_CONFIG["header"].items():
                         if key not in header_cfg:
                             header_cfg[key] = copy.deepcopy(default_val)
-                    if str(header_cfg.get("default_color_mode", "light")).strip().lower() not in VALID_COLOR_MODES:
-                        header_cfg["default_color_mode"] = "light"
+                    if str(header_cfg.get("default_color_mode", "dark")).strip().lower() not in VALID_COLOR_MODES:
+                        header_cfg["default_color_mode"] = "dark"
                 footer_cfg = data.get("footer")
                 if not isinstance(footer_cfg, dict):
                     data["footer"] = copy.deepcopy(DEFAULT_SITE_CONFIG["footer"])
@@ -831,9 +902,9 @@ def get_head_links(css_path="style.css", preload_img=None, config=None):
     escaped_preload = html.escape(preload_img, quote=True) if preload_img else ""
     preload_tag = f'    <link rel="preload" as="image" href="{escaped_preload}" fetchpriority="high">\n' if escaped_preload else ""
     header_cfg = config.get("header") if isinstance(config, dict) and isinstance(config.get("header"), dict) else {}
-    default_mode = str(header_cfg.get("default_color_mode", "light") or "light").strip().lower()
+    default_mode = str(header_cfg.get("default_color_mode", "dark") or "dark").strip().lower()
     if default_mode not in VALID_COLOR_MODES:
-        default_mode = "light"
+        default_mode = "dark"
     toggle_enabled = bool(header_cfg.get("theme_toggle_enabled", True))
     toggle_js = "true" if toggle_enabled else "false"
     theme_init_script = (
@@ -2281,8 +2352,136 @@ def _extract_article_excerpt(content_html, max_chars=145):
     return f"{trimmed}..."
 
 
-def _render_homepage_section(section, sec_articles, matched_cat, resolver, is_first_section=False):
-    """Renders one configurable homepage section in any of the 5 supported layouts and returns (html, lcp_img_url)."""
+def _is_manual_article(art):
+    """Returns True if an article was written manually (not fetched from an external RSS source)."""
+    if not isinstance(art, dict):
+        return False
+    source_name = str(art.get("source_name", "") or "").strip()
+    source_lower = source_name.lower()
+    if (
+        "अबतक24" in source_name
+        or "aabtak24" in source_lower
+        or source_lower in ("manual", "editor", "news desk", "संपादकीय डेस्क")
+    ):
+        return True
+    orig_link = str(art.get("original_link", "") or "").strip()
+    if not orig_link or "aabtak24.in" in orig_link.lower() or not orig_link.startswith(("http://", "https://")):
+        return True
+    return False
+
+
+def _estimate_read_minutes(content_html):
+    """Estimates reading time in minutes from article HTML."""
+    plain = BeautifulSoup(str(content_html or ""), "html.parser").get_text().strip()
+    words = [w for w in re.split(r"\s+", plain) if w]
+    return max(2, min(15, round(len(words) / 140) or 2))
+
+
+def _select_editorial_desk_articles(articles, section, config, seen_slugs, deduplicate):
+    """Selects articles for the 3-column Editorial Desk layout:
+    - Center (1 article): Latest Politics ('राजनीति') article (or section category if set), with fallback.
+    - Left (up to 2-3 articles): Manually written articles first, backfilled with latest posts if needed.
+    - Right (remaining up to max_articles): Latest available articles for 'ताज़ा खबरें' (Just In).
+    """
+    max_articles = max(1, int(section.get("max_articles", 9) or 9))
+    category_key = str(section.get("category", "all") or "all").strip()
+    matched_cat = _resolve_section_category(category_key, config)
+
+    pool = [a for a in articles if not (deduplicate and a.get("slug") in seen_slugs)]
+    if not pool:
+        return None, matched_cat
+
+    target_cat_key = category_key if (category_key and category_key.lower() != "all") else "politics"
+    center_cat_obj = _resolve_section_category(target_cat_key, config)
+    politics_aliases = {"राजनीति", "चुनाव", "politics", "Politics"}
+    if center_cat_obj:
+        cname = str(center_cat_obj.get("name", "") or "").strip()
+        if cname:
+            politics_aliases.add(cname)
+        for al in center_cat_obj.get("aliases") or []:
+            if str(al).strip():
+                politics_aliases.add(str(al).strip())
+    elif target_cat_key.lower() != "politics":
+        politics_aliases = {target_cat_key}
+
+    center_article = next(
+        (a for a in pool if str(a.get("category", "") or "").strip() in politics_aliases),
+        None,
+    )
+    if center_article is None:
+        center_article = pool[0]
+
+    used_local = {id(center_article)}
+    if center_article.get("slug"):
+        used_local.add(center_article["slug"])
+
+    def _is_unused(art):
+        slug = art.get("slug")
+        return id(art) not in used_local and (not slug or slug not in used_local)
+
+    def _mark_used(art):
+        used_local.add(id(art))
+        if art.get("slug"):
+            used_local.add(art["slug"])
+
+    remaining_budget = max(0, max_articles - 1)
+    if remaining_budget == 0:
+        left_target = 0
+    elif remaining_budget <= 3:
+        left_target = 1
+    elif remaining_budget >= 10:
+        left_target = 3
+    else:
+        left_target = 2
+
+    left_articles = []
+    for art in pool:
+        if len(left_articles) >= left_target:
+            break
+        if _is_unused(art) and _is_manual_article(art):
+            left_articles.append(art)
+            _mark_used(art)
+
+    if len(left_articles) < left_target:
+        for art in pool:
+            if len(left_articles) >= left_target:
+                break
+            if _is_unused(art):
+                left_articles.append(art)
+                _mark_used(art)
+
+    right_target = max(0, remaining_budget - len(left_articles))
+    right_articles = []
+    for art in pool:
+        if len(right_articles) >= right_target:
+            break
+        if _is_unused(art):
+            right_articles.append(art)
+            _mark_used(art)
+
+    all_selected = [center_article] + left_articles + right_articles
+    for art in all_selected:
+        if art.get("slug"):
+            seen_slugs.add(art["slug"])
+
+    return {
+        "center": center_article,
+        "left": left_articles,
+        "right": right_articles,
+        "all": all_selected,
+    }, matched_cat
+
+
+def _resolve_section_bg_theme(section, section_index=0):
+    """Resolves a section's background color theme ('sand', 'crimson', 'slate', 'sage', 'amber', or 'default')."""
+    raw_bg = str(section.get("bg_theme", "auto") or "auto").strip().lower()
+    if raw_bg not in SECTION_BG_THEMES or raw_bg == "auto":
+        return AUTO_SECTION_BG_CYCLE[section_index % len(AUTO_SECTION_BG_CYCLE)]
+    return raw_bg
+
+
+def _render_homepage_section(section, sec_articles, matched_cat, resolver, is_first_section=False, section_index=0):
+    """Renders one configurable homepage section in any of the 6 supported layouts and returns (html, lcp_img_url)."""
     if not sec_articles:
         return "", None
 
@@ -2290,6 +2489,7 @@ def _render_homepage_section(section, sec_articles, matched_cat, resolver, is_fi
     if layout not in HOMEPAGE_LAYOUTS:
         layout = "grid"
 
+    resolved_bg = _resolve_section_bg_theme(section, section_index=section_index)
     sec_id = html.escape(str(section.get("id", "section")), quote=True)
     sec_title = html.escape(str(section.get("title", "समाचार")), quote=True)
     sec_subtitle = str(section.get("subtitle", "") or "").strip()
@@ -2308,18 +2508,146 @@ def _render_homepage_section(section, sec_articles, matched_cat, resolver, is_fi
         right_parts.append(view_all_html)
     right_html = f'<div class="section-rule-right">{" ".join(right_parts)}</div>' if right_parts else ""
 
-    # Preserve single semantic <h1> per page: hero/magazine lead gets <h1> on first section; other layouts promote section heading
-    uses_card_h1 = is_first_section and layout in ("bento", "magazine")
+    # Preserve single semantic <h1> per page: hero/magazine/editorial-desk lead gets <h1> on first section; other layouts promote section heading
+    uses_card_h1 = is_first_section and layout in ("editorial-desk", "bento", "magazine")
     rule_heading_tag = "h1" if (is_first_section and not uses_card_h1) else "h2"
-    rule_html = f"""        <div class="section-rule">
+    rule_html = "" if layout == "editorial-desk" else f"""        <div class="section-rule">
             <{rule_heading_tag}>{sec_title}</{rule_heading_tag}>
             {right_html}
-        </div>"""
+        </div>\n"""
 
     lcp_img = None
     body_html = ""
 
-    if layout == "bento":
+    if layout == "editorial-desk":
+        if isinstance(sec_articles, dict) and "center" in sec_articles:
+            center_art = sec_articles["center"]
+            left_articles = sec_articles.get("left") or []
+            right_articles = sec_articles.get("right") or []
+        else:
+            desk_bundle, _ = _select_editorial_desk_articles(
+                list(sec_articles), section, {"categories": []}, set(), False
+            )
+            if not desk_bundle:
+                return "", None
+            center_art = desk_bundle["center"]
+            left_articles = desk_bundle["left"]
+            right_articles = desk_bundle["right"]
+
+        # 1. Left Column: संपादक की पसंद (Manually written posts first)
+        left_cards_html = ""
+        for art in left_articles:
+            art_link = f"news/{art['slug']}.html"
+            pick_img, pick_fallback = resolver.resolve(art.get("image_url", ""), width=420)
+            pick_img_tag = build_img_tag(
+                pick_img,
+                art.get("title", ""),
+                width=400,
+                height=225,
+                fallback_src=pick_fallback,
+                extra_attrs='loading="lazy" decoding="async"',
+            )
+            art_cat = html.escape(str(art.get("category", "संपादकीय") or "संपादकीय"), quote=True)
+            art_title = html.escape(str(art.get("title", "")), quote=True)
+            art_source = html.escape(str(art.get("source_name", "") or "अबतक24 न्यूज़ डेस्क"), quote=True)
+            read_mins = _estimate_read_minutes(art.get("content_html", ""))
+            is_manual_badge = ' data-manual-post="true"' if _is_manual_article(art) else ""
+            left_cards_html += f"""
+                    <a href="{art_link}" class="desk-pick-card"{is_manual_badge}>
+                        <div class="desk-pick-img">{pick_img_tag}</div>
+                        <div class="desk-pick-body">
+                            <span class="desk-kicker">{art_cat}</span>
+                            <h3 class="desk-pick-title">{art_title}</h3>
+                            <div class="desk-meta-row">
+                                <span class="desk-meta-author">{art_source}</span>
+                                <span class="desk-meta-time">{read_mins} मिनट पठन</span>
+                            </div>
+                        </div>
+                    </a>"""
+
+        left_col_html = ""
+        if left_cards_html:
+            left_col_html = f"""            <div class="desk-col desk-col-left">
+                <div class="desk-col-header">
+                    <h2 class="desk-col-title">संपादक की पसंद</h2>
+                </div>
+                <div class="desk-pick-stack">{left_cards_html}
+                </div>
+            </div>\n"""
+
+        # 2. Center Column: राजनीति (Politics Featured Lead in Shaded Box)
+        center_link = f"news/{center_art['slug']}.html"
+        center_img, center_fallback = resolver.resolve(center_art.get("image_url", ""), width=800)
+        if is_first_section:
+            lcp_img = center_img
+        center_load_attrs = 'fetchpriority="high" loading="eager" decoding="sync"' if is_first_section else 'loading="lazy" decoding="async"'
+        center_img_tag = build_img_tag(
+            center_img,
+            center_art.get("title", ""),
+            width=800,
+            height=440,
+            fallback_src=center_fallback,
+            extra_attrs=center_load_attrs,
+        )
+        center_h_tag = "h1" if is_first_section else "h2"
+        center_cat = html.escape(str(center_art.get("category", "राजनीति") or "राजनीति"), quote=True)
+        center_title = html.escape(str(center_art.get("title", "")), quote=True)
+        center_source = html.escape(str(center_art.get("source_name", "") or "अबतक24 न्यूज़ डेस्क"), quote=True)
+        center_date = html.escape(str(center_art.get("date", "")), quote=True)
+        center_read_mins = _estimate_read_minutes(center_art.get("content_html", ""))
+        center_excerpt = html.escape(_extract_article_excerpt(center_art.get("content_html", ""), max_chars=170), quote=True)
+        center_excerpt_html = f'\n                    <div class="desk-lead-bottom"><p class="desk-lead-excerpt">{center_excerpt}</p></div>' if center_excerpt else ""
+
+        center_col_html = f"""            <div class="desk-col desk-col-center">
+                <a href="{center_link}" class="desk-lead-card">
+                    <div class="desk-lead-top">
+                        <span class="desk-kicker">{center_cat}</span>
+                        <{center_h_tag} class="desk-lead-title">{center_title}</{center_h_tag}>
+                        <div class="desk-meta-row">
+                            <span class="desk-meta-author">{center_source}</span>
+                            <span class="desk-meta-time">{center_read_mins} मिनट पठन • {center_date}</span>
+                        </div>
+                    </div>
+                    <div class="desk-lead-img">{center_img_tag}</div>{center_excerpt_html}
+                </a>
+            </div>"""
+
+        # 3. Right Column: ● ताज़ा खबरें (Just In Latest Posts)
+        right_items_html = ""
+        for art in right_articles:
+            art_link = f"news/{art['slug']}.html"
+            art_cat = html.escape(str(art.get("category", "ताज़ा खबर") or "ताज़ा खबर"), quote=True)
+            art_title = html.escape(str(art.get("title", "")), quote=True)
+            art_date = html.escape(str(art.get("date", "")), quote=True)
+            right_items_html += f"""
+                    <a href="{art_link}" class="desk-wire-item">
+                        <span class="desk-kicker">{art_cat}</span>
+                        <h3 class="desk-wire-title">{art_title}</h3>
+                        <div class="desk-wire-meta">{art_date}</div>
+                    </a>"""
+
+        right_col_html = ""
+        if right_items_html:
+            right_col_html = f"""\n            <div class="desk-col desk-col-right">
+                <div class="desk-col-header desk-just-in-header">
+                    <h2 class="desk-col-title"><span class="just-in-dot" aria-hidden="true"></span>ताज़ा खबरें</h2>
+                    <span class="just-in-arrow" aria-hidden="true">→</span>
+                </div>
+                <div class="desk-wire-list">{right_items_html}
+                </div>
+            </div>"""
+
+        desk_cls = "editorial-desk-grid"
+        if not left_col_html and not right_col_html:
+            desk_cls += " editorial-desk-single"
+        elif not right_col_html:
+            desk_cls += " editorial-desk-two-col"
+
+        body_html = f"""        <div class="{desk_cls}">
+{left_col_html}{center_col_html}{right_col_html}
+        </div>"""
+
+    elif layout == "bento":
         hero = sec_articles[0]
         hero_link = f"news/{hero['slug']}.html"
         hero_img, hero_fallback = resolver.resolve(hero.get("image_url", ""), width=800)
@@ -2533,9 +2861,8 @@ def _render_homepage_section(section, sec_articles, matched_cat, resolver, is_fi
             </a>"""
         body_html = f'        <div class="archive-grid">{cards_html}\n        </div>'
 
-    section_html = f"""    <section class="homepage-section homepage-layout-{layout}" data-section-id="{sec_id}" data-section-layout="{layout}">
-{rule_html}
-{body_html}
+    section_html = f"""    <section class="homepage-section homepage-layout-{layout} section-bg-{resolved_bg}" data-section-id="{sec_id}" data-section-layout="{layout}" data-section-bg="{resolved_bg}">
+{rule_html}{body_html}
     </section>"""
     return section_html, lcp_img
 
@@ -2571,23 +2898,34 @@ def build_website_html(articles, config=None, skip_image_check=None, image_resol
         seen_slugs = set()
         lcp_preload = None
         for sec in sec_list:
-            sec_articles, matched_cat = _filter_articles_for_section(
-                articles,
-                sec.get("category", "all"),
-                config,
-                sec.get("max_articles", 6),
-                seen_slugs,
-                dedupe,
-            )
+            if sec.get("layout") == "editorial-desk":
+                sec_articles, matched_cat = _select_editorial_desk_articles(
+                    articles,
+                    sec,
+                    config,
+                    seen_slugs,
+                    dedupe,
+                )
+            else:
+                sec_articles, matched_cat = _filter_articles_for_section(
+                    articles,
+                    sec.get("category", "all"),
+                    config,
+                    sec.get("max_articles", 6),
+                    seen_slugs,
+                    dedupe,
+                )
             if not sec_articles:
                 continue
-            is_first = len(rendered_blocks) == 0
+            sec_idx = len(rendered_blocks)
+            is_first = sec_idx == 0
             sec_html, sec_lcp = _render_homepage_section(
                 sec,
                 sec_articles,
                 matched_cat,
                 resolver,
                 is_first_section=is_first,
+                section_index=sec_idx,
             )
             if sec_html:
                 rendered_blocks.append(sec_html)

@@ -110,6 +110,7 @@ def _make_article(
     title="भारत ने नई डिजिटल नीति लागू की",
     category="देश-विदेश",
     image_url="https://example.com/photo.jpg",
+    source_name="TestSource",
 ):
     return {
         "title": title,
@@ -119,7 +120,7 @@ def _make_article(
         "image_url": image_url,
         "image_courtesy": "फोटो साभार: परीक्षण डेस्क",
         "original_link": f"https://example.com/{slug}",
-        "source_name": "TestSource",
+        "source_name": source_name,
         "date": "18 Nov 2026, 10:00 AM",
         "iso_date": "2026-11-18T10:00:00+00:00",
     }
@@ -947,7 +948,7 @@ class TestHomepageCustomizationAndThemeToggle(unittest.TestCase):
                 self.assertTrue(cfg["homepage"]["deduplicate_across_sections"])
                 self.assertEqual(len(cfg["homepage"]["sections"]), 2)
                 self.assertTrue(cfg["header"]["theme_toggle_enabled"])
-                self.assertEqual(cfg["header"]["default_color_mode"], "light")
+                self.assertEqual(cfg["header"]["default_color_mode"], "dark")
 
                 # Invalid homepage values are safely normalized & clamped
                 norm = news_bot.normalize_homepage_config(
@@ -955,8 +956,8 @@ class TestHomepageCustomizationAndThemeToggle(unittest.TestCase):
                         "preset": "unknown-preset",
                         "deduplicate_across_sections": False,
                         "sections": [
-                            {"id": "s1", "title": "Clamp High", "layout": "invalid", "max_articles": 999, "category": "all"},
-                            {"id": "s2", "title": "Clamp Low", "layout": "strip", "max_articles": 0, "category": "technology"},
+                            {"id": "s1", "title": "Clamp High", "layout": "invalid", "max_articles": 999, "category": "all", "bg_theme": "unknown-bg"},
+                            {"id": "s2", "title": "Clamp Low", "layout": "strip", "max_articles": 0, "category": "technology", "bg_theme": "crimson"},
                         ],
                     }
                 )
@@ -964,9 +965,90 @@ class TestHomepageCustomizationAndThemeToggle(unittest.TestCase):
                 self.assertFalse(norm["deduplicate_across_sections"])
                 self.assertEqual(norm["sections"][0]["layout"], "grid")
                 self.assertEqual(norm["sections"][0]["max_articles"], 50)
+                self.assertEqual(norm["sections"][0]["bg_theme"], "auto")
                 self.assertEqual(norm["sections"][1]["layout"], "strip")
                 self.assertEqual(norm["sections"][1]["max_articles"], 1)
+                self.assertEqual(norm["sections"][1]["bg_theme"], "crimson")
                 self.assertTrue(norm["sections"][1]["show_view_all"])
+            finally:
+                os.chdir(old_cwd)
+
+    def test_editorial_desk_three_column_layout_manual_politics_justin_and_section_bgs(self):
+        manual_post = _make_article(
+            "manual-1",
+            title="मैनुअल संपादकीय विशेष रिपोर्ट",
+            category="देश-विदेश",
+            source_name="अबतक24 न्यूज़ डेस्क",
+        )
+        manual_post["original_link"] = "https://aabtak24.in/news/manual-1.html"
+
+        politics_post = _make_article(
+            "pol-lead",
+            title="संसद सत्र और राजनीति की बड़ी खबर",
+            category="राजनीति",
+            source_name="The Hindu",
+        )
+        fetched_posts = [
+            _make_article(f"wire-{i}", title=f"ताज़ा फ़ीड समाचार {i}", category="देश-विदेश", source_name="BBC News")
+            for i in range(1, 12)
+        ]
+        # Order: latest fetched post first, then politics post, more fetched posts, and manual post deeper in list
+        articles = [fetched_posts[0], politics_post] + fetched_posts[1:5] + [manual_post] + fetched_posts[5:]
+
+        config = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+        config["custom_pages"] = []
+        config["homepage"] = copy.deepcopy(news_bot.HOMEPAGE_PRESETS["wire-editorial"])
+
+        old_cwd = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chdir(tmpdir)
+            try:
+                news_bot.build_website_html(articles, config=config, skip_image_check=True)
+                index_html = Path(tmpdir, "index.html").read_text(encoding="utf-8")
+
+                # Default color mode is dark
+                self.assertIn("var d='dark';", index_html)
+                # Single semantic <h1> across the entire page
+                self.assertEqual(len(re.findall(r"<h1\b", index_html)), 1)
+
+                # Extract top editorial-desk section
+                desk_match = re.search(
+                    r'<section class="homepage-section homepage-layout-editorial-desk section-bg-sand"[^>]*>(.*?)</section>',
+                    index_html,
+                    flags=re.S,
+                )
+                self.assertIsNotNone(desk_match)
+                desk_html = desk_match.group(1)
+
+                # Left column ("संपादक की पसंद") prioritizes manual post + backfills second slot
+                left_match = re.search(r'<div class="desk-col desk-col-left">(.*?)</div>\s*<div class="desk-col desk-col-center">', desk_html, flags=re.S)
+                self.assertIsNotNone(left_match)
+                left_html = left_match.group(1)
+                self.assertIn("संपादक की पसंद", left_html)
+                self.assertIn("news/manual-1.html", left_html)
+                self.assertIn('data-manual-post="true"', left_html)
+                self.assertEqual(len(re.findall(r'class="desk-pick-card"', left_html)), 2)
+
+                # Center column ("राजनीति") has the Politics article in the shaded lead box with <h1>
+                center_match = re.search(r'<div class="desk-col desk-col-center">(.*?)</div>\s*<div class="desk-col desk-col-right">', desk_html, flags=re.S)
+                self.assertIsNotNone(center_match)
+                center_html = center_match.group(1)
+                self.assertIn("news/pol-lead.html", center_html)
+                self.assertIn('<h1 class="desk-lead-title">', center_html)
+                self.assertIn("संसद सत्र और राजनीति की बड़ी खबर", center_html)
+
+                # Right column ("ताज़ा खबरें") has the 6 latest remaining posts and does not duplicate left/center
+                right_match = re.search(r'<div class="desk-col desk-col-right">(.*)', desk_html, flags=re.S)
+                self.assertIsNotNone(right_match)
+                right_html = right_match.group(1)
+                self.assertIn("ताज़ा खबरें", right_html)
+                self.assertIn('class="just-in-dot"', right_html)
+                self.assertNotIn("news/manual-1.html", right_html)
+                self.assertNotIn("news/pol-lead.html", right_html)
+                self.assertEqual(len(re.findall(r'class="desk-wire-item"', right_html)), 6)
+
+                # Verify lower sections have distinct background color classes
+                self.assertIn("section-bg-crimson", index_html)
             finally:
                 os.chdir(old_cwd)
 

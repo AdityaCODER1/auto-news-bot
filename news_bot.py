@@ -1958,25 +1958,131 @@ def get_footer_html(config, prefix="", active_file=""):
     </footer>"""
 
 
+_ALLOWED_ARTICLE_HTML_TAGS = {
+    "p", "br", "h2", "h3", "h4", "strong", "b", "em", "i", "u", "s",
+    "blockquote", "ul", "ol", "li", "a", "span", "hr",
+}
+_VOID_ARTICLE_HTML_TAGS = {"br", "hr"}
+_STRIP_WITH_CONTENT_TAGS = (
+    "script", "style", "iframe", "object", "embed", "svg", "math",
+    "noscript", "template", "form", "textarea", "select", "option", "button",
+)
+
+
+def _sanitize_href_url(raw_href):
+    """Validates link href attributes and blocks javascript:/vbscript:/data: protocols."""
+    val = str(raw_href or "").strip()
+    if not val:
+        return ""
+    collapsed = re.sub(r"[\x00-\x1f\x7f\s]+", "", val).lower()
+    if collapsed.startswith(("https://", "http://", "mailto:")):
+        parsed = urlparse(val)
+        if parsed.scheme.lower() in ("http", "https", "mailto"):
+            return val
+        return ""
+    if val.startswith("#") and re.match(r"^#[A-Za-z0-9_\-]{1,80}$", val):
+        return val
+    if re.match(r"^[A-Za-z0-9_\-./]{1,140}$", val) and ".." not in val and not val.startswith("//"):
+        return val
+    return ""
+
+
+def _sanitize_article_html(raw_html):
+    """Build-time allowlist HTML sanitizer for article body content."""
+    cleaned = str(raw_html or "")
+    cleaned = re.sub(r"<!--[\s\S]*?-->", "", cleaned)
+    cleaned = re.sub(r"<!\[CDATA\[[\s\S]*?\]\]>", "", cleaned, flags=re.IGNORECASE)
+
+    for tag in _STRIP_WITH_CONTENT_TAGS:
+        cleaned = re.sub(
+            rf"<{tag}\b[^>]*>[\s\S]*?</{tag}\s*>",
+            "",
+            cleaned,
+            flags=re.IGNORECASE,
+        )
+        cleaned = re.sub(rf"</?{tag}\b[^>]*>", "", cleaned, flags=re.IGNORECASE)
+
+    attr_re = re.compile(r'([A-Za-z0-9_:-]+)(?:\s*=\s*(?:"([^"]*)"|\'([^\']*)\'|([^\s"\'=<>`]+)))?')
+
+    def _clean_tag(match):
+        closing = match.group(1)
+        tag = match.group(2).lower()
+        attr_str = match.group(3) or ""
+        if tag not in _ALLOWED_ARTICLE_HTML_TAGS:
+            return ""
+        if closing:
+            return "" if tag in _VOID_ARTICLE_HTML_TAGS else f"</{tag}>"
+        if tag in _VOID_ARTICLE_HTML_TAGS:
+            return f"<{tag}>"
+
+        safe_attrs = []
+        if tag == "a":
+            safe_href = ""
+            open_blank = False
+            for am in attr_re.finditer(attr_str):
+                name = am.group(1).lower()
+                val = am.group(2) if am.group(2) is not None else (
+                    am.group(3) if am.group(3) is not None else (am.group(4) or "")
+                )
+                if name == "href":
+                    safe_href = _sanitize_href_url(val)
+                elif name == "target" and val.strip().lower() == "_blank":
+                    open_blank = True
+            if safe_href:
+                safe_attrs.append(f'href="{html.escape(safe_href, quote=True)}"')
+            if open_blank:
+                safe_attrs.append('target="_blank"')
+                safe_attrs.append('rel="noopener noreferrer"')
+        elif tag in ("p", "li", "span", "h2", "h3", "h4"):
+            for am in attr_re.finditer(attr_str):
+                if am.group(1).lower() == "class":
+                    val = am.group(2) if am.group(2) is not None else (
+                        am.group(3) if am.group(3) is not None else (am.group(4) or "")
+                    )
+                    allowed_cls = [
+                        c for c in val.split()
+                        if re.match(r"^(ql-indent-[1-8]|ql-align-(center|right|justify)|notranslate)$", c)
+                    ]
+                    if allowed_cls:
+                        safe_attrs.append(f'class="{" ".join(allowed_cls)}"')
+                    break
+
+        return f"<{tag} {' '.join(safe_attrs)}>" if safe_attrs else f"<{tag}>"
+
+    return re.sub(r"<(/?)([A-Za-z0-9]+)([^>]*)>", _clean_tag, cleaned).strip()
+
+
 def build_individual_article_page(art, today_str, config, image_resolver=None):
     """Creates a dedicated SEO-optimized HTML page for a single article inside /news/."""
     os.makedirs(NEWS_DIR, exist_ok=True)
-    slug = art["slug"]
+    slug = clean_slug(art.get("slug", "news-story")) or "news-story"
     canonical_url = f"{SITE_URL}/news/{slug}.html"
 
-    # Normalize any old <h3> subheadings in existing articles to <h2> for sequential accessibility
-    body_html = art["content_html"].replace("<h3>", "<h2>").replace("</h3>", "</h2>")
+    # Normalize any old <h3> subheadings in existing articles to <h2> and sanitize build-time HTML
+    raw_body_html = str(art.get("content_html", "") or "")
+    normalized_body = re.sub(r"<h3\b[^>]*>", "<h2>", raw_body_html, flags=re.IGNORECASE)
+    normalized_body = re.sub(r"</h3\s*>", "</h2>", normalized_body, flags=re.IGNORECASE)
+    body_html = _sanitize_article_html(normalized_body)
     plain_text = BeautifulSoup(body_html, "html.parser").get_text().strip()
-    meta_desc = plain_text[:155].replace('"', "'") + "..."
+    meta_desc_raw = plain_text[:155].replace('"', "'") + "..."
+    meta_desc = html.escape(meta_desc_raw, quote=True)
+
+    safe_title_text = str(art.get("title", "") or "")
+    safe_title_escaped = html.escape(safe_title_text, quote=True)
+    safe_title_brand = html.escape(_sanitize_title_brand(safe_title_text), quote=True)
+    safe_category = html.escape(str(art.get("category", "ताज़ा खबर") or "ताज़ा खबर"), quote=True)
+    safe_date = html.escape(str(art.get("date", "") or ""), quote=True)
+    safe_courtesy = html.escape(str(art.get("image_courtesy", "") or ""), quote=True)
 
     # Handle relative local image paths if uploaded via editor vs external URLs
     resolver = image_resolver or ImageResolver(skip_check=should_skip_image_check())
     raw_img = str(art.get("image_url", "") or "").strip()
     article_img_src, article_img_fallback = resolver.resolve(raw_img, width=900, local_prefix="../")
     og_img_url = f"{SITE_URL}/{raw_img.lstrip('./')}" if not raw_img.startswith(("http://", "https://")) else raw_img
+    safe_og_img_url = html.escape(og_img_url, quote=True)
     article_img_tag = build_img_tag(
         article_img_src,
-        art["title"],
+        safe_title_text,
         width=800,
         height=450,
         fallback_src=article_img_fallback,
@@ -1987,7 +2093,7 @@ def build_individual_article_page(art, today_str, config, image_resolver=None):
     schema_ld = {
         "@context": "https://schema.org",
         "@type": "NewsArticle",
-        "headline": art["title"],
+        "headline": safe_title_text,
         "image": [og_img_url],
         "datePublished": art.get("iso_date", datetime.now(timezone.utc).isoformat()),
         "dateModified": art.get("iso_date", datetime.now(timezone.utc).isoformat()),
@@ -2001,28 +2107,33 @@ def build_individual_article_page(art, today_str, config, image_resolver=None):
             "name": SITE_NAME,
             "url": SITE_URL
         },
-        "description": meta_desc,
+        "description": meta_desc_raw,
         "mainEntityOfPage": {
             "@type": "WebPage",
             "@id": canonical_url
         }
     }
-    schema_json = json.dumps(schema_ld, ensure_ascii=False)
+    # Escape < and > inside JSON-LD per OWASP guidance so titles can never inject tags or close <script>
+    schema_json = (
+        json.dumps(schema_ld, ensure_ascii=False)
+        .replace("<", "\\u003c")
+        .replace(">", "\\u003e")
+    )
 
     article_html = f"""<!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{_sanitize_title_brand(art['title'])} | Aabtak24.in</title>
+    <title>{safe_title_brand} | Aabtak24.in</title>
     <meta name="description" content="{meta_desc}">
     <link rel="canonical" href="{canonical_url}">
     
     <!-- OpenGraph / WhatsApp / Social Preview Tags -->
     <meta property="og:type" content="article">
-    <meta property="og:title" content="{art['title']}">
+    <meta property="og:title" content="{safe_title_escaped}">
     <meta property="og:description" content="{meta_desc}">
-    <meta property="og:image" content="{og_img_url}">
+    <meta property="og:image" content="{safe_og_img_url}">
     <meta property="og:url" content="{canonical_url}">
     <meta property="og:site_name" content="Aabtak24.in">
     <meta name="twitter:card" content="summary_large_image">
@@ -2040,12 +2151,12 @@ def build_individual_article_page(art, today_str, config, image_resolver=None):
     <main class="container">
         <article class="article-box">
             <a href="../index.html" class="back-btn">← मुख्य पृष्ठ पर वापस जाएं</a>
-            <div><span class="badge">{art.get('category', 'ताज़ा खबर')}</span></div>
-            <h1 class="single-title">{_protect_hindi_brand_html(art['title'])}</h1>
-            <div class="meta single-meta">प्रकाशित: {art['date']} <span class="meta-dot"></span> <span class="notranslate" translate="no">अबतक24</span> न्यूज़ डेस्क</div>
+            <div><span class="badge">{safe_category}</span></div>
+            <h1 class="single-title">{_protect_hindi_brand_html(safe_title_escaped)}</h1>
+            <div class="meta single-meta">प्रकाशित: {safe_date} <span class="meta-dot"></span> <span class="notranslate" translate="no">अबतक24</span> न्यूज़ डेस्क</div>
             <figure class="single-figure">
                 {article_img_tag}
-                <figcaption class="image-credit">{_protect_hindi_brand_html(str(art.get('image_courtesy', '')))}</figcaption>
+                <figcaption class="image-credit">{_protect_hindi_brand_html(safe_courtesy)}</figcaption>
             </figure>
             <div class="article-content">
                 {_protect_hindi_brand_html(body_html)}
@@ -2068,6 +2179,7 @@ def build_category_pages(articles, today_str, config, image_resolver=None):
     generated_files = []
     for cat in config.get("categories", []):
         cat_name = cat["name"].strip()
+        safe_cat_name = html.escape(cat_name, quote=True)
         cat_file = os.path.basename(cat["file"])
         valid_aliases = {a.strip() for a in cat.get("aliases", []) if str(a).strip()} | {cat_name}
 
@@ -2080,36 +2192,40 @@ def build_category_pages(articles, today_str, config, image_resolver=None):
         cards_html = ""
         if filtered:
             for idx, art in enumerate(filtered):
-                art_link = f"news/{art['slug']}.html"
+                art_slug = clean_slug(art.get("slug", "news-story")) or "news-story"
+                art_link = f"news/{art_slug}.html"
                 card_img, card_fallback = resolver.resolve(art.get("image_url", ""), width=480)
                 load_attr = 'fetchpriority="high"' if idx == 0 else 'loading="lazy"'
                 card_img_tag = build_img_tag(
                     card_img,
-                    art["title"],
+                    art.get("title", ""),
                     width=400,
                     height=200,
                     fallback_src=card_fallback,
                     extra_attrs=f'{load_attr} decoding="async"',
                 )
+                safe_art_cat = html.escape(str(art.get("category", cat_name) or cat_name), quote=True)
+                safe_art_title = html.escape(str(art.get("title", "") or ""), quote=True)
+                safe_art_date = html.escape(str(art.get("date", "") or ""), quote=True)
                 cards_html += f"""
                 <a href="{art_link}" class="archive-card">
                     {card_img_tag}
                     <div class="archive-card-body">
-                        <span class="badge">{art.get('category', cat_name)}</span>
-                        <h2 class="side-title">{art['title']}</h2>
-                        <div class="meta">{art['date']}</div>
+                        <span class="badge">{safe_art_cat}</span>
+                        <h2 class="side-title">{safe_art_title}</h2>
+                        <div class="meta">{safe_art_date}</div>
                     </div>
                 </a>"""
         else:
-            cards_html = f'<p style="color: var(--text-muted); font-size: 18px; padding: 20px 0;">अभी <strong>{cat_name}</strong> श्रेणी में कोई समाचार उपलब्ध नहीं है। अगली अपडेट में खबरें जोड़ी जाएंगी!</p>'
+            cards_html = f'<p style="color: var(--text-muted); font-size: 18px; padding: 20px 0;">अभी <strong>{safe_cat_name}</strong> श्रेणी में कोई समाचार उपलब्ध नहीं है। अगली अपडेट में खबरें जोड़ी जाएंगी!</p>'
 
         page_html = f"""<!DOCTYPE html>
 <html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{cat_name} समाचार | Aabtak24.in</title>
-    <meta name="description" content="Aabtak24.in पर पढ़ें {cat_name} से जुड़ी ताज़ा और प्रमुख हिंदी खबरें।">
+    <title>{safe_cat_name} समाचार | Aabtak24.in</title>
+    <meta name="description" content="Aabtak24.in पर पढ़ें {safe_cat_name} से जुड़ी ताज़ा और प्रमुख हिंदी खबरें।">
     <link rel="canonical" href="{SITE_URL}/{cat_file}">
 {get_head_links(css_path="style.css", config=config)}
 </head>

@@ -1461,6 +1461,48 @@ class TestHomepageCustomizationAndThemeToggle(unittest.TestCase):
             finally:
                 os.chdir(old_cwd)
 
+    def test_build_time_html_sanitization_and_escaping_blocks_xss(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            old_cwd = os.getcwd()
+            os.chdir(tmpdir)
+            try:
+                config = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+                xss_art = _make_article(
+                    "xss-defense-check",
+                    title='शीर्षक </script><script>alert("title")</script><img src=x onerror=alert(1)>',
+                    category="देश-विदेश",
+                )
+                xss_art["image_courtesy"] = 'साभार <script>alert("credit")</script>'
+                xss_art["content_html"] = (
+                    '<h3>उप-शीर्षक</h3>'
+                    '<p onclick="evil()">सुरक्षित <strong>हिंदी</strong> लेख '
+                    '<a href="javascript:alert(1)">खतरनाक लिंक</a> '
+                    '<a href="https://aabtak24.in" target="_blank">सुरक्षित लिंक</a></p>'
+                    '<script>alert("body")</script>'
+                    '<iframe src="https://evil.example/frame"></iframe>'
+                    '<svg onload="alert(1)"></svg>'
+                )
+
+                news_bot.build_website_html([xss_art], config=config, skip_image_check=True)
+                art_html = Path("news/xss-defense-check.html").read_text(encoding="utf-8")
+                cat_html = Path("desh-videsh.html").read_text(encoding="utf-8")
+
+                for page_html in (art_html, cat_html):
+                    self.assertNotIn('<script>alert(', page_html)
+                    self.assertNotIn('<img src=x onerror=alert(1)>', page_html)
+                    self.assertNotIn('onclick="evil()"', page_html)
+                    self.assertNotIn('javascript:alert(1)', page_html)
+                    self.assertNotIn('<iframe', page_html)
+                    self.assertNotIn('<svg onload=', page_html)
+
+                self.assertIn('&lt;img src=x onerror=alert(1)&gt;', art_html)
+                self.assertIn("<h2>उप-शीर्षक</h2>", art_html)
+                self.assertIn("<strong>हिंदी</strong>", art_html)
+                self.assertIn('rel="noopener noreferrer"', art_html)
+                self.assertIn("\\u003c/script\\u003e", art_html)
+            finally:
+                os.chdir(old_cwd)
+
 
 if __name__ == "__main__":
     unittest.main()

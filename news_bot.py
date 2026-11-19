@@ -140,6 +140,8 @@ DEFAULT_SITE_CONFIG = {
         "mobile_theme": "auto",
         "mobile_menu_label": "मेनू",
         "mobile_show_tagline": True,
+        "theme_toggle_enabled": True,
+        "default_color_mode": "light",
         "action_links": [],
         "colors": {}
     },
@@ -191,6 +193,252 @@ DEFAULT_SITE_CONFIG = {
         "copyright_text": "© {year} अबतक24.in (Aabtak24.in) • सर्वाधिकार सुरक्षित।",
         "bottom_note": "डिजिटल संस्करण • INDIA",
         "colors": {}
+    },
+    "homepage": {
+        "preset": "classic-bento",
+        "deduplicate_across_sections": True,
+        "sections": [
+            {
+                "id": "top-stories",
+                "enabled": True,
+                "title": "प्रमुख सुर्खियां / Top Stories",
+                "subtitle": "ताज़ा अपडेट्स",
+                "category": "all",
+                "layout": "bento",
+                "max_articles": 5,
+                "show_view_all": False
+            },
+            {
+                "id": "more-news",
+                "enabled": True,
+                "title": "अन्य खबरें / More News",
+                "subtitle": "सभी समाचार",
+                "category": "all",
+                "layout": "grid",
+                "max_articles": 12,
+                "show_view_all": False
+            }
+        ]
+    }
+}
+
+HOMEPAGE_LAYOUTS = ("bento", "grid", "magazine", "compact-list", "strip")
+VALID_COLOR_MODES = ("light", "dark", "system")
+
+HOMEPAGE_PRESETS = {
+    "classic-bento": {
+        "name": "क्लासिक बेंटो (Classic Bento)",
+        "deduplicate_across_sections": True,
+        "sections": [
+            {
+                "id": "top-stories",
+                "enabled": True,
+                "title": "प्रमुख सुर्खियां / Top Stories",
+                "subtitle": "ताज़ा अपडेट्स",
+                "category": "all",
+                "layout": "bento",
+                "max_articles": 5,
+                "show_view_all": False
+            },
+            {
+                "id": "more-news",
+                "enabled": True,
+                "title": "अन्य खबरें / More News",
+                "subtitle": "सभी समाचार",
+                "category": "all",
+                "layout": "grid",
+                "max_articles": 12,
+                "show_view_all": False
+            }
+        ]
+    },
+    "category-showcase": {
+        "name": "न्यूज़पेपर कैटेगरी शोकेस (Category Showcase)",
+        "deduplicate_across_sections": True,
+        "sections": [
+            {
+                "id": "top-stories",
+                "enabled": True,
+                "title": "प्रमुख सुर्खियां / Top Stories",
+                "subtitle": "ताज़ा अपडेट्स",
+                "category": "all",
+                "layout": "bento",
+                "max_articles": 5,
+                "show_view_all": False
+            },
+            {
+                "id": "sec-desh-videsh",
+                "enabled": True,
+                "title": "देश-विदेश / National & World",
+                "subtitle": "प्रमुख कवरेज",
+                "category": "desh-videsh",
+                "layout": "grid",
+                "max_articles": 6,
+                "show_view_all": True
+            },
+            {
+                "id": "sec-technology",
+                "enabled": True,
+                "title": "टेक्नोलॉजी / Technology & AI",
+                "subtitle": "टेक व विज्ञान",
+                "category": "technology",
+                "layout": "magazine",
+                "max_articles": 5,
+                "show_view_all": True
+            },
+            {
+                "id": "sec-economy",
+                "enabled": True,
+                "title": "अर्थव्यवस्था / Economy & Business",
+                "subtitle": "बाज़ार और नीति",
+                "category": "economy",
+                "layout": "compact-list",
+                "max_articles": 6,
+                "show_view_all": True
+            },
+            {
+                "id": "sec-politics",
+                "enabled": True,
+                "title": "राजनीति / Politics",
+                "subtitle": "सत्ता और संसद",
+                "category": "politics",
+                "layout": "grid",
+                "max_articles": 3,
+                "show_view_all": True
+            },
+            {
+                "id": "sec-entertainment",
+                "enabled": True,
+                "title": "मनोरंजन / Entertainment",
+                "subtitle": "सिनेमा व ट्रेंड्स",
+                "category": "entertainment",
+                "layout": "strip",
+                "max_articles": 4,
+                "show_view_all": True
+            }
+        ]
+    },
+    "magazine-editorial": {
+        "name": "मैगज़ीन एडिटोरियल (Magazine Editorial)",
+        "deduplicate_across_sections": True,
+        "sections": [
+            {
+                "id": "lead-spotlight",
+                "enabled": True,
+                "title": "स्पॉटलाइट / Featured Spotlight",
+                "subtitle": "विशेष संपादकीय",
+                "category": "all",
+                "layout": "magazine",
+                "max_articles": 5,
+                "show_view_all": False
+            },
+            {
+                "id": "quick-strip",
+                "enabled": True,
+                "title": "तेज़ नज़र / Quick Highlights",
+                "subtitle": "प्रमुख झलकियाँ",
+                "category": "all",
+                "layout": "strip",
+                "max_articles": 4,
+                "show_view_all": False
+            },
+            {
+                "id": "mag-desh-videsh",
+                "enabled": True,
+                "title": "देश-विदेश / Big Stories",
+                "subtitle": "बड़ी खबरें",
+                "category": "desh-videsh",
+                "layout": "bento",
+                "max_articles": 5,
+                "show_view_all": True
+            },
+            {
+                "id": "mag-technology",
+                "enabled": True,
+                "title": "टेक्नोलॉजी और भविष्य",
+                "subtitle": "टेक विशेष",
+                "category": "technology",
+                "layout": "compact-list",
+                "max_articles": 4,
+                "show_view_all": True
+            },
+            {
+                "id": "mag-politics",
+                "enabled": True,
+                "title": "राजनीति और नीति",
+                "subtitle": "सियासी हलचल",
+                "category": "politics",
+                "layout": "magazine",
+                "max_articles": 4,
+                "show_view_all": True
+            },
+            {
+                "id": "mag-more",
+                "enabled": True,
+                "title": "अन्य प्रमुख समाचार",
+                "subtitle": "सभी श्रेणियाँ",
+                "category": "all",
+                "layout": "grid",
+                "max_articles": 6,
+                "show_view_all": False
+            }
+        ]
+    },
+    "compact-wire": {
+        "name": "हाई-डेंसिटी न्यूज़ वायर (Compact Wire)",
+        "deduplicate_across_sections": True,
+        "sections": [
+            {
+                "id": "wire-strip",
+                "enabled": True,
+                "title": "ताज़ा सुर्खियां / Top Strip",
+                "subtitle": "अभी-अभी",
+                "category": "all",
+                "layout": "strip",
+                "max_articles": 4,
+                "show_view_all": False
+            },
+            {
+                "id": "wire-latest",
+                "enabled": True,
+                "title": "लेटेस्ट न्यूज़ वायर / Latest Wire",
+                "subtitle": "तेज़ अपडेट्स",
+                "category": "all",
+                "layout": "compact-list",
+                "max_articles": 8,
+                "show_view_all": False
+            },
+            {
+                "id": "wire-desh",
+                "enabled": True,
+                "title": "देश-विदेश / National Desk",
+                "subtitle": "ताज़ा रिपोर्ट्स",
+                "category": "desh-videsh",
+                "layout": "compact-list",
+                "max_articles": 6,
+                "show_view_all": True
+            },
+            {
+                "id": "wire-tech",
+                "enabled": True,
+                "title": "टेक्नोलॉजी / Tech Desk",
+                "subtitle": "टेक व AI",
+                "category": "technology",
+                "layout": "compact-list",
+                "max_articles": 4,
+                "show_view_all": True
+            },
+            {
+                "id": "wire-economy",
+                "enabled": True,
+                "title": "अर्थव्यवस्था / Economy Desk",
+                "subtitle": "बिजनेस व बाज़ार",
+                "category": "economy",
+                "layout": "grid",
+                "max_articles": 6,
+                "show_view_all": True
+            }
+        ]
     }
 }
 
@@ -221,6 +469,66 @@ MODEL_FALLBACK_CHAIN = [
 MODELS_TO_TRY = [entry["model"] for entry in MODEL_FALLBACK_CHAIN]
 
 
+def normalize_homepage_config(raw_homepage):
+    """Validates and normalizes the homepage layout configuration with safe defaults."""
+    default_hp = copy.deepcopy(DEFAULT_SITE_CONFIG["homepage"])
+    if not isinstance(raw_homepage, dict):
+        return default_hp
+
+    preset = str(raw_homepage.get("preset", "classic-bento") or "classic-bento").strip().lower()
+    if preset not in HOMEPAGE_PRESETS and preset != "custom":
+        preset = "custom"
+
+    dedupe = raw_homepage.get("deduplicate_across_sections", True)
+    dedupe = bool(dedupe)
+
+    raw_sections = raw_homepage.get("sections")
+    if not isinstance(raw_sections, list):
+        preset_data = HOMEPAGE_PRESETS.get(preset) or HOMEPAGE_PRESETS["classic-bento"]
+        raw_sections = copy.deepcopy(preset_data["sections"])
+
+    normalized_sections = []
+    for idx, sec in enumerate(raw_sections):
+        if not isinstance(sec, dict):
+            continue
+        sec_id = str(sec.get("id", "") or "").strip() or f"section-{idx + 1}"
+        enabled = bool(sec.get("enabled", True))
+        title = str(sec.get("title", "") or "").strip() or f"समाचार सेक्शन {idx + 1}"
+        subtitle = str(sec.get("subtitle", "") or "").strip()
+        category = str(sec.get("category", "all") or "all").strip() or "all"
+        layout = str(sec.get("layout", "grid") or "grid").strip().lower()
+        if layout not in HOMEPAGE_LAYOUTS:
+            layout = "grid"
+
+        raw_limit = sec.get("max_articles", 5 if layout == "bento" else 6)
+        try:
+            max_articles = int(raw_limit)
+        except (TypeError, ValueError):
+            max_articles = 5 if layout == "bento" else 6
+        max_articles = max(1, min(50, max_articles))
+
+        show_view_all = bool(sec.get("show_view_all", category.lower() != "all"))
+        normalized_sections.append({
+            "id": sec_id,
+            "enabled": enabled,
+            "title": title,
+            "subtitle": subtitle,
+            "category": category,
+            "layout": layout,
+            "max_articles": max_articles,
+            "show_view_all": show_view_all,
+        })
+
+    if not normalized_sections:
+        normalized_sections = copy.deepcopy(default_hp["sections"])
+
+    return {
+        "preset": preset,
+        "deduplicate_across_sections": dedupe,
+        "sections": normalized_sections,
+    }
+
+
 def load_site_config():
     """Loads site_config.json with safe fallback to DEFAULT_SITE_CONFIG."""
     if os.path.exists(CONFIG_FILE):
@@ -236,6 +544,8 @@ def load_site_config():
                     for key, default_val in DEFAULT_SITE_CONFIG["header"].items():
                         if key not in header_cfg:
                             header_cfg[key] = copy.deepcopy(default_val)
+                    if str(header_cfg.get("default_color_mode", "light")).strip().lower() not in VALID_COLOR_MODES:
+                        header_cfg["default_color_mode"] = "light"
                 footer_cfg = data.get("footer")
                 if not isinstance(footer_cfg, dict):
                     data["footer"] = copy.deepcopy(DEFAULT_SITE_CONFIG["footer"])
@@ -243,6 +553,7 @@ def load_site_config():
                     for key, default_val in DEFAULT_SITE_CONFIG["footer"].items():
                         if key not in footer_cfg:
                             footer_cfg[key] = copy.deepcopy(default_val)
+                data["homepage"] = normalize_homepage_config(data.get("homepage"))
                 return data
             print(f"⚠️ {CONFIG_FILE} missing required keys. Using fallback config.")
         except Exception as e:
@@ -515,11 +826,27 @@ def build_img_tag(src, alt, width, height, fallback_src="", extra_attrs="", self
     return f"<img {' '.join(attrs)}{closing}>"
 
 
-def get_head_links(css_path="style.css", preload_img=None):
-    """Common <head> tags: Non-blocking Google Fonts, optional LCP preload, and CSS."""
+def get_head_links(css_path="style.css", preload_img=None, config=None):
+    """Common <head> tags: Anti-FOUC theme init, Non-blocking Google Fonts, optional LCP preload, and CSS."""
     escaped_preload = html.escape(preload_img, quote=True) if preload_img else ""
     preload_tag = f'    <link rel="preload" as="image" href="{escaped_preload}" fetchpriority="high">\n' if escaped_preload else ""
+    header_cfg = config.get("header") if isinstance(config, dict) and isinstance(config.get("header"), dict) else {}
+    default_mode = str(header_cfg.get("default_color_mode", "light") or "light").strip().lower()
+    if default_mode not in VALID_COLOR_MODES:
+        default_mode = "light"
+    toggle_enabled = bool(header_cfg.get("theme_toggle_enabled", True))
+    toggle_js = "true" if toggle_enabled else "false"
+    theme_init_script = (
+        f"    <script>(function(){{var d='{default_mode}';var e={toggle_js};var s=null;"
+        "if(e){try{s=localStorage.getItem('aabtak-theme');}catch(err){}}"
+        "var m=(s==='light'||s==='dark')?s:(d==='system'?((window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light'):d);"
+        "document.documentElement.setAttribute('data-theme',m==='dark'?'dark':'light');"
+        "document.documentElement.setAttribute('data-default-theme',d);"
+        f"document.documentElement.setAttribute('data-theme-toggle-enabled','{toggle_js}');"
+        "})();</script>"
+    )
     return f"""    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2216%22 fill=%22%23141210%22/><text x=%2250%%22 y=%2254%%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 fill=%22%23FF4C00%22 font-family=%22sans-serif%22 font-weight=%22900%22 font-size=%2252%22>अ</text></svg>">
+{theme_init_script}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://wsrv.nl" crossorigin>
@@ -1061,10 +1388,18 @@ def get_header_html(config, prefix="", active_file=""):
 
     header_logo_file = "logo-light.svg" if theme == "dark" else "logo.svg"
     drawer_logo_file = "logo-light.svg" if resolved_mobile_theme == "dark" else "logo.svg"
+    header_adaptive_attrs = (
+        f' data-adaptive-logo="true" data-logo-light="{prefix}logo.svg" data-logo-dark="{prefix}logo-light.svg"'
+        if theme == "light" else ""
+    )
+    drawer_adaptive_attrs = (
+        f' data-adaptive-logo="true" data-logo-light="{prefix}logo.svg" data-logo-dark="{prefix}logo-light.svg"'
+        if resolved_mobile_theme == "light" else ""
+    )
 
     if show_logo:
-        header_brand_inner = f'<img src="{prefix}{header_logo_file}" alt="{brand_title}" width="206" height="36" decoding="sync">'
-        drawer_brand_inner = f'<img src="{prefix}{drawer_logo_file}" alt="{brand_title}" width="160" height="28" decoding="async">'
+        header_brand_inner = f'<img src="{prefix}{header_logo_file}" alt="{brand_title}" width="206" height="36" decoding="sync"{header_adaptive_attrs}>'
+        drawer_brand_inner = f'<img src="{prefix}{drawer_logo_file}" alt="{brand_title}" width="160" height="28" decoding="async"{drawer_adaptive_attrs}>'
     else:
         header_brand_inner = f'<span class="header-brand-title">{brand_title}</span>'
         drawer_brand_inner = f'<span class="mobile-drawer-title">{brand_title}</span>'
@@ -1115,6 +1450,36 @@ def get_header_html(config, prefix="", active_file=""):
         if action_items else ""
     )
 
+    theme_toggle_enabled = bool(header.get("theme_toggle_enabled", True))
+    theme_icons_svg = (
+        '<span class="theme-toggle-icon" aria-hidden="true">'
+        '<svg class="theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>'
+        '<svg class="theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
+        '</span>'
+    )
+    desktop_theme_toggle_html = (
+        f'\n                <button type="button" class="theme-toggle-btn desktop-theme-toggle" data-theme-toggle aria-label="डार्क मोड चालू करें" aria-pressed="false" title="लाइट / डार्क मोड बदलें">\n'
+        f'                    {theme_icons_svg}\n'
+        f'                    <span class="theme-toggle-label">डार्क</span>\n'
+        f'                </button>'
+        if theme_toggle_enabled else ""
+    )
+    mobile_theme_toggle_html = (
+        f'\n            <div class="mobile-drawer-theme">\n'
+        f'                <button type="button" class="theme-toggle-btn mobile-theme-toggle" data-theme-toggle aria-label="डार्क मोड चालू करें" aria-pressed="false">\n'
+        f'                    <span class="mobile-theme-copy">\n'
+        f'                        <span class="mobile-theme-title">डिस्प्ले मोड</span>\n'
+        f'                        <span class="mobile-theme-sub" data-theme-status>लाइट मोड सक्रिय</span>\n'
+        f'                    </span>\n'
+        f'                    <span class="mobile-theme-pill">\n'
+        f'                        {theme_icons_svg}\n'
+        f'                        <span class="theme-toggle-label">डार्क</span>\n'
+        f'                    </span>\n'
+        f'                </button>\n'
+        f'            </div>'
+        if theme_toggle_enabled else ""
+    )
+
     pill_label_html = f'\n                    <span class="hamburger-label">{safe_menu_label}</span>' if hamburger_style == "pill" else ""
 
     return f"""    <header class="site-header {theme_class} header-layout-{layout} header-nav-{nav_style} {sticky_class}"{header_style_attr}>
@@ -1129,7 +1494,7 @@ def get_header_html(config, prefix="", active_file=""):
             <div class="header-desktop-group">
                 <nav class="nav-pills desktop-nav" aria-label="मुख्य नेविगेशन">
                     {desktop_nav_links}
-                </nav>{desktop_actions_html}
+                </nav>{desktop_actions_html}{desktop_theme_toggle_html}
             </div>
 
             <!-- Mobile Hamburger Button -->
@@ -1153,72 +1518,136 @@ def get_header_html(config, prefix="", active_file=""):
             </div>{drawer_tagline_html}
             <nav class="mobile-nav-links" aria-label="मोबाइल नेविगेशन">
                 {mobile_nav_links}
-            </nav>{mobile_actions_html}{drawer_foot_html}
+            </nav>{mobile_theme_toggle_html}{mobile_actions_html}{drawer_foot_html}
         </div>
     </div>
     <script>
     (function () {{
         var btn = document.getElementById('site-hamburger-btn');
         var shell = document.getElementById('site-mobile-shell');
-        if (!btn || !shell) return;
-        var panel = document.getElementById('site-mobile-panel');
-        var header = document.querySelector('header.site-header');
-        var isDropdown = shell.classList.contains('mobile-style-dropdown');
+        if (btn && shell) {{
+            var panel = document.getElementById('site-mobile-panel');
+            var header = document.querySelector('header.site-header');
+            var isDropdown = shell.classList.contains('mobile-style-dropdown');
 
-        function positionDropdown() {{
-            if (!isDropdown || !panel || !header) return;
-            var rect = header.getBoundingClientRect();
-            panel.style.top = Math.max(8, Math.round(rect.bottom + 8)) + 'px';
+            function positionDropdown() {{
+                if (!isDropdown || !panel || !header) return;
+                var rect = header.getBoundingClientRect();
+                panel.style.top = Math.max(8, Math.round(rect.bottom + 8)) + 'px';
+            }}
+
+            function setOpen(open, fromKeyboard) {{
+                if (open && isDropdown) positionDropdown();
+                if (!open && shell.contains(document.activeElement)) {{
+                    btn.focus();
+                }}
+                shell.classList.toggle('is-open', open);
+                btn.classList.toggle('is-open', open);
+                btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                shell.setAttribute('aria-hidden', open ? 'false' : 'true');
+                if (!isDropdown) {{
+                    document.body.classList.toggle('nav-drawer-open', open);
+                }}
+                if (open && !isDropdown && fromKeyboard) {{
+                    var closeBtn = shell.querySelector('.mobile-close-btn');
+                    if (closeBtn) closeBtn.focus();
+                }}
+            }}
+
+            btn.addEventListener('click', function (e) {{
+                setOpen(!shell.classList.contains('is-open'), e.detail === 0);
+            }});
+
+            shell.addEventListener('click', function (e) {{
+                if (e.target.closest('[data-mobile-close]') || e.target.closest('.mobile-nav-links a') || e.target.closest('.mobile-drawer-actions a')) {{
+                    setOpen(false, false);
+                }}
+            }});
+
+            document.addEventListener('keydown', function (e) {{
+                if (e.key === 'Escape' && shell.classList.contains('is-open')) {{
+                    setOpen(false, true);
+                    btn.focus();
+                }}
+            }});
+
+            window.addEventListener('resize', function () {{
+                if (window.innerWidth > 900 && shell.classList.contains('is-open')) {{
+                    setOpen(false, false);
+                }} else if (isDropdown && shell.classList.contains('is-open')) {{
+                    positionDropdown();
+                }}
+            }});
+
+            window.addEventListener('scroll', function () {{
+                if (isDropdown && shell.classList.contains('is-open')) {{
+                    positionDropdown();
+                }}
+            }}, {{ passive: true }});
         }}
 
-        function setOpen(open, fromKeyboard) {{
-            if (open && isDropdown) positionDropdown();
-            if (!open && shell.contains(document.activeElement)) {{
-                btn.focus();
+        function syncThemeUI() {{
+            var mode = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+            var isDark = mode === 'dark';
+            var toggles = document.querySelectorAll('[data-theme-toggle]');
+            for (var i = 0; i < toggles.length; i++) {{
+                var t = toggles[i];
+                t.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+                t.setAttribute('aria-label', isDark ? 'लाइट मोड चालू करें' : 'डार्क मोड चालू करें');
+                var lbl = t.querySelector('.theme-toggle-label');
+                if (lbl) lbl.textContent = isDark ? 'लाइट' : 'डार्क';
+                var status = t.querySelector('[data-theme-status]');
+                if (status) status.textContent = isDark ? 'डार्क मोड सक्रिय' : 'लाइट मोड सक्रिय';
             }}
-            shell.classList.toggle('is-open', open);
-            btn.classList.toggle('is-open', open);
-            btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-            shell.setAttribute('aria-hidden', open ? 'false' : 'true');
-            if (!isDropdown) {{
-                document.body.classList.toggle('nav-drawer-open', open);
-            }}
-            if (open && !isDropdown && fromKeyboard) {{
-                var closeBtn = shell.querySelector('.mobile-close-btn');
-                if (closeBtn) closeBtn.focus();
+            var logos = document.querySelectorAll('img[data-adaptive-logo="true"]');
+            for (var j = 0; j < logos.length; j++) {{
+                var targetSrc = isDark ? logos[j].getAttribute('data-logo-dark') : logos[j].getAttribute('data-logo-light');
+                if (targetSrc && logos[j].getAttribute('src') !== targetSrc) {{
+                    logos[j].setAttribute('src', targetSrc);
+                }}
             }}
         }}
 
-        btn.addEventListener('click', function (e) {{
-            setOpen(!shell.classList.contains('is-open'), e.detail === 0);
+        function applyTheme(nextMode, persist) {{
+            var mode = nextMode === 'dark' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', mode);
+            if (persist) {{
+                try {{ localStorage.setItem('aabtak-theme', mode); }} catch (err) {{}}
+            }}
+            syncThemeUI();
+        }}
+
+        document.addEventListener('click', function (e) {{
+            var toggleBtn = e.target.closest('[data-theme-toggle]');
+            if (!toggleBtn) return;
+            var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+            applyTheme(current === 'dark' ? 'light' : 'dark', true);
         }});
 
-        shell.addEventListener('click', function (e) {{
-            if (e.target.closest('[data-mobile-close]') || e.target.closest('.mobile-nav-links a') || e.target.closest('.mobile-drawer-actions a')) {{
-                setOpen(false, false);
+        window.addEventListener('storage', function (e) {{
+            if (e.key === 'aabtak-theme' && (e.newValue === 'dark' || e.newValue === 'light')) {{
+                applyTheme(e.newValue, false);
             }}
         }});
 
-        document.addEventListener('keydown', function (e) {{
-            if (e.key === 'Escape' && shell.classList.contains('is-open')) {{
-                setOpen(false, true);
-                btn.focus();
-            }}
-        }});
+        if (window.matchMedia) {{
+            var mq = window.matchMedia('(prefers-color-scheme: dark)');
+            var onSystemChange = function (e) {{
+                if (document.documentElement.getAttribute('data-default-theme') !== 'system') return;
+                var saved = null;
+                try {{ saved = localStorage.getItem('aabtak-theme'); }} catch (err) {{}}
+                if (saved !== 'light' && saved !== 'dark') {{
+                    applyTheme(e.matches ? 'dark' : 'light', false);
+                }}
+            }};
+            if (mq.addEventListener) mq.addEventListener('change', onSystemChange);
+            else if (mq.addListener) mq.addListener(onSystemChange);
+        }}
 
-        window.addEventListener('resize', function () {{
-            if (window.innerWidth > 900 && shell.classList.contains('is-open')) {{
-                setOpen(false, false);
-            }} else if (isDropdown && shell.classList.contains('is-open')) {{
-                positionDropdown();
-            }}
-        }});
-
-        window.addEventListener('scroll', function () {{
-            if (isDropdown && shell.classList.contains('is-open')) {{
-                positionDropdown();
-            }}
-        }}, {{ passive: true }});
+        syncThemeUI();
+        if (document.readyState === 'loading') {{
+            document.addEventListener('DOMContentLoaded', syncThemeUI);
+        }}
     }})();
     </script>"""
 
@@ -1261,10 +1690,14 @@ def get_footer_html(config, prefix="", active_file=""):
 
     show_logo = footer.get("show_logo", True)
     logo_file = "logo.svg" if theme == "light" else "logo-light.svg"
+    footer_adaptive_attrs = (
+        f' data-adaptive-logo="true" data-logo-light="{prefix}logo.svg" data-logo-dark="{prefix}logo-light.svg"'
+        if theme == "light" else ""
+    )
     if show_logo:
         brand_head_html = (
             f'<a href="{prefix}index.html" class="footer-logo notranslate" translate="no" aria-label="अबतक24.in होमपेज">\n'
-            f'                    <img src="{prefix}{logo_file}" alt="अबतक24.in" width="194" height="34" loading="lazy" decoding="async">\n'
+            f'                    <img src="{prefix}{logo_file}" alt="अबतक24.in" width="194" height="34" loading="lazy" decoding="async"{footer_adaptive_attrs}>\n'
             f'                </a>'
         )
     else:
@@ -1411,7 +1844,7 @@ def build_individual_article_page(art, today_str, config, image_resolver=None):
     <!-- Google News JSON-LD Schema -->
     <script type="application/ld+json">{schema_json}</script>
 
-{get_head_links(css_path="../style.css", preload_img=article_img_src)}
+{get_head_links(css_path="../style.css", preload_img=article_img_src, config=config)}
 </head>
 <body>
 {get_top_bar_html(config, today_str)}
@@ -1492,7 +1925,7 @@ def build_category_pages(articles, today_str, config, image_resolver=None):
     <title>{cat_name} समाचार | अबतक24.in (Aabtak24.in)</title>
     <meta name="description" content="अबतक24.in पर पढ़ें {cat_name} से जुड़ी ताज़ा और प्रमुख हिंदी खबरें।">
     <link rel="canonical" href="{SITE_URL}/{cat_file}">
-{get_head_links(css_path="style.css")}
+{get_head_links(css_path="style.css", config=config)}
 </head>
 <body>
 {get_top_bar_html(config, today_str)}
@@ -1565,7 +1998,7 @@ def build_custom_pages(today_str, config):
     <title>{page_title}</title>
     <meta name="description" content="{meta_desc}">
     <link rel="canonical" href="{SITE_URL}/{output_file}">
-{get_head_links(css_path="style.css")}
+{get_head_links(css_path="style.css", config=config)}
 </head>
 <body>
 {get_top_bar_html(config, today_str)}
@@ -1657,7 +2090,7 @@ def build_404_page(articles, today_str, config, image_resolver=None):
     <title>पृष्ठ नहीं मिला (404) | अबतक24.in (Aabtak24.in)</title>
     <meta name="description" content="क्षमा करें, आप जिस पृष्ठ को खोज रहे हैं वह उपलब्ध नहीं है या हटाया जा चुका है। अबतक24.in के मुख्य पृष्ठ पर जाएं और ताज़ा हिंदी खबरें पढ़ें।">
     <meta name="robots" content="noindex, follow">
-{get_head_links(css_path="/style.css")}
+{get_head_links(css_path="/style.css", config=config)}
 </head>
 <body>
 {get_top_bar_html(config, today_str)}
@@ -1793,6 +2226,320 @@ Sitemap: {SITE_URL}/sitemap.xml
     print("✅ Generated sitemap.xml and robots.txt for Google SEO!")
 
 
+def _resolve_section_category(category_key, config):
+    """Resolves a homepage section's category setting ('all', category id, name, or alias) to a category dict or None."""
+    cleaned = str(category_key or "all").strip()
+    if not cleaned or cleaned.lower() == "all":
+        return None
+    lower_key = cleaned.lower()
+    for cat in config.get("categories", []) or []:
+        if not isinstance(cat, dict):
+            continue
+        if str(cat.get("id", "") or "").strip().lower() == lower_key:
+            return cat
+    for cat in config.get("categories", []) or []:
+        if not isinstance(cat, dict):
+            continue
+        cat_name = str(cat.get("name", "") or "").strip()
+        aliases = {str(a).strip() for a in (cat.get("aliases") or []) if str(a).strip()} | ({cat_name} if cat_name else set())
+        if cleaned in aliases:
+            return cat
+    return None
+
+
+def _filter_articles_for_section(articles, category_key, config, max_articles, seen_slugs, deduplicate):
+    """Selects up to max_articles matching a section's category while optionally skipping already-shown articles."""
+    cleaned = str(category_key or "all").strip()
+    matched_cat = _resolve_section_category(cleaned, config)
+
+    if not cleaned or cleaned.lower() == "all":
+        candidates = list(articles)
+    elif matched_cat is not None:
+        cat_name = str(matched_cat.get("name", "") or "").strip()
+        valid_aliases = {str(a).strip() for a in (matched_cat.get("aliases") or []) if str(a).strip()} | ({cat_name} if cat_name else set())
+        candidates = [a for a in articles if str(a.get("category", "") or "").strip() in valid_aliases]
+    else:
+        candidates = [a for a in articles if str(a.get("category", "") or "").strip() == cleaned]
+
+    if deduplicate:
+        candidates = [a for a in candidates if a.get("slug") not in seen_slugs]
+
+    selected = candidates[:max_articles]
+    for art in selected:
+        if art.get("slug"):
+            seen_slugs.add(art["slug"])
+    return selected, matched_cat
+
+
+def _extract_article_excerpt(content_html, max_chars=145):
+    """Extracts a clean plain-text excerpt from article HTML for featured magazine lead cards."""
+    plain = BeautifulSoup(str(content_html or ""), "html.parser").get_text().strip()
+    plain = re.sub(r"\s+", " ", plain)
+    if len(plain) <= max_chars:
+        return plain
+    trimmed = plain[:max_chars].rsplit(" ", 1)[0].strip() or plain[:max_chars].strip()
+    return f"{trimmed}..."
+
+
+def _render_homepage_section(section, sec_articles, matched_cat, resolver, is_first_section=False):
+    """Renders one configurable homepage section in any of the 5 supported layouts and returns (html, lcp_img_url)."""
+    if not sec_articles:
+        return "", None
+
+    layout = section.get("layout", "grid")
+    if layout not in HOMEPAGE_LAYOUTS:
+        layout = "grid"
+
+    sec_id = html.escape(str(section.get("id", "section")), quote=True)
+    sec_title = html.escape(str(section.get("title", "समाचार")), quote=True)
+    sec_subtitle = str(section.get("subtitle", "") or "").strip()
+    show_view_all = bool(section.get("show_view_all", False))
+
+    view_all_html = ""
+    if show_view_all and matched_cat and matched_cat.get("file"):
+        cat_file = html.escape(os.path.basename(str(matched_cat["file"]).strip()), quote=True)
+        cat_label = html.escape(str(matched_cat.get("name", "") or "सभी").strip(), quote=True)
+        view_all_html = f'<a href="{cat_file}" class="section-view-all" aria-label="{cat_label} के सभी समाचार देखें">सभी देखें →</a>'
+
+    right_parts = []
+    if sec_subtitle:
+        right_parts.append(f'<span class="section-subtitle">{html.escape(sec_subtitle, quote=True)}</span>')
+    if view_all_html:
+        right_parts.append(view_all_html)
+    right_html = f'<div class="section-rule-right">{" ".join(right_parts)}</div>' if right_parts else ""
+
+    # Preserve single semantic <h1> per page: hero/magazine lead gets <h1> on first section; other layouts promote section heading
+    uses_card_h1 = is_first_section and layout in ("bento", "magazine")
+    rule_heading_tag = "h1" if (is_first_section and not uses_card_h1) else "h2"
+    rule_html = f"""        <div class="section-rule">
+            <{rule_heading_tag}>{sec_title}</{rule_heading_tag}>
+            {right_html}
+        </div>"""
+
+    lcp_img = None
+    body_html = ""
+
+    if layout == "bento":
+        hero = sec_articles[0]
+        hero_link = f"news/{hero['slug']}.html"
+        hero_img, hero_fallback = resolver.resolve(hero.get("image_url", ""), width=800)
+        if is_first_section:
+            lcp_img = hero_img
+        hero_load_attrs = 'fetchpriority="high" loading="eager" decoding="sync"' if is_first_section else 'loading="lazy" decoding="async"'
+        hero_img_tag = build_img_tag(
+            hero_img,
+            hero["title"],
+            width=800,
+            height=410,
+            fallback_src=hero_fallback,
+            extra_attrs=hero_load_attrs,
+        )
+        hero_h_tag = "h1" if is_first_section else "h2"
+        hero_cat = html.escape(str(hero.get("category", "बड़ी खबर") or "बड़ी खबर"), quote=True)
+        hero_title = html.escape(str(hero.get("title", "")), quote=True)
+        hero_date = html.escape(str(hero.get("date", "")), quote=True)
+
+        side_articles = sec_articles[1:]
+        side_html = ""
+        for art in side_articles:
+            art_link = f"news/{art['slug']}.html"
+            thumb_img, thumb_fallback = resolver.resolve(art.get("image_url", ""), width=300)
+            thumb_img_tag = build_img_tag(
+                thumb_img,
+                art["title"],
+                width=128,
+                height=94,
+                fallback_src=thumb_fallback,
+                extra_attrs='loading="lazy" decoding="async"',
+            )
+            art_cat = html.escape(str(art.get("category", "प्रमुख समाचार") or "प्रमुख समाचार"), quote=True)
+            art_title = html.escape(str(art.get("title", "")), quote=True)
+            art_date = html.escape(str(art.get("date", "")), quote=True)
+            side_html += f"""
+            <a href="{art_link}" class="side-card">
+                {thumb_img_tag}
+                <div>
+                    <span class="badge">{art_cat}</span>
+                    <h2 class="side-title">{art_title}</h2>
+                    <div class="meta">{art_date}</div>
+                </div>
+            </a>"""
+
+        bento_cls = "bento-grid" if side_articles else "bento-grid bento-single"
+        side_stack_html = f'\n            <div class="side-stack">{side_html}\n            </div>' if side_articles else ""
+        body_html = f"""        <div class="{bento_cls}">
+            <a href="{hero_link}" class="hero-card">
+                <div class="img-wrap">{hero_img_tag}</div>
+                <div class="card-body">
+                    <div>
+                        <span class="badge">{hero_cat}</span>
+                        <{hero_h_tag} class="hero-title">{hero_title}</{hero_h_tag}>
+                    </div>
+                    <div class="meta">प्रकाशित: {hero_date} <span class="meta-dot"></span> 2 मिनट पठन</div>
+                </div>
+            </a>{side_stack_html}
+        </div>"""
+
+    elif layout == "magazine":
+        lead = sec_articles[0]
+        lead_link = f"news/{lead['slug']}.html"
+        lead_img, lead_fallback = resolver.resolve(lead.get("image_url", ""), width=800)
+        if is_first_section:
+            lcp_img = lead_img
+        lead_load_attrs = 'fetchpriority="high" loading="eager" decoding="sync"' if is_first_section else 'loading="lazy" decoding="async"'
+        lead_img_tag = build_img_tag(
+            lead_img,
+            lead["title"],
+            width=760,
+            height=420,
+            fallback_src=lead_fallback,
+            extra_attrs=lead_load_attrs,
+        )
+        lead_h_tag = "h1" if is_first_section else "h2"
+        lead_cat = html.escape(str(lead.get("category", "विशेष खबर") or "विशेष खबर"), quote=True)
+        lead_title = html.escape(str(lead.get("title", "")), quote=True)
+        lead_date = html.escape(str(lead.get("date", "")), quote=True)
+        lead_excerpt = html.escape(_extract_article_excerpt(lead.get("content_html", ""), max_chars=150), quote=True)
+        excerpt_html = f'<p class="magazine-excerpt">{lead_excerpt}</p>' if lead_excerpt else ""
+
+        rest_articles = sec_articles[1:]
+        list_html = ""
+        for art in rest_articles:
+            art_link = f"news/{art['slug']}.html"
+            thumb_img, thumb_fallback = resolver.resolve(art.get("image_url", ""), width=260)
+            thumb_img_tag = build_img_tag(
+                thumb_img,
+                art["title"],
+                width=112,
+                height=82,
+                fallback_src=thumb_fallback,
+                extra_attrs='loading="lazy" decoding="async"',
+            )
+            art_cat = html.escape(str(art.get("category", "समाचार") or "समाचार"), quote=True)
+            art_title = html.escape(str(art.get("title", "")), quote=True)
+            art_date = html.escape(str(art.get("date", "")), quote=True)
+            list_html += f"""
+            <a href="{art_link}" class="magazine-item">
+                {thumb_img_tag}
+                <div class="magazine-item-body">
+                    <span class="badge">{art_cat}</span>
+                    <h2 class="magazine-item-title">{art_title}</h2>
+                    <div class="meta">{art_date}</div>
+                </div>
+            </a>"""
+
+        mag_cls = "magazine-grid" if rest_articles else "magazine-grid magazine-single"
+        mag_list_html = f'\n            <div class="magazine-list">{list_html}\n            </div>' if rest_articles else ""
+        body_html = f"""        <div class="{mag_cls}">
+            <a href="{lead_link}" class="magazine-lead-card">
+                <div class="magazine-lead-img">{lead_img_tag}</div>
+                <div class="magazine-lead-body">
+                    <span class="badge">{lead_cat}</span>
+                    <{lead_h_tag} class="magazine-lead-title">{lead_title}</{lead_h_tag}>
+                    {excerpt_html}
+                    <div class="meta">प्रकाशित: {lead_date} <span class="meta-dot"></span> पूरा लेख पढ़ें →</div>
+                </div>
+            </a>{mag_list_html}
+        </div>"""
+
+    elif layout == "compact-list":
+        items_html = ""
+        for idx, art in enumerate(sec_articles):
+            art_link = f"news/{art['slug']}.html"
+            thumb_img, thumb_fallback = resolver.resolve(art.get("image_url", ""), width=300)
+            if is_first_section and idx == 0:
+                lcp_img = thumb_img
+            load_attrs = 'fetchpriority="high" loading="eager" decoding="sync"' if (is_first_section and idx == 0) else 'loading="lazy" decoding="async"'
+            thumb_img_tag = build_img_tag(
+                thumb_img,
+                art["title"],
+                width=128,
+                height=94,
+                fallback_src=thumb_fallback,
+                extra_attrs=load_attrs,
+            )
+            art_cat = html.escape(str(art.get("category", "समाचार") or "समाचार"), quote=True)
+            art_title = html.escape(str(art.get("title", "")), quote=True)
+            art_date = html.escape(str(art.get("date", "")), quote=True)
+            items_html += f"""
+            <a href="{art_link}" class="side-card compact-card">
+                {thumb_img_tag}
+                <div>
+                    <span class="badge">{art_cat}</span>
+                    <h2 class="side-title">{art_title}</h2>
+                    <div class="meta">{art_date}</div>
+                </div>
+            </a>"""
+        body_html = f'        <div class="compact-list-grid">{items_html}\n        </div>'
+
+    elif layout == "strip":
+        cards_html = ""
+        for idx, art in enumerate(sec_articles):
+            art_link = f"news/{art['slug']}.html"
+            card_img, card_fallback = resolver.resolve(art.get("image_url", ""), width=420)
+            if is_first_section and idx == 0:
+                lcp_img = card_img
+            load_attrs = 'fetchpriority="high" loading="eager" decoding="sync"' if (is_first_section and idx == 0) else 'loading="lazy" decoding="async"'
+            card_img_tag = build_img_tag(
+                card_img,
+                art["title"],
+                width=320,
+                height=180,
+                fallback_src=card_fallback,
+                extra_attrs=load_attrs,
+            )
+            art_cat = html.escape(str(art.get("category", "समाचार") or "समाचार"), quote=True)
+            art_title = html.escape(str(art.get("title", "")), quote=True)
+            art_date = html.escape(str(art.get("date", "")), quote=True)
+            cards_html += f"""
+            <a href="{art_link}" class="strip-card">
+                {card_img_tag}
+                <div class="strip-card-body">
+                    <span class="badge">{art_cat}</span>
+                    <h2 class="strip-title">{art_title}</h2>
+                    <div class="meta">{art_date}</div>
+                </div>
+            </a>"""
+        body_html = f'        <div class="strip-grid">{cards_html}\n        </div>'
+
+    else:
+        # Standard 3-Column Responsive Card Grid ("grid")
+        cards_html = ""
+        for idx, art in enumerate(sec_articles):
+            art_link = f"news/{art['slug']}.html"
+            card_img, card_fallback = resolver.resolve(art.get("image_url", ""), width=480)
+            if is_first_section and idx == 0:
+                lcp_img = card_img
+            load_attrs = 'fetchpriority="high" loading="eager" decoding="sync"' if (is_first_section and idx == 0) else 'loading="lazy" decoding="async"'
+            card_img_tag = build_img_tag(
+                card_img,
+                art["title"],
+                width=400,
+                height=200,
+                fallback_src=card_fallback,
+                extra_attrs=load_attrs,
+            )
+            art_cat = html.escape(str(art.get("category", "समाचार") or "समाचार"), quote=True)
+            art_title = html.escape(str(art.get("title", "")), quote=True)
+            art_date = html.escape(str(art.get("date", "")), quote=True)
+            cards_html += f"""
+            <a href="{art_link}" class="archive-card">
+                {card_img_tag}
+                <div class="archive-card-body">
+                    <span class="badge">{art_cat}</span>
+                    <h2 class="side-title">{art_title}</h2>
+                    <div class="meta">{art_date}</div>
+                </div>
+            </a>"""
+        body_html = f'        <div class="archive-grid">{cards_html}\n        </div>'
+
+    section_html = f"""    <section class="homepage-section homepage-layout-{layout}" data-section-id="{sec_id}" data-section-layout="{layout}">
+{rule_html}
+{body_html}
+    </section>"""
+    return section_html, lcp_img
+
+
 def build_website_html(articles, config=None, skip_image_check=None, image_resolver=None):
     """Generates index.html, category pages, custom pages, and individual article pages."""
     if config is None:
@@ -1815,70 +2562,45 @@ def build_website_html(articles, config=None, skip_image_check=None, image_resol
     for art in articles:
         build_individual_article_page(art, today_str, config, image_resolver=resolver)
 
-    hero = articles[0]
-    hero_link = f"news/{hero['slug']}.html"
-    hero_img, hero_fallback = resolver.resolve(hero.get("image_url", ""), width=800)
-    hero_img_tag = build_img_tag(
-        hero_img,
-        hero["title"],
-        width=800,
-        height=410,
-        fallback_src=hero_fallback,
-        extra_attrs='fetchpriority="high" loading="eager" decoding="sync"',
-    )
+    homepage_cfg = normalize_homepage_config(config.get("homepage"))
+    dedupe = bool(homepage_cfg.get("deduplicate_across_sections", True))
+    sections_cfg = [s for s in homepage_cfg.get("sections", []) if s.get("enabled", True)]
 
-    side_html = ""
-    for art in articles[1:5]:
-        art_link = f"news/{art['slug']}.html"
-        thumb_img, thumb_fallback = resolver.resolve(art.get("image_url", ""), width=300)
-        thumb_img_tag = build_img_tag(
-            thumb_img,
-            art["title"],
-            width=128,
-            height=94,
-            fallback_src=thumb_fallback,
-            extra_attrs='loading="lazy" decoding="async"',
-        )
-        side_html += f"""
-        <a href="{art_link}" class="side-card">
-            {thumb_img_tag}
-            <div>
-                <span class="badge">{art.get('category', 'प्रमुख समाचार')}</span>
-                <h2 class="side-title">{art['title']}</h2>
-                <div class="meta">{art['date']}</div>
-            </div>
-        </a>"""
-
-    more_html = ""
-    if len(articles) > 5:
-        cards = ""
-        for art in articles[5:]:
-            art_link = f"news/{art['slug']}.html"
-            card_img, card_fallback = resolver.resolve(art.get("image_url", ""), width=480)
-            card_img_tag = build_img_tag(
-                card_img,
-                art["title"],
-                width=400,
-                height=200,
-                fallback_src=card_fallback,
-                extra_attrs='loading="lazy" decoding="async"',
+    def _render_sections_list(sec_list):
+        rendered_blocks = []
+        seen_slugs = set()
+        lcp_preload = None
+        for sec in sec_list:
+            sec_articles, matched_cat = _filter_articles_for_section(
+                articles,
+                sec.get("category", "all"),
+                config,
+                sec.get("max_articles", 6),
+                seen_slugs,
+                dedupe,
             )
-            cards += f"""
-            <a href="{art_link}" class="archive-card">
-                {card_img_tag}
-                <div class="archive-card-body">
-                    <span class="badge">{art.get('category', 'समाचार')}</span>
-                    <h2 class="side-title">{art['title']}</h2>
-                    <div class="meta">{art['date']}</div>
-                </div>
-            </a>"""
-        more_html = f"""
-        <div class="section-rule">
-            <h2>अन्य खबरें / More News</h2>
-            <span>सभी समाचार</span>
-        </div>
-        <div class="archive-grid">{cards}</div>
-        """
+            if not sec_articles:
+                continue
+            is_first = len(rendered_blocks) == 0
+            sec_html, sec_lcp = _render_homepage_section(
+                sec,
+                sec_articles,
+                matched_cat,
+                resolver,
+                is_first_section=is_first,
+            )
+            if sec_html:
+                rendered_blocks.append(sec_html)
+                if is_first and sec_lcp:
+                    lcp_preload = sec_lcp
+        return rendered_blocks, lcp_preload
+
+    section_blocks, lcp_img = _render_sections_list(sections_cfg)
+    if not section_blocks:
+        # Safety net: never leave homepage empty if all custom sections were disabled or matched 0 articles
+        section_blocks, lcp_img = _render_sections_list(DEFAULT_SITE_CONFIG["homepage"]["sections"])
+
+    main_sections_html = "\n\n".join(section_blocks)
 
     html_template = f"""<!DOCTYPE html>
 <html lang="hi">
@@ -1891,7 +2613,7 @@ def build_website_html(articles, config=None, skip_image_check=None, image_resol
     <meta property="og:type" content="website">
     <meta property="og:title" content="अबतक24.in | हिंदी न्यूज़ पोर्टल">
     <meta property="og:url" content="{SITE_URL}/">
-{get_head_links(css_path="style.css", preload_img=hero_img)}
+{get_head_links(css_path="style.css", preload_img=lcp_img, config=config)}
 </head>
 <body>
 {get_top_bar_html(config, today_str)}
@@ -1899,24 +2621,7 @@ def build_website_html(articles, config=None, skip_image_check=None, image_resol
 {get_header_html(config, prefix="", active_file="index.html")}
 
     <main class="container">
-        <div class="section-rule">
-            <h2>प्रमुख सुर्खियां / Top Stories</h2>
-            <span>ताज़ा अपडेट्स</span>
-        </div>
-        <div class="bento-grid">
-            <a href="{hero_link}" class="hero-card">
-                <div class="img-wrap">{hero_img_tag}</div>
-                <div class="card-body">
-                    <div>
-                        <span class="badge">{hero.get('category', 'बड़ी खबर')}</span>
-                        <h1 class="hero-title">{hero['title']}</h1>
-                    </div>
-                    <div class="meta">प्रकाशित: {hero['date']} <span class="meta-dot"></span> 2 मिनट पठन</div>
-                </div>
-            </a>
-            <div class="side-stack">{side_html}</div>
-        </div>
-        {more_html}
+{main_sections_html}
     </main>
 
 {get_footer_html(config, prefix="", active_file="index.html")}

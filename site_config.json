@@ -115,6 +115,8 @@
     "mobile_theme": "auto",
     "mobile_menu_label": "मेनू",
     "mobile_show_tagline": true,
+    "theme_toggle_enabled": true,
+    "default_color_mode": "light",
     "action_links": [],
     "colors": {}
   },
@@ -225,5 +227,31 @@
     "copyright_text": "© {year} Aabtak24.in • सर्वाधिकार सुरक्षित।",
     "bottom_note": "डिजिटल संस्करण • INDIA",
     "colors": {}
+  },
+  "homepage": {
+    "preset": "classic-bento",
+    "deduplicate_across_sections": true,
+    "sections": [
+      {
+        "id": "top-stories",
+        "enabled": true,
+        "title": "प्रमुख सुर्खियां / Top Stories",
+        "subtitle": "ताज़ा अपडेट्स",
+        "category": "all",
+        "layout": "bento",
+        "max_articles": 5,
+        "show_view_all": false
+      },
+      {
+        "id": "more-news",
+        "enabled": true,
+        "title": "अन्य खबरें / More News",
+        "subtitle": "सभी समाचार",
+        "category": "all",
+        "layout": "grid",
+        "max_articles": 12,
+        "show_view_all": false
+      }
+    ]
   }
 }

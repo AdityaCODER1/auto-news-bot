@@ -625,6 +625,10 @@ def load_site_config():
                         if key not in footer_cfg:
                             footer_cfg[key] = copy.deepcopy(default_val)
                 data["homepage"] = normalize_homepage_config(data.get("homepage"))
+                if "editors_vault" in data and not isinstance(data.get("editors_vault"), list):
+                    data["editors_vault"] = []
+                if "admin_lock" in data and data.get("admin_lock") is not None and not isinstance(data.get("admin_lock"), dict):
+                    data["admin_lock"] = None
                 return data
             print(f"⚠️ {CONFIG_FILE} missing required keys. Using fallback config.")
         except Exception as e:
@@ -2467,6 +2471,8 @@ def _is_manual_article(art):
     """Returns True if an article was written manually (not fetched from an external RSS source)."""
     if not isinstance(art, dict):
         return False
+    if str(art.get("author_username", "") or "").strip():
+        return True
     source_name = str(art.get("source_name", "") or "").strip()
     source_lower = source_name.lower()
     if (

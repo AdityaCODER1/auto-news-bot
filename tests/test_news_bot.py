@@ -1390,6 +1390,77 @@ class TestHomepageCustomizationAndThemeToggle(unittest.TestCase):
         self.assertIn("top: 0", sticky_m.group(1))
         self.assertIn("prefers-reduced-motion: reduce", css_text)
 
+    def test_multi_editor_vault_and_internal_author_metadata_preserved_without_public_leak(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            old_cwd = os.getcwd()
+            os.chdir(tmpdir)
+            try:
+                cfg_payload = copy.deepcopy(news_bot.DEFAULT_SITE_CONFIG)
+                cfg_payload["admin_lock"] = {
+                    "v": 2,
+                    "encrypted_token": "ZW5jcnlwdGVkLWFkbWluLWxvY2s=",
+                    "updated_at": "2026-11-19T10:00:00.000Z",
+                }
+                cfg_payload["editors_vault"] = [
+                    {
+                        "id": "ed-1",
+                        "user_hash": "a" * 64,
+                        "permission": "own_only",
+                        "active": True,
+                        "encrypted_lock": "ZW5jcnlwdGVkLWVkaXRvci1sb2Nr",
+                        "token_envelope": "dG9rZW4tZW52ZWxvcGU=",
+                        "admin_meta": "YWRtaW4tbWV0YQ==",
+                    }
+                ]
+                with open(news_bot.CONFIG_FILE, "w", encoding="utf-8") as f:
+                    json.dump(cfg_payload, f, ensure_ascii=False, indent=2)
+
+                loaded = news_bot.load_site_config()
+                self.assertEqual(loaded["admin_lock"], cfg_payload["admin_lock"])
+                self.assertEqual(loaded["editors_vault"], cfg_payload["editors_vault"])
+
+                sub_editor_art = _make_article(
+                    "sub-editor-exclusive-report",
+                    title="संपादक द्वारा लिखित विशेष समाचार रिपोर्ट",
+                    source_name="अबतक24 न्यूज़ डेस्क",
+                )
+                sub_editor_art["author_username"] = "reporter.one@example.com"
+                sub_editor_art["author_name"] = "राहुल शर्मा"
+                sub_editor_art["updated_by"] = "reporter.one@example.com"
+
+                self.assertTrue(news_bot._is_manual_article(sub_editor_art))
+                self.assertTrue(
+                    news_bot._is_manual_article(
+                        {
+                            "title": "Author tagged post",
+                            "source_name": "External Wire",
+                            "original_link": "https://external.example.com/1",
+                            "author_username": "editor@example.com",
+                        }
+                    )
+                )
+
+                articles = [sub_editor_art]
+                news_bot.build_website_html(articles, config=loaded, skip_image_check=True)
+
+                # Internal author metadata remains intact in the article object
+                self.assertEqual(articles[0]["author_username"], "reporter.one@example.com")
+                self.assertEqual(articles[0]["author_name"], "राहुल शर्मा")
+                self.assertEqual(articles[0]["updated_by"], "reporter.one@example.com")
+
+                # Public article HTML keeps standard Aabtak24 byline and never leaks private email or vault fields
+                article_html = Path("news/sub-editor-exclusive-report.html").read_text(encoding="utf-8")
+                index_html = Path("index.html").read_text(encoding="utf-8")
+                self.assertIn("न्यूज़ डेस्क", article_html)
+                self.assertIn("Aabtak24 News Desk", article_html)
+                for public_html in (article_html, index_html):
+                    self.assertNotIn("reporter.one@example.com", public_html)
+                    self.assertNotIn("ZW5jcnlwdGVkLWFkbWluLWxvY2s=", public_html)
+                    self.assertNotIn("editors_vault", public_html)
+                    self.assertNotIn("admin_lock", public_html)
+            finally:
+                os.chdir(old_cwd)
+
 
 if __name__ == "__main__":
     unittest.main()
